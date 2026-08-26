@@ -19,3 +19,7 @@ Task 4 UI baseline for the Qiniu MaaS settings marketplace, API-key panel, usage
   - Result: unavailable; pnpm reported `ERR_PNPM_RECURSIVE_RUN_NO_SCRIPT: None of the selected packages has a "build" script`.
 
 No secret files were read or accessed.
+
+## Commit Follow-Up
+
+At finalization time, `git status --porcelain=v1 --untracked-files=all` was clean. The Task 4 UI files were already committed in `8f53dbc` (`feat: add qiniu maas settings marketplace ui`); no additional uncommitted UI files were present to stage.
