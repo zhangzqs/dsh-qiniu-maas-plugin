@@ -82,10 +82,20 @@ Review-fix verification:
 - Recursive typecheck: `pnpm -r typecheck`, `packages/maas-sdk` and `packages/dsh-qiniu-maas` passed.
 - Formatting check: `git diff --check` passed.
 
-## Task 3 Review-Fix Commit Report
+## Task 3 Review-Fix Second-Round Report
 
-- Full verification: `pnpm test` passed 4 files and 25 tests.
-- Recursive typecheck: `pnpm -r typecheck` passed.
-- Diff validation: `git diff --check` passed.
-- Committed files include the six Task 3 source/package files and `packages/dsh-qiniu-maas/tests/host.spec.ts`.
+- Adapter lifecycle now models the DSH callable registration handle and invokes `.replace` whenever present, including transitions to empty routes without duplicate registration.
+- Settings cleanup stops the watcher and disposes registrations; it does not call a nonexistent `SettingsScope.dispose()` method.
+- The package entrypoint exports `inject`, covered by the host entrypoint contract test.
+- API-key listing preserves already masked values and masks unexpected unmasked formats, including non-`sk-` secrets.
+- Discovery requests type `provider` as optional and handle omitted providers without issuing an incorrect request.
+- Native delegate typing remains precise and management SDK usage remains limited to management APIs, with an explicit unavailable-delegate error.
+- Settings callable validation behaviorally requires `models`, matching the schema declaration.
 - `packages/dsh-qiniu-maas/tests/provider.spec.ts` remains unchanged.
+
+Verification:
+
+- `pnpm exec vitest run packages/dsh-qiniu-maas/tests/host.spec.ts packages/maas-sdk/tests/resources.spec.ts`: 2 files, 13 tests passed.
+- `pnpm test`: 4 files, 26 tests passed.
+- `pnpm -r typecheck`: passed for `packages/maas-sdk` and `packages/dsh-qiniu-maas`.
+- `git diff --check`: passed.
