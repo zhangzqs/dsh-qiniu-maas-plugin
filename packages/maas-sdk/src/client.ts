@@ -57,9 +57,19 @@ export class MaaSClient {
       }
       headers.set('authorization', await createQiniuAuthorization(this.accessKey, this.secretKey, url));
     }
-    const response = await this.fetcher(url, { method: 'GET', headers });
+    let response: Response;
+    try {
+      response = await this.fetcher(url, { method: 'GET', headers });
+    } catch {
+      throw new MaaSError({ operation, message: 'Qiniu transport request failed' });
+    }
     if (!response.ok) {
-      throw new MaaSError({ operation, status: response.status, message: `Qiniu request failed (${response.status})` });
+      throw new MaaSError({
+        operation,
+        status: response.status,
+        requestId: response.headers.get('x-reqid') ?? response.headers.get('x-request-id') ?? undefined,
+        message: `Qiniu request failed (${response.status})`
+      });
     }
     return response;
   }
