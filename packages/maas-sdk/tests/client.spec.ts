@@ -46,8 +46,9 @@ test('sends a generated AK/SK Authorization value for privileged requests', asyn
   };
 
   const client = new MaaSClient({ fetch: fetcher, accessKey: 'test-ak', secretKey: 'test-sk' });
-  await client.getAccount();
+  await client.requestManagement('/inapi/v3/apikeys');
 
   const authorization = request?.headers.get('authorization');
-  expect(authorization).toBe('Qiniu test-ak:GoyhJ0Y_tiIoe0-jBHJcJGdygxQ');
+  expect(request?.url).toBe('https://api.qiniu.com/ai/inapi/v3/apikeys');
+  expect(authorization).toBe('Qiniu test-ak:QrQkHgZL0GgjW87NBEhWLLn1D4Q');
 });

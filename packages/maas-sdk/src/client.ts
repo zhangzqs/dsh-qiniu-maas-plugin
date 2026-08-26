@@ -41,10 +41,11 @@ export class MaaSClient {
     });
   }
 
-  async getAccount(): Promise<Record<string, unknown>> {
-    const response = await this.request('/inapi/v3/account', 'getAccount', true);
-    const payload = (await response.json()) as { data?: unknown };
-    return payload.data && typeof payload.data === 'object' ? payload.data as Record<string, unknown> : {};
+  async requestManagement(path: string): Promise<Response> {
+    if (!path.startsWith('/inapi/')) {
+      throw new MaaSError({ operation: 'requestManagement', message: 'Management path must use /inapi/' });
+    }
+    return this.request(path, 'requestManagement', true);
   }
 
   private async request(path: string, operation: string, privileged: boolean): Promise<Response> {
