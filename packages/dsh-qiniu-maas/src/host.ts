@@ -56,8 +56,8 @@ function fetchFor(ctx: ContextLike, config: QiniuHostConfig): typeof globalThis.
   return config.fetch ?? (ctx.get('fetch') as typeof globalThis.fetch | undefined) ?? globalThis.fetch
 }
 
-function managementClient(ctx: ContextLike, config: QiniuHostConfig, signal?: AbortSignal): MaaSClient {
-  return new MaaSClient({ fetch: fetchFor(ctx, config), accessKey: undefined, secretKey: undefined, signal })
+function managementClient(ctx: ContextLike, config: QiniuHostConfig): MaaSClient {
+  return new MaaSClient({ fetch: fetchFor(ctx, config), accessKey: undefined, secretKey: undefined })
 }
 
 async function credential(ctx: ContextLike, ref: string): Promise<string | undefined> {
@@ -115,7 +115,7 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
   if (ctx.llm.registerModelDiscovery) {
     discoveryRegistration = ctx.llm.registerModelDiscovery(QINIU_SETTINGS_NS, async (request) => {
       if (request.provider !== QINIU_SETTINGS_NS) return []
-      const models = await managementClient(ctx, config, request.signal).listModels({ signal: request.signal })
+      const models = await managementClient(ctx, config).listModels({ signal: request.signal })
       return models.map(model => ({ id: model.id, name: model.name, contextWindow: model.contextWindow, maxTokens: model.maxOutputTokens }))
     })
   }

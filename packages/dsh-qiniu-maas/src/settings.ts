@@ -37,14 +37,27 @@ export function normalizeQiniuSettings(value: unknown): QiniuSettings {
   return { models, ...(typeof input.defaultModel === 'string' ? { defaultModel: input.defaultModel } : {}) }
 }
 
+const QiniuModelSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'string', minLength: 1 },
+    enabled: { type: 'boolean' },
+    contextWindow: { type: 'number', minimum: 1 },
+    maxOutputTokens: { type: 'number', minimum: 1 },
+  },
+  required: ['id', 'enabled'],
+}
+
+const QiniuSettingsJsonSchema = {
+  type: 'object',
+  properties: {
+    models: { type: 'array', items: QiniuModelSchema },
+    defaultModel: { type: 'string', minLength: 1 },
+  },
+  required: ['models'],
+}
+
 export const QiniuSettingsSchema = Object.assign(
   (value: unknown) => normalizeQiniuSettings(value),
-  { toJSON: () => ({
-    type: 'object',
-    properties: {
-      models: { type: 'array', items: { type: 'object', properties: { id: { type: 'string', minLength: 1 }, enabled: { type: 'boolean' }, contextWindow: { type: 'number', minimum: 1 }, maxOutputTokens: { type: 'number', minimum: 1 } }, required: ['id', 'enabled'] } },
-      defaultModel: { type: 'string', minLength: 1 },
-    },
-    required: ['models'],
-  }) },
+  { toJSON: () => QiniuSettingsJsonSchema },
 )
