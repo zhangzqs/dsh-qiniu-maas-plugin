@@ -47,6 +47,7 @@ test('lists API keys from the documented management endpoint with normalized met
     lastUsed: '', enabled: true, totalTokens: 1234,
     quota: { daily: { enabled: true, used: 12, limit: 100 }, monthly: { enabled: false, used: 12, limit: -1 }, total: { enabled: true, used: 1234, limit: 10000 } }
   }]);
+  expect(JSON.stringify(keys)).not.toContain('sk-live-super-secret-abcd');
 });
 
 test('serializes usage parameters and normalizes usage items', async () => {
@@ -65,8 +66,8 @@ test('serializes bill range parameters and normalizes billing series', async () 
     fetch: fetchJson(billResponse, requests), accessKey: 'ak', secretKey: 'sk'
   }).getBill({ start: '2026-08-01T00:00:00+08:00', end: '2026-08-02T00:00:00+08:00', grain: 'day', api_key: 'sk-key' });
 
-  expect(new URL(requests[0].url).pathname).toBe('/ai/inapi/v3/stat/bill/range');
-  expect(new URL(requests[0].url).searchParams.get('api_key')).toBe('sk-key');
+  expect(new URL(requests[0].url).search).toBe('?start=2026-08-01T00%3A00%3A00%2B08%3A00&end=2026-08-02T00%3A00%3A00%2B08%3A00&grain=day&api_key=sk-key');
+  expect(requests[0].headers.get('authorization')).toBe('Qiniu ak:zvUJDgoSU9Gr9MujbdzaQAhdJ9Y');
   expect(bill).toEqual({ models: [{ modelId: 'deepseek-v4-flash', timeSeries: [{ time: '2026-08-01T00:00:00+08:00', items: [{ name: 'input_tokens', usage: { count: 4.5, unit: 'k/tokens' }, fee: 0.12, key: 'input' }], totalFee: 0.12, totalRequests: 2 }], totalFee: 0.12, totalRequests: 2 }] });
 });
 

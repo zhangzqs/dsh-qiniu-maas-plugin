@@ -22,20 +22,22 @@ The SDK now provides public marketplace options and model-detail filtering, API-
 
 ## TDD Evidence
 
-1. Added all new tests to `packages/maas-sdk/tests/resources.spec.ts`; `packages/maas-sdk/tests/client.spec.ts` was not modified.
+1. Added the resource contract tests to `packages/maas-sdk/tests/resources.spec.ts`; `packages/maas-sdk/tests/client.spec.ts` was updated only for the authoritative marketplace `data: [...]` fixture and the obsolete-shape regression while retaining the existing Task 1 assertions.
 2. Ran the required RED test before production edits:
 
    `pnpm exec vitest run packages/maas-sdk/tests/resources.spec.ts`
 
-   Result: 1 failed file, 6 failed tests. Failures were the expected missing methods and old marketplace payload mismatch (`data.items` versus the required public `data` array).
-3. Implemented the resource methods and normalization.
-4. Focused GREEN resource run passed with 6 tests.
+   Result: 1 failed file, 6 passed tests, 1 failed test. The failure was the expected unmasked full API key in the DTO.
+
+3. Ran the client regression test after adding the obsolete-shape assertion; it failed because the implementation still accepted `data.items`.
+4. Implemented the resource methods and normalization.
+5. Focused GREEN resource run passed with 7 tests.
 
 ## Verification
 
-- `pnpm exec vitest run packages/maas-sdk/tests/resources.spec.ts`: 1 file, 6 tests passed.
-- `pnpm exec vitest run packages/maas-sdk/tests/client.spec.ts`: 1 file, 8 tests passed; existing test file unchanged.
-- `pnpm test`: 2 files, 14 tests passed.
+- `pnpm exec vitest run packages/maas-sdk/tests/resources.spec.ts`: 1 file, 7 tests passed.
+- `pnpm exec vitest run packages/maas-sdk/tests/client.spec.ts`: 1 file, 8 tests passed; existing Task 1 assertions retained.
+- `pnpm test`: 2 files, 15 tests passed.
 - `pnpm -r typecheck`: passed for `@qiniu/maas-sdk`.
 - `git diff --check`: passed.
 
@@ -50,8 +52,17 @@ TDD evidence:
 - RED: the new test failed 1/7 with HTTP 429 producing `providerCode: undefined` instead of `QUOTA_EXCEEDED`.
 - GREEN: the client now reads only the provider-code fields (`code`, `error_code`, or `errorCode`) from a cloned JSON error body, while retaining a constant redacted message and excluding body text.
 - Focused resources test: 7/7 passed.
-- Existing client test: 8/8 passed unchanged.
+- Existing client test: 8/8 passed; Task 1 assertions retained.
 - Recursive typecheck: passed.
+
+## Fix Verification
+
+- Full `sk-live-super-secret-abcd` fixture is normalized to `sk-live***abcd`; neither the returned DTO nor `JSON.stringify` contains the full key.
+- Billing test asserts the exact encoded `start`, `end`, `grain`, and `api_key` query and the signed `Authorization` header.
+- Marketplace tests use authoritative `data: [...]` and reject the obsolete `data.items` response shape.
+- Final suite count is 7 resource tests and 15 total tests.
+- `pnpm -r typecheck` passed.
+- `git diff --check` passed.
 
 ## Independent Verification Follow-up
 

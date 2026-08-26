@@ -20,7 +20,7 @@ export const marketplaceResponse = {
 export const apiKeysResponse = {
   status: true,
   data: [{
-    key: 'sk-live***abcd',
+    key: 'sk-live-super-secret-abcd',
     name: 'Production',
     createdAt: '2026-01-01T00:00:00+08:00',
     lastUsed: '',

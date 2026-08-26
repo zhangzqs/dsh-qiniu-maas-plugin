@@ -2,17 +2,15 @@ import { expect, test } from 'vitest';
 import { MaaSClient, MAAS_SERVER_ROOT } from '../src/client';
 
 const marketplaceResponse = {
-  data: {
-    items: [
-      {
-        id: 'deepseek-v4-flash',
-        name: 'DeepSeek V4 Flash',
-        description: 'Fast reasoning model',
-        context_length: 128000,
-        capabilities: ['chat', 'reasoning']
-      }
-    ]
-  }
+  data: [
+    {
+      id: 'deepseek-v4-flash',
+      name: 'DeepSeek V4 Flash',
+      description: 'Fast reasoning model',
+      context_length: 128000,
+      capabilities: ['chat', 'reasoning']
+    }
+  ]
 };
 
 test('lists marketplace models without an Authorization header and normalizes model fields', async () => {
@@ -51,10 +49,16 @@ test('ignores supplied AK/SK credentials for public marketplace requests', async
   expect(authorization).toBeNull();
 });
 
-test('normalizes malformed marketplace responses into MaaSError', async () => {
-  const fetcher: typeof fetch = async () => new Response(JSON.stringify({ data: { items: [{ name: 'missing-id' }] } }), { status: 200 });
+test('normalizes malformed and obsolete marketplace responses into MaaSError', async () => {
+  const fetcher: typeof fetch = async () => new Response(JSON.stringify({ data: [{ name: 'missing-id' }] }), { status: 200 });
 
   await expect(new MaaSClient({ fetch: fetcher }).listModels()).rejects.toMatchObject({
+    name: 'MaaSError',
+    operation: 'listModels'
+  });
+
+  const obsoleteFetcher: typeof fetch = async () => new Response(JSON.stringify({ data: { items: [marketplaceResponse.data[0]] } }), { status: 200 });
+  await expect(new MaaSClient({ fetch: obsoleteFetcher }).listModels()).rejects.toMatchObject({
     name: 'MaaSError',
     operation: 'listModels'
   });

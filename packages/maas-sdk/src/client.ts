@@ -23,9 +23,7 @@ export class MaaSClient {
   async listModels(options: MarketplaceOptions = {}): Promise<PublicModel[]> {
     const response = await this.request('/v1/market/models', 'listModels', false, options);
     const payload = await this.json(response, 'listModels');
-    const items = Array.isArray(payload.data)
-      ? payload.data
-      : this.recordOrUndefined(payload.data)?.items;
+    const items = payload.data;
     if (!Array.isArray(items)) throw new MaaSError({ operation: 'listModels', message: 'Malformed marketplace response' });
     return items.map((item) => this.normalizeModel(item));
   }
@@ -42,8 +40,10 @@ export class MaaSClient {
     return payload.data.map((item) => {
       const value = this.record(item, 'listApiKeys');
       const quota = this.record(value.quota, 'listApiKeys');
+      const key = this.string(value.key, 'listApiKeys');
+      const maskedValue = key.startsWith('sk-') && !key.includes('*') ? `${key.slice(0, 7)}***${key.slice(-4)}` : key;
       return {
-        maskedValue: this.string(value.key, 'listApiKeys'), name: this.string(value.name, 'listApiKeys'),
+        maskedValue, name: this.string(value.name, 'listApiKeys'),
         createdAt: this.string(value.createdAt, 'listApiKeys'), lastUsed: this.string(value.lastUsed, 'listApiKeys'),
         enabled: this.boolean(value.enabled, 'listApiKeys'), totalTokens: this.number(value.totalTokens, 'listApiKeys'),
         quota: {
