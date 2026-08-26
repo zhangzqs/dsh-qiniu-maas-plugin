@@ -52,3 +52,26 @@ Host wiring cleanup retains and disposes settings watchers, model discovery, pro
 - Command: `git diff --check`
   - Output: no output; exit code 0
 - Task 4/UI was not started.
+
+## Task 3 Review-Fix Report
+
+Fixed all Task 3 review findings:
+
+- Removed the plaintext API-key RPC; inference API keys remain credential-service-only and are resolved at request time.
+- Made `llm` a hard plugin dependency via `inject: ['llm']` and use the injected `ctx.llm` service.
+- Made model resolution advisory: unknown model IDs retain provider/model identity for the native provider boundary.
+- Added settings watcher and scope disposal, plus cleanup for configurable-provider, adapter, discovery, and RPC registrations.
+- Added provider filtering and propagated discovery request cancellation signals through the MaaS SDK fetch call.
+- Added structural validation for model-details, usage, and settings RPC payloads before network or settings operations.
+- Completed the settings schema with model item fields, required fields, non-empty strings, and positive numeric constraints.
+- Unified management/discovery fetch selection and typed the native delegate boundary without `any` casts.
+- Kept the MaaS SDK limited to management APIs; inference continues through the native DSH delegate.
+- Retained `tests/host.spec.ts` with service-fake apply coverage for lifecycle cleanup, payload validation, discovery cancellation/provider filtering, schema constraints, and absence of the secret RPC.
+
+Review-fix verification:
+
+- `pnpm test`: 4 files, 25 tests passed
+- `pnpm exec vitest run packages/dsh-qiniu-maas/tests/host.spec.ts`: 1 file, 5 tests passed
+- `pnpm -r typecheck`: `packages/maas-sdk` and `packages/dsh-qiniu-maas` passed
+- `git diff --check`: passed
+- `tests/provider.spec.ts`: unchanged

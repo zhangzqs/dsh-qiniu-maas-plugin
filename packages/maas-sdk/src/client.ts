@@ -13,15 +13,18 @@ export class MaaSClient {
   private readonly fetcher: typeof globalThis.fetch;
   private readonly accessKey?: string;
   private readonly secretKey?: string;
+  private readonly signal?: AbortSignal;
 
   constructor(options: MaaSClientOptions) {
     this.fetcher = options.fetch;
     this.accessKey = options.accessKey;
     this.secretKey = options.secretKey;
+    this.signal = options.signal;
   }
 
   async listModels(options: MarketplaceOptions = {}): Promise<PublicModel[]> {
-    const response = await this.request('/v1/market/models', 'listModels', false, options);
+    const { signal, ...query } = options;
+    const response = await this.request('/v1/market/models', 'listModels', false, query, signal);
     const payload = await this.json(response, 'listModels');
     const items = payload.data;
     if (!Array.isArray(items)) throw new MaaSError({ operation: 'listModels', message: 'Malformed marketplace response' });
@@ -117,7 +120,7 @@ export class MaaSClient {
     return payload;
   }
 
-  private async request(path: string, operation: string, privileged: boolean, query: object = {}): Promise<Response> {
+  private async request(path: string, operation: string, privileged: boolean, query: object = {}, signal?: AbortSignal): Promise<Response> {
     const search = new URLSearchParams();
     for (const [key, value] of Object.entries(query)) if (value !== undefined) search.set(key, String(value));
     const url = `${MAAS_SERVER_ROOT}${path}${search.size ? `?${search}` : ''}`;
@@ -127,7 +130,7 @@ export class MaaSClient {
       headers.set('authorization', await createQiniuAuthorization(this.accessKey, this.secretKey, url));
     }
     let response: Response;
-    try { response = await this.fetcher(url, { method: 'GET', headers }); } catch { throw new MaaSError({ operation, message: 'Qiniu transport request failed' }); }
+    try { response = await this.fetcher(url, { method: 'GET', headers, signal: signal ?? this.signal }); } catch { throw new MaaSError({ operation, message: 'Qiniu transport request failed' }); }
     if (!response.ok) {
       let providerCode = response.headers.get('x-error-code') ?? undefined;
       try {

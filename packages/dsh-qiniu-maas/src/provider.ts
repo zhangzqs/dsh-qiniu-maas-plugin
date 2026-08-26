@@ -70,11 +70,11 @@ export class QiniuAdapter {
 
   resolveModel(provider: string, model: string): Promise<PreparedAdapterCall['model']> {
     const found = this.options.snapshot().models.find(item => item.provider === provider && item.id === model)
-    if (!found) return Promise.reject(new Error(`qiniu-maas model "${model}" is not enabled`))
+    const info = found ?? { provider, id: model, name: model }
     return Promise.resolve({
-      ...found,
-      ...(found.contextWindow === undefined ? {} : { context: { contextWindow: found.contextWindow } }),
-      ...(found.maxTokens === undefined ? {} : { defaultMaxTokens: found.maxTokens }),
+      ...info,
+      ...(info.contextWindow === undefined ? {} : { context: { contextWindow: info.contextWindow } }),
+      ...(info.maxTokens === undefined ? {} : { defaultMaxTokens: info.maxTokens }),
     })
   }
 

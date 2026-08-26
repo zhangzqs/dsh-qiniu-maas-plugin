@@ -89,10 +89,12 @@ export interface MarketplaceOptions {
   sort?: 'rank' | 'id';
   order?: 'asc' | 'desc';
   overseas?: 'true' | 'false';
+  signal?: AbortSignal;
 }
 
 export interface MaaSClientOptions {
   fetch: typeof globalThis.fetch;
   accessKey?: string;
   secretKey?: string;
+  signal?: AbortSignal;
 }
