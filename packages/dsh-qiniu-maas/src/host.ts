@@ -104,7 +104,7 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
   let stopWatching: (() => void) | undefined
   const rebuild = (next: unknown): void => {
     const nextSettings = normalizeQiniuSettings(next)
-    const routes = [QINIU_SETTINGS_NS]
+    const routes = buildProviderSnapshot(nextSettings).models.length > 0 ? [QINIU_SETTINGS_NS] : []
     if (!directoryRegistration) directoryRegistration = ctx.llm.registerConfigurableProviders([providerEntry])
     if (adapterRegistration) replaceRegistration(adapterRegistration, routes)
     else if (routes.length > 0) adapterRegistration = ctx.llm.registerAdapter(routes, adapter)
