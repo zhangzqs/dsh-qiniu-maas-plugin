@@ -21,3 +21,19 @@ Verification:
 - `pnpm exec vitest run packages/dsh-qiniu-maas/tests/provider.spec.ts`: 5 tests passed
 - `pnpm typecheck`: passed
 - `git diff --check`: passed
+
+## Final Host Wiring Verification
+
+- `pnpm test`
+  - `Test Files 3 passed (3)`
+  - `Tests 20 passed (20)`
+- `pnpm exec vitest run packages/dsh-qiniu-maas/tests/provider.spec.ts`
+  - `Test Files 1 passed (1)`
+  - `Tests 5 passed (5)`
+- `pnpm typecheck`
+  - `packages/maas-sdk typecheck: Done`
+  - `packages/dsh-qiniu-maas typecheck: Done`
+- `git diff --check`
+  - no output; exit code 0
+
+Host wiring cleanup retains and disposes settings watchers, model discovery, provider registrations, configurable-provider registrations, and private RPC handlers. Task 4 was not started.

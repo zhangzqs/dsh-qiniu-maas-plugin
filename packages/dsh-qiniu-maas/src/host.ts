@@ -50,6 +50,8 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
   })
   let adapterRegistration: any
   let directoryRegistration: any
+  let discoveryRegistration: (() => void) | undefined
+  let stopWatching: (() => void) | undefined
   const rebuild = (next: unknown): void => {
     const nextSettings = normalizeQiniuSettings(next)
     const nextSnapshot = buildProviderSnapshot(nextSettings)
@@ -66,16 +68,23 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
   if (settingsService) {
     const scope = settingsService.register(QINIU_SETTINGS_NS, QiniuSettingsSchema, { base: current })
     rebuild(scope.get())
-    scope.watch((next: unknown) => rebuild(next))
+    stopWatching = scope.watch((next: unknown) => rebuild(next))
   } else {
     rebuild(current)
   }
   if (llm?.registerModelDiscovery) {
-    llm.registerModelDiscovery(QINIU_SETTINGS_NS, async () => {
+    discoveryRegistration = llm.registerModelDiscovery(QINIU_SETTINGS_NS, async () => {
       const models = await managementClient(ctx).listModels()
       return models.map(model => ({ id: model.id, name: model.name, contextWindow: model.contextWindow, maxTokens: model.maxOutputTokens }))
     })
   }
+
+  ctx.effect(() => () => {
+    stopWatching?.()
+    discoveryRegistration?.()
+    adapterRegistration?.()
+    directoryRegistration?.()
+  }, 'qiniu-maas lifecycle')
 
   const harness = ctx.get('harness')
   if (harness?.handle) {
@@ -92,6 +101,12 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
         secretKey: (await credentials.resolve(QINIU_CREDENTIAL_REFS.secretKey))?.value,
       })
       return operation(client)
+    }
+    const describeCredential = async (ref: string): Promise<{ configured: boolean; writable: boolean }> => {
+      const credentials = ctx.get('credentials')
+      return credentials
+        ? credentials.describe(ref)
+        : { configured: false, writable: false }
     }
     const handles = [
       harness.handle('qiniu-maas/list-models', () => managementClient(ctx).listModels()),
@@ -111,9 +126,9 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
         return { ok: true as const }
       }),
       harness.handle('qiniu-maas/credential-status', async () => ({
-        accessKey: await ctx.get('credentials')?.describe(QINIU_CREDENTIAL_REFS.accessKey),
-        secretKey: await ctx.get('credentials')?.describe(QINIU_CREDENTIAL_REFS.secretKey),
-        inferenceApiKey: await ctx.get('credentials')?.describe(QINIU_CREDENTIAL_REFS.inferenceApiKey),
+        accessKey: await describeCredential(QINIU_CREDENTIAL_REFS.accessKey),
+        secretKey: await describeCredential(QINIU_CREDENTIAL_REFS.secretKey),
+        inferenceApiKey: await describeCredential(QINIU_CREDENTIAL_REFS.inferenceApiKey),
       })),
     ]
     ctx.effect(() => () => { for (const dispose of handles) dispose?.() }, 'qiniu-maas rpc')
