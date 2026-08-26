@@ -98,4 +98,18 @@ Verification:
 - `pnpm exec vitest run packages/dsh-qiniu-maas/tests/host.spec.ts packages/maas-sdk/tests/resources.spec.ts`: 2 files, 13 tests passed.
 - `pnpm test`: 4 files, 26 tests passed.
 - `pnpm -r typecheck`: passed for `packages/maas-sdk` and `packages/dsh-qiniu-maas`.
-- `git diff --check`: passed.
+
+## Task 3 Reviewer Final Finding
+
+- `QiniuAdapter` now extends the actual `@deepseek-ai/dsh-llm` `LlmAdapter` runtime class.
+- `GenerateOptions` and `StreamChunk` are imported/re-exported from `@deepseek-ai/dsh-llm`; no local provider-vocabulary redeclarations remain.
+- Host registration is typed against the actual DSH `LlmAdapter` contract.
+- The native inference delegate remains an explicit optional composition boundary, typed with the actual DSH request/chunk contracts; absent delegates produce `qiniu-maas native DSH provider delegate is unavailable` before credential resolution.
+- Added `@deepseek-ai/dsh-llm` as a package dev dependency alongside its runtime peer dependency.
+- Added host tests proving `QiniuAdapter` is an actual DSH `LlmAdapter` instance and that delegate absence is reported precisely. `provider.spec.ts` was unchanged.
+
+Final verification:
+
+- `pnpm test`: 4 files, 28 tests passed
+- `pnpm typecheck`: workspace typecheck passed
+- `git diff --check`: passed

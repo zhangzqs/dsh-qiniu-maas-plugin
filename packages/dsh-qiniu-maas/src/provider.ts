@@ -1,13 +1,8 @@
+import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
+import { LlmAdapter as DshLlmAdapter } from '@deepseek-ai/dsh-llm'
 import type { QiniuSettings } from './settings.js'
 
-export interface GenerateOptions {
-  provider: string
-  model: string
-  messages: unknown[]
-  [key: string]: unknown
-}
-
-export interface StreamChunk { type: string; [key: string]: unknown }
+export type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
 
 export interface QiniuModelInfo {
   provider: string
@@ -56,11 +51,16 @@ export function createQiniuProviderState(initial: QiniuSettings): {
 export interface QiniuAdapterOptions {
   snapshot: () => QiniuProviderSnapshot
   resolveApiKey: () => Promise<string | undefined>
-  delegate: NativeProviderDelegate
+  delegate?: NativeProviderDelegate
 }
 
-export class QiniuAdapter {
-  constructor(private readonly options: QiniuAdapterOptions) {}
+export class QiniuAdapter extends DshLlmAdapter {
+  private readonly options: QiniuAdapterOptions
+
+  constructor(options: QiniuAdapterOptions) {
+    super()
+    this.options = options
+  }
 
   providerInfo(provider: string): { id: string; name: string } { return { id: provider, name: 'Qiniu MaaS' } }
 
@@ -83,6 +83,7 @@ export class QiniuAdapter {
   }
 
   async *stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
+    if (!this.options.delegate) throw new Error('qiniu-maas native DSH provider delegate is unavailable')
     const apiKey = await this.options.resolveApiKey()
     if (!apiKey) throw new Error('qiniu-maas inference API Key is not configured')
     const stream = await this.options.delegate({ ...options, apiKey })

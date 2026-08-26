@@ -1,7 +1,8 @@
+import type { LlmAdapter } from '@deepseek-ai/dsh-llm'
 import { MaaSClient } from '@qiniu/maas-sdk'
 import { QiniuAdapter, buildProviderSnapshot, createQiniuProviderState } from './provider.js'
 import { QINIU_CREDENTIAL_REFS, QINIU_SETTINGS_NS, QiniuSettingsSchema, normalizeQiniuSettings } from './settings.js'
-import type { GenerateOptions, NativeProviderDelegate, StreamChunk } from './provider.js'
+import type { NativeProviderDelegate } from './provider.js'
 
 export interface QiniuHostConfig {
   nativeStream?: NativeProviderDelegate
@@ -16,7 +17,7 @@ type SettingsScope = {
 }
 type LlmService = {
   registerConfigurableProviders: (entries: readonly typeof providerEntry[]) => Registration
-  registerAdapter: (routes: readonly string[], adapter: QiniuAdapter) => Registration
+  registerAdapter: (routes: readonly string[], adapter: LlmAdapter) => Registration
   registerModelDiscovery?: (provider: string, callback: (request: DiscoveryRequest) => Promise<readonly QiniuDiscoveryModel[]>) => Registration
 }
 type CredentialsService = {
@@ -93,10 +94,7 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
   const adapter = new QiniuAdapter({
     snapshot: state.snapshot,
     resolveApiKey: () => credential(ctx, QINIU_CREDENTIAL_REFS.inferenceApiKey),
-    delegate: async (options: GenerateOptions & { apiKey: string }): Promise<AsyncIterable<StreamChunk>> => {
-      if (!config.nativeStream) throw new Error('qiniu-maas native DSH provider delegate is unavailable')
-      return config.nativeStream(options)
-    },
+    delegate: config.nativeStream,
   })
   let adapterRegistration: Registration | undefined
   let directoryRegistration: Registration | undefined

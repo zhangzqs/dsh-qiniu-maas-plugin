@@ -1,3 +1,4 @@
+import { LlmAdapter } from '@deepseek-ai/dsh-llm'
 import { expect, test, vi } from 'vitest'
 import { apply } from '../src/host.js'
 import { inject } from '../src/index.js'
@@ -58,6 +59,26 @@ test('replaces one callable adapter registration on settings changes and cleans 
   expect(fake.watcherCleanups[0]).toHaveBeenCalled()
   expect(fake.watchers).toHaveLength(0)
   for (const registration of fake.registrations) expect(registration).toHaveBeenCalled()
+})
+
+test('registers a QiniuAdapter accepted by the native DSH llm runtime', () => {
+  const fake = fakeContext()
+  apply(fake.ctx, { nativeStream: async function* () {} })
+  fake.watchers[0]?.({ models: [{ id: 'm', enabled: true }] })
+
+  const adapter = fake.llm.registerAdapter.mock.calls[0]?.[1]
+  expect(adapter).toBeInstanceOf(LlmAdapter)
+})
+
+test('reports the native delegate as unavailable when composition does not provide one', async () => {
+  const fake = fakeContext()
+  apply(fake.ctx)
+  fake.watchers[0]?.({ models: [{ id: 'm', enabled: true }] })
+
+  const adapter = fake.llm.registerAdapter.mock.calls[0]?.[1]
+  await expect(Array.fromAsync(adapter.stream({ provider: 'qiniu-maas', model: 'm', messages: [] }))).rejects.toThrow(
+    'qiniu-maas native DSH provider delegate is unavailable',
+  )
 })
 
 test('does not register a plaintext API-key RPC', () => {

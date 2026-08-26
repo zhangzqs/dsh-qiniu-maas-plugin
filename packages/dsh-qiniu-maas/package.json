@@ -9,6 +9,9 @@
   "dependencies": {
     "@qiniu/maas-sdk": "workspace:*"
   },
+  "devDependencies": {
+    "@deepseek-ai/dsh-llm": "*"
+  },
   "peerDependencies": {
     "@deepseek-ai/cordis": "*",
     "@deepseek-ai/dsh-llm": "*",
