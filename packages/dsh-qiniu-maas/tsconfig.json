@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": { "@qiniu/maas-sdk": ["../maas-sdk/src/index.ts"] }
+  },
+  "include": ["src"]
+}
