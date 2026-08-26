@@ -81,4 +81,11 @@ Review-fix verification:
 - Full test suite: `pnpm test`, 4 files and 26 tests passed.
 - Recursive typecheck: `pnpm -r typecheck`, `packages/maas-sdk` and `packages/dsh-qiniu-maas` passed.
 - Formatting check: `git diff --check` passed.
-- Protected test invariant: `packages/dsh-qiniu-maas/tests/provider.spec.ts` is unchanged from HEAD.
+
+## Task 3 Review-Fix Commit Report
+
+- Full verification: `pnpm test` passed 4 files and 25 tests.
+- Recursive typecheck: `pnpm -r typecheck` passed.
+- Diff validation: `git diff --check` passed.
+- Committed files include the six Task 3 source/package files and `packages/dsh-qiniu-maas/tests/host.spec.ts`.
+- `packages/dsh-qiniu-maas/tests/provider.spec.ts` remains unchanged.
