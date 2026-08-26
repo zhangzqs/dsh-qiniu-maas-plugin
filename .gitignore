@@ -1,0 +1,14 @@
+node_modules/
+dist/
+lib/
+coverage/
+.playwright/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.secret
+secrets/
