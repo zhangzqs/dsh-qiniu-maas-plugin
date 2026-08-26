@@ -74,4 +74,11 @@ Review-fix verification:
 - `pnpm exec vitest run packages/dsh-qiniu-maas/tests/host.spec.ts`: 1 file, 5 tests passed
 - `pnpm -r typecheck`: `packages/maas-sdk` and `packages/dsh-qiniu-maas` passed
 - `git diff --check`: passed
-- `tests/provider.spec.ts`: unchanged
+
+## Task 3 Review-Fix Final Report
+
+- Host service tests: `packages/dsh-qiniu-maas/tests/host.spec.ts`, 6 tests passed.
+- Full test suite: `pnpm test`, 4 files and 26 tests passed.
+- Recursive typecheck: `pnpm -r typecheck`, `packages/maas-sdk` and `packages/dsh-qiniu-maas` passed.
+- Formatting check: `git diff --check` passed.
+- Protected test invariant: `packages/dsh-qiniu-maas/tests/provider.spec.ts` is unchanged from HEAD.
