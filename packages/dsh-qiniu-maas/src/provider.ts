@@ -1,5 +1,5 @@
 import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
-import { LlmAdapter as DshLlmAdapter } from '@deepseek-ai/dsh-llm'
+import { LlmAdapter } from '@deepseek-ai/dsh-llm'
 import type { QiniuSettings } from './settings.js'
 
 export type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
@@ -54,7 +54,7 @@ export interface QiniuAdapterOptions {
   delegate?: NativeProviderDelegate
 }
 
-export class QiniuAdapter extends DshLlmAdapter {
+export class QiniuAdapter extends LlmAdapter {
   private readonly options: QiniuAdapterOptions
 
   constructor(options: QiniuAdapterOptions) {
