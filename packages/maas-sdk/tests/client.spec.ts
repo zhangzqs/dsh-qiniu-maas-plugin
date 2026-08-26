@@ -78,6 +78,8 @@ test('redacts credentials and sensitive response text from HTTP errors and seria
     expect((error as Error).message).not.toContain('response-secret');
     expect(JSON.stringify(error)).not.toContain('test-ak');
     expect(JSON.stringify(error)).not.toContain('test-sk');
+    expect(JSON.stringify(error)).not.toContain('Authorization');
+    expect(JSON.stringify(error)).not.toContain('Bearer-secret');
     expect(JSON.stringify(error)).not.toContain('response-secret');
   }
 });
@@ -97,6 +99,10 @@ test('normalizes injected transport exceptions into a redacted MaaSError', async
     expect((error as Error).message).not.toContain('Authorization');
     expect((error as Error).message).not.toContain('transport-secret');
     expect(JSON.stringify(error)).not.toContain('test-ak');
+    expect(JSON.stringify(error)).not.toContain('test-sk');
+    expect(JSON.stringify(error)).not.toContain('Authorization');
+    expect(JSON.stringify(error)).not.toContain('signature');
+    expect(JSON.stringify(error)).not.toContain('transport-secret');
   }
 });
 
