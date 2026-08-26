@@ -7,4 +7,5 @@ export {
   QiniuSettingsSchema,
   normalizeQiniuSettings,
 } from './settings.js'
-export type { QiniuModelSelection, QiniuSettings } from './settings.js'
+export { applyClient, injectClient } from './client/index.js'
+export { SettingsPage } from './client/SettingsPage.js'

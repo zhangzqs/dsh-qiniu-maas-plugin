@@ -3,6 +3,7 @@
   "compilerOptions": {
     "rootDir": "..",
     "outDir": "dist",
+    "jsx": "preserve",
     "baseUrl": ".",
     "paths": { "@qiniu/maas-sdk": ["../maas-sdk/src/index.ts"] }
   },
