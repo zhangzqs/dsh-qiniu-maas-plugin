@@ -23,6 +23,7 @@ type LlmService = {
 type CredentialsService = {
   resolve: (ref: string) => Promise<{ value?: string } | undefined>
   describe: (ref: string) => Promise<{ configured: boolean; writable: boolean }>
+  set?: (ref: string, value: string) => Promise<void>
 }
 type SettingsService = {
   register: (namespace: string, schema: typeof QiniuSettingsSchema, options: { base: unknown }) => SettingsScope
@@ -76,6 +77,10 @@ function record(value: unknown): Record<string, unknown> | undefined {
 function stringArg(args: unknown, key: string): string | undefined {
   const value = record(args)?.[key]
   return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+function apiKeyArg(args: unknown): string | undefined {
+  const value = stringArg(args, 'value')
+  return value && value.trim() && !/[*…]|\.\.\./.test(value) ? value : undefined
 }
 function usageArgs(args: unknown): Record<string, string> | undefined {
   const value = record(args)
@@ -140,6 +145,7 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
     return operation(client)
   }
   const handles = [
+    harness.handle('qiniu-maas/set-inference-api-key', async args => { const value = apiKeyArg(args); const service = credentials(); if (!value || !service?.set) return { ok: false as const, code: 'INVALID_API_KEY' as const }; try { await service.set(QINIU_CREDENTIAL_REFS.inferenceApiKey, value); return { ok: true as const } } catch { return { ok: false as const, code: 'CREDENTIAL_WRITE_FAILED' as const } } }),
     harness.handle('qiniu-maas/list-models', () => managementClient(ctx, config).listModels()),
     harness.handle('qiniu-maas/model-details', args => { const id = stringArg(args, 'id'); return id ? managementClient(ctx, config).getModelDetails(id) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) }),
     harness.handle('qiniu-maas/list-api-keys', () => withManagement(client => client.listApiKeys())),

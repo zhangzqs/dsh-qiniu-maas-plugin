@@ -41,6 +41,8 @@ export interface ModelMarketplaceProps {
   models: readonly MarketplaceModel[]
   selections?: readonly ModelSelection[]
   query?: string
+  onQueryChange?: (query: string) => void
+  onRefresh?: () => void
   onAdd?: (model: MarketplaceModel) => void
   onDetails?: (model: MarketplaceModel) => void
 }
@@ -58,5 +60,9 @@ export function ModelMarketplace(props: ModelMarketplaceProps): unknown {
       el('button', { type: 'button', disabled: selections.has(model.id), onClick: () => props.onAdd?.(model) }, selections.has(model.id) ? 'Added' : 'Add'),
       el('button', { type: 'button', onClick: () => props.onDetails?.(model) }, 'Details'),
     )))
+    , el('div', { className: 'qiniu-marketplace-tools' },
+      el('input', { type: 'search', value: props.query ?? '', placeholder: 'Search models', onChange: (event: { target: { value: string } }) => props.onQueryChange?.(event.target.value) }),
+      el('button', { type: 'button', onClick: props.onRefresh }, 'Refresh'),
+    ),
   )
 }

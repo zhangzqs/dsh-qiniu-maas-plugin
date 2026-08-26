@@ -9,7 +9,7 @@ function el(type: string, props: Record<string, unknown> | null, ...children: un
 
 export interface SettingsPageProps {
   settings?: { getSnapshot: () => { value?: { models?: readonly ModelSelection[] } } }
-  actions?: { addModel?: (model: MarketplaceModel) => void | Promise<void>; updateSelection?: (id: string, patch: Partial<ModelSelection> & { remove?: boolean }) => void | Promise<void> }
+  actions?: { load?: () => unknown; listModels?: () => unknown; addModel?: (model: MarketplaceModel) => void | Promise<void>; updateSelection?: (id: string, patch: Partial<ModelSelection> & { remove?: boolean }) => void | Promise<void>; useApiKey?: (key: ApiKeySummary) => void | Promise<unknown>; setManualApiKey?: (value: string) => void | Promise<unknown> }
   models?: readonly MarketplaceModel[]
   selections?: readonly ModelSelection[]
   apiKeys?: readonly ApiKeySummary[]
@@ -22,19 +22,28 @@ export interface SettingsPageProps {
   onUseApiKey?: (key: ApiKeySummary) => void
   onManualApiKey?: (value: string) => void
   manualApiKey?: string
+  runtime?: { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query: string }
+  useSnapshot?: () => { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState }
 }
 
 export function SettingsPage(props: SettingsPageProps): unknown {
   const injectedSelections = props.settings?.getSnapshot().value?.models
   const selections = props.selections ?? injectedSelections ?? []
+  const actions = props.actions ?? {}
+  const observed = props.useSnapshot?.()
+  const runtime = props.runtime
+  const models = props.models ?? observed?.models ?? runtime?.models ?? []
+  const apiKeys = props.apiKeys ?? observed?.apiKeys ?? runtime?.apiKeys ?? []
+  const usage = props.usage ?? observed?.usage ?? runtime?.usage ?? { kind: 'unavailable' as const }
   const change = (id: string, patch: Partial<ModelSelection> & { remove?: boolean }): void => {
     if (patch.remove) props.onRemoveSelection?.(id)
     else props.onUpdateSelection?.(id, patch)
-    if (props.onUpdateSelection === undefined && props.onRemoveSelection === undefined) void props.actions?.updateSelection?.(id, patch)
+    if (props.onUpdateSelection === undefined && props.onRemoveSelection === undefined) void actions.updateSelection?.(id, patch)
     props.onSelectionChange?.(id, patch)
   }
+  const addModel = props.onAddModel ?? (model => { void actions.addModel?.(model) })
   return el('div', { className: 'qiniu-settings' },
-    ModelMarketplace({ models: props.models ?? [], selections, onAdd: props.onAddModel ?? (model => { void props.actions?.addModel?.(model) }), onDetails: props.onModelDetails }),
+    ModelMarketplace({ models, selections, onAdd: addModel, onDetails: props.onModelDetails, onRefresh: () => { void (actions.load ?? actions.listModels)?.() } }),
     el('section', { className: 'qiniu-enabled-models' },
       el('h2', null, 'Enabled models'),
       ...selections.map(selection => el('div', { key: selection.id, className: 'qiniu-enabled-model' },
@@ -42,13 +51,13 @@ export function SettingsPage(props: SettingsPageProps): unknown {
         el('span', null, selection.enabled ? ' Enabled' : ' Disabled'),
         el('button', { type: 'button', onClick: () => change(selection.id, { enabled: !selection.enabled }) }, selection.enabled ? 'Disable' : 'Enable'),
         el('span', null, 'contextWindow'),
-        el('input', { type: 'number', name: 'contextWindow', value: selection.contextWindow ?? '', min: 1, onChange: (event: { target: { value: string } }) => change(selection.id, { contextWindow: event.target.value ? Number(event.target.value) : undefined }) }),
+        el('input', { type: 'number', name: 'contextWindow', 'aria-label': 'contextWindow', value: selection.contextWindow ?? '', min: 1, onChange: (event: { target: { value: string } }) => change(selection.id, { contextWindow: event.target.value ? Number(event.target.value) : undefined }) }),
         el('span', null, 'maxOutputTokens'),
-        el('input', { type: 'number', name: 'maxOutputTokens', value: selection.maxOutputTokens ?? '', min: 1, onChange: (event: { target: { value: string } }) => change(selection.id, { maxOutputTokens: event.target.value ? Number(event.target.value) : undefined }) }),
+        el('input', { type: 'number', name: 'maxOutputTokens', 'aria-label': 'maxOutputTokens', value: selection.maxOutputTokens ?? '', min: 1, onChange: (event: { target: { value: string } }) => change(selection.id, { maxOutputTokens: event.target.value ? Number(event.target.value) : undefined }) }),
         el('button', { type: 'button', onClick: () => change(selection.id, { remove: true }) }, 'Remove'),
       )),
     ),
-    ApiKeyPanel({ keys: props.apiKeys ?? [], onUse: props.onUseApiKey, onManualEntry: props.onManualApiKey, manualValue: props.manualApiKey }),
-    UsagePanel({ state: props.usage ?? { kind: 'unavailable' } }),
+    ApiKeyPanel({ keys: apiKeys, onUse: props.onUseApiKey ?? (key => { void actions.useApiKey?.(key) }), onManualEntry: props.onManualApiKey ?? (value => { void actions.setManualApiKey?.(value) }), manualValue: props.manualApiKey }),
+    UsagePanel({ state: usage }),
   )
 }

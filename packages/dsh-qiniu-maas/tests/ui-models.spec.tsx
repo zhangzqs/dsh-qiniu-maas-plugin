@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from 'vitest'
 import { ModelMarketplace, createModelSelection, filterMarketplaceModels, updateModelSelection } from '../src/client/ModelMarketplace.js'
 import { canUseApiKey, maskedKeyRefusal, ApiKeyPanel } from '../src/client/ApiKeyPanel.js'
 import { UsagePanel, usageState } from '../src/client/UsagePanel.js'
-import { applyClient, injectClient } from '../src/client/index.js'
+import { apply as applyClient, injectClient, createSettingsInject, mapRpcError } from '../src/client/index.js'
 import { SettingsPage } from '../src/client/SettingsPage.js'
 
 describe('Qiniu MaaS model settings UI', () => {
@@ -75,13 +75,31 @@ describe('Qiniu MaaS model settings UI', () => {
     expect(onRemove).toHaveBeenCalledWith('qwen-turbo')
   })
 
+  test('exposes named model inputs and routes all control callbacks', () => {
+    const onChange = vi.fn()
+    const tree = SettingsPage({ selections: [{ id: 'm', enabled: false }], onSelectionChange: onChange }) as { children: unknown[] }
+    const row = ((tree.children[1] as { children: unknown[] }).children[1]) as { children: unknown[] }
+    const enable = row.children.find((child) => (child as { children?: unknown[] }).children?.includes('Enable')) as { props: { onClick: () => void } }
+    enable.props.onClick()
+    const context = row.children.find((child) => (child as { props?: { name?: string } }).props?.name === 'contextWindow') as { props: { 'aria-label': string; onChange: (event: { target: { value: string } }) => void } }
+    const output = row.children.find((child) => (child as { props?: { name?: string } }).props?.name === 'maxOutputTokens') as { props: { 'aria-label': string; onChange: (event: { target: { value: string } }) => void } }
+    expect(context.props['aria-label']).toBe('contextWindow')
+    expect(output.props['aria-label']).toBe('maxOutputTokens')
+    context.props.onChange({ target: { value: '16384' } })
+    output.props.onChange({ target: { value: '2048' } })
+    expect(onChange).toHaveBeenNthCalledWith(1, 'm', { enabled: true })
+    expect(onChange).toHaveBeenNthCalledWith(2, 'm', { contextWindow: 16384 })
+    expect(onChange).toHaveBeenNthCalledWith(3, 'm', { maxOutputTokens: 2048 })
+  })
+
   test('invokes marketplace Add and details callbacks', () => {
     const onAdd = vi.fn()
     const onDetails = vi.fn()
     const tree = ModelMarketplace({
       models: [{ id: 'm', name: 'Model', capabilities: ['text-input'] }], onAdd, onDetails,
     }) as { children: unknown[] }
-    const card = ((tree.children[1] as { children: unknown[] }).children[0]) as { children: unknown[] }
+    const grid = tree.children.find((child) => (child as { props?: { className?: string } }).props?.className === 'qiniu-model-grid') as { children: unknown[] }
+    const card = grid.children[0] as { children: unknown[] }
     const buttons = card.children.filter((child) => (child as { type?: string })?.type === 'button') as { props: { onClick: () => void }; children: unknown[] }[]
     buttons[0]?.props.onClick()
     buttons[1]?.props.onClick()
@@ -121,6 +139,79 @@ describe('Qiniu MaaS model settings UI', () => {
     expect(register).toHaveBeenCalledWith(expect.objectContaining({ name: 'settings.section', id: 'qiniu-maas' }), expect.anything())
     const entry = register.mock.calls[0]?.[0] as { inject?: () => Record<string, unknown> }
     expect(entry.inject).toEqual(expect.any(Function))
-    expect(entry.inject?.()).toEqual(expect.objectContaining({ settings: expect.anything(), actions: expect.anything() }))
+    const face = entry.inject?.()
+    expect(face).toEqual(expect.objectContaining({ settings: expect.anything(), actions: expect.anything() }))
+    expect(entry.inject?.()).toBe(face)
+  })
+})
+
+describe('Qiniu MaaS client runtime', () => {
+  test('uses injected settings and actions to load and mutate the section', async () => {
+    const set = vi.fn(async () => undefined)
+    const rpc = vi.fn(async (_channel: string, endpoint: string) => endpoint === 'qiniu-maas/list-models' ? { ok: true, value: [{ id: 'm', name: 'M', capabilities: [] }] } : { ok: true, value: [] })
+    const ctx = {
+      get: (name: string) => name === 'connection' ? { rpc: { call: rpc } } : name === 'settingsScope' ? { bind: () => ({ getSnapshot: () => ({ value: { models: [] } }), set }) } : undefined,
+    }
+    const injected = createSettingsInject(ctx as never) as { actions: Record<string, (...args: any[]) => Promise<unknown>> }
+    await injected.actions.listModels()
+    await injected.actions.addModel({ id: 'm', name: 'M', capabilities: [] })
+    expect(rpc).toHaveBeenCalledWith('/api', 'qiniu-maas/list-models', { args: {} })
+    expect(set).toHaveBeenCalledWith('models', [{ id: 'm', enabled: true }])
+  })
+
+  test.each([
+    [{ code: 'AK_SK_REQUIRED' }, 'ak-sk-required'],
+    [{ code: 'NETWORK', message: 'offline' }, 'error'],
+    [new Error('boom'), 'error'],
+  ])('maps RPC result to usage state', (value, kind) => {
+    expect(mapRpcError(value).kind).toBe(kind)
+  })
+
+  test('registered SettingsPage receives injected settings and actions at runtime', async () => {
+    const set = vi.fn(async () => undefined)
+    const ctx = {
+      locale: { register: vi.fn(), bind: vi.fn(() => (key: string) => key) },
+      slots: { inject: vi.fn((_: string, callback: () => unknown) => callback()), register: vi.fn(() => vi.fn()) },
+      get: vi.fn((name: string) => name === 'connection' ? { rpc: { call: vi.fn(async () => ({ ok: true, value: [] })) } } : name === 'settingsScope' ? { bind: () => ({ getSnapshot: () => ({ value: { models: [{ id: 'm', enabled: true }] } }), set }) } : undefined),
+      effect: vi.fn((callback: () => unknown) => callback()),
+    }
+    applyClient(ctx as never)
+    const component = (ctx.slots.register as ReturnType<typeof vi.fn>).mock.calls[0]?.[1] as (props: Record<string, unknown>) => { children?: unknown[] }
+    const tree = component({ close: vi.fn() })
+    const enabled = tree.children?.[1] as { children?: unknown[] }
+    const model = enabled.children?.[1] as { children?: unknown[] }
+    const disable = model.children?.[2] as { props?: { onClick?: () => void } }
+    disable.props?.onClick?.()
+    await Promise.resolve()
+    expect(set).toHaveBeenCalledWith('models', [{ id: 'm', enabled: false }])
+  })
+  test('writes manual API keys through the DSH credentials API and rejects masked values', async () => {
+    const set = vi.fn(async () => ({ ok: true }))
+    const ctx = { get: (name: string) => name === 'connection' ? { api: { credentials: { set } } } : name === 'settingsScope' ? { bind: () => ({ getSnapshot: () => ({ value: { models: [] } }), set: vi.fn() }) } : undefined }
+    const injected = createSettingsInject(ctx as never) as { actions: { setManualApiKey: (value: string) => Promise<unknown>; useApiKey: (key: ApiKeySummary) => Promise<unknown> } }
+    await injected.actions.setManualApiKey('sk-live')
+    await expect(injected.actions.useApiKey({ name: 'masked', maskedValue: 'sk-...1234', enabled: true })).rejects.toThrow('complete API key')
+    expect(set).toHaveBeenCalledWith({ ref: 'QINIU_MAAS_API_KEY', value: 'sk-live' })
+    expect(set).toHaveBeenCalledTimes(1)
+  })
+  test('loaded marketplace data reaches the registered SettingsPage component', async () => {
+    const model = { id: 'loaded-model', name: 'Loaded model', capabilities: [] }
+    const rpc = vi.fn(async (_channel: string, endpoint: string) => endpoint === 'qiniu-maas/list-models' ? { ok: true, value: [model] } : { ok: true, value: [] })
+    const register = vi.fn(() => vi.fn())
+    const ctx = {
+      locale: { register: vi.fn(), bind: vi.fn(() => (key: string) => key) },
+      slots: { inject: vi.fn((_: string, callback: () => unknown) => callback()), register },
+      get: vi.fn((name: string) => name === 'connection' ? { rpc: { call: rpc } } : name === 'settingsScope' ? { bind: () => ({ getSnapshot: () => ({ value: { models: [] } }), set: vi.fn() }) } : undefined),
+      effect: vi.fn((callback: () => unknown) => callback()),
+    }
+    applyClient(ctx as never)
+    const face = (register.mock.calls[0]?.[0] as { inject: () => { actions: { load: () => Promise<unknown> } } }).inject()
+    await face.actions.load()
+    const component = register.mock.calls[0]?.[1] as (props: Record<string, unknown>) => unknown
+    expect(JSON.stringify(component({}))).toContain('loaded-model')
+  })
+  test('exports a loader-compatible client apply entrypoint', () => {
+    expect(typeof applyClient).toBe('function')
+    expect(injectClient).toContain('slots')
   })
 })

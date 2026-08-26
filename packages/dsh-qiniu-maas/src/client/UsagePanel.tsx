@@ -1,7 +1,15 @@
 export type UsageViewState = { kind: 'loading' | 'unavailable' | 'ak-sk-required' | 'error' | 'success'; report?: unknown; message?: string }
-export function usageState(value: unknown): UsageViewState {
+
+export function mapRpcError(value: unknown): UsageViewState {
   if (value && typeof value === 'object' && (value as { code?: unknown }).code === 'AK_SK_REQUIRED') return { kind: 'ak-sk-required' }
   if (value instanceof Error) return { kind: 'error', message: value.message }
+  if (value && typeof value === 'object' && typeof (value as { message?: unknown }).message === 'string') return { kind: 'error', message: (value as { message: string }).message }
+  return { kind: 'error', message: 'Unable to load usage.' }
+}
+
+export function usageState(value: unknown): UsageViewState {
+  if (value && typeof value === 'object' && (value as { code?: unknown }).code === 'AK_SK_REQUIRED') return { kind: 'ak-sk-required' }
+  if (value instanceof Error || (value && typeof value === 'object' && 'code' in value && (value as { code?: unknown }).code !== undefined)) return mapRpcError(value)
   if (value === undefined) return { kind: 'unavailable' }
   return { kind: 'success', report: value }
 }

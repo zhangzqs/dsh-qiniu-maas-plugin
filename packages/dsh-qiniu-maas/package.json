@@ -3,6 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" },
+    "./client": { "types": "./lib/types/client/index.d.ts", "default": "./lib/client.js" },
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "inject": ["slots", "locale", "connection", "remote", "settingsScope", "settingsSchema"],
+      "platform": "web"
+    }
+  },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"
   },

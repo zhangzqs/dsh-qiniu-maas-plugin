@@ -87,6 +87,21 @@ test('does not register a plaintext API-key RPC', () => {
   expect(fake.handlers.has('qiniu-maas/use-api-key')).toBe(false)
 })
 
+test('rejects masked inference API keys before credential writes', async () => {
+  const fake = fakeContext()
+  apply(fake.ctx, { nativeStream: async function* () {} })
+  await expect(fake.handlers.get('qiniu-maas/set-inference-api-key')?.({ value: '****1234' })).resolves.toEqual({ ok: false, code: 'INVALID_API_KEY' })
+  expect(fake.credentials.set).not.toHaveBeenCalled()
+})
+test('validates inference API-key payloads before credential writes', async () => {
+  const fake = fakeContext()
+  apply(fake.ctx, { nativeStream: async function* () {} })
+  const handler = fake.handlers.get('qiniu-maas/set-inference-api-key')!
+  await expect(handler({ value: '   ' })).resolves.toEqual({ ok: false, code: 'INVALID_API_KEY' })
+  await expect(handler({ value: 'sk-...1234' })).resolves.toEqual({ ok: false, code: 'INVALID_API_KEY' })
+  await expect(handler({ value: 'sk-live' })).resolves.toEqual({ ok: true })
+  expect(fake.credentials.set).toHaveBeenCalledWith('QINIU_MAAS_API_KEY', 'sk-live')
+})
 test('rejects malformed model-details, usage, and settings RPC payloads', async () => {
   const fake = fakeContext()
   apply(fake.ctx, { nativeStream: async function* () {} })
