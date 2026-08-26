@@ -20,9 +20,7 @@ export function filterMarketplaceModels(models: readonly MarketplaceModel[], que
   return models.filter(model => `${model.id} ${model.name} ${model.description ?? ''} ${model.capabilities.join(' ')}`.toLowerCase().includes(needle))
 }
 
-export function createModelSelection(id: string): ModelSelection {
-  return { id, enabled: true }
-}
+export function createModelSelection(id: string): ModelSelection { return { id, enabled: true } }
 
 export function updateModelSelection(selections: readonly ModelSelection[], id: string, patch: Partial<ModelSelection> & { remove?: boolean }): ModelSelection[] {
   if (patch.remove) return selections.filter(selection => selection.id !== id)
@@ -44,6 +42,7 @@ export interface ModelMarketplaceProps {
   selections?: readonly ModelSelection[]
   query?: string
   onAdd?: (model: MarketplaceModel) => void
+  onDetails?: (model: MarketplaceModel) => void
 }
 
 export function ModelMarketplace(props: ModelMarketplaceProps): unknown {
@@ -57,6 +56,7 @@ export function ModelMarketplace(props: ModelMarketplaceProps): unknown {
       el('div', { className: 'qiniu-badges' }, ...model.capabilities.map(capability => el('span', { key: capability }, capability))),
       el('dl', null, model.contextWindow ? el('div', null, el('dt', null, 'Context'), el('dd', null, String(model.contextWindow))) : null, model.maxOutputTokens ? el('div', null, el('dt', null, 'Max output'), el('dd', null, String(model.maxOutputTokens))) : null),
       el('button', { type: 'button', disabled: selections.has(model.id), onClick: () => props.onAdd?.(model) }, selections.has(model.id) ? 'Added' : 'Add'),
-    ))),
+      el('button', { type: 'button', onClick: () => props.onDetails?.(model) }, 'Details'),
+    )))
   )
 }

@@ -37,3 +37,22 @@ At finalization time, `git status --porcelain=v1 --untracked-files=all` was clea
 - Vitest include: retained `packages/**/*.spec.{ts,tsx}` because the Task 4 TSX test is otherwise excluded from collection.
 
 No secret files were read or accessed.
+
+## Task 4 Fix
+
+Implemented the missing enabled-model controls and interaction callbacks for Disable/Enable, Remove, contextWindow, and maxOutputTokens. Added marketplace Details and Add callbacks, masked API-key refusal with transient manual entry, safe usage success rendering, and explicit loading/unavailable/AK_SK_REQUIRED/error states. The settings section now injects a bound `qiniu-maas` settings scope and actions backed by the active connection RPC carrier; model changes persist through `scope.set` and management operations route through `/api`.
+
+TDD evidence:
+
+- Focused UI tests were expanded first and observed RED: 5 failures including the missing controls, callbacks, details action, manual-entry path, and usage report rendering.
+- Production changes were then implemented and the focused suite became green.
+
+Final verification:
+
+- `pnpm exec vitest run --config vitest.ui.config.ts`: 1 file, 12 tests passed.
+- `pnpm test`: 5 files, 40 tests passed.
+- `pnpm -r typecheck`: `packages/maas-sdk` and `packages/dsh-qiniu-maas` passed.
+- `pnpm exec tsc -p packages/dsh-qiniu-maas/tsconfig.json --noEmit false --outDir /tmp/qiniu-maas-client-compile`: passed.
+- `git diff --check`: passed.
+
+The initial declaration-only compile probe was invalid because the package disables declarations; it was corrected to a normal emitted TypeScript compile. No secret files were read or accessed.
