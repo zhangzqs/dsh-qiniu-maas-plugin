@@ -42,4 +42,13 @@ Host wiring cleanup retains and disposes settings watchers, model discovery, pro
 - `pnpm test`: `Test Files 3 passed (3)`, `Tests 20 passed (20)`.
 - `pnpm -r typecheck`: `packages/maas-sdk typecheck: Done`; `packages/dsh-qiniu-maas typecheck: Done`.
 - `git diff --check`: no output, exit code 0.
-- No Task 4/UI files were changed; the sensitive credential file was not read.
+
+## Commit Verification
+
+- Command: `pnpm test`
+  - Output: `Test Files 3 passed (3)`; `Tests 20 passed (20)`
+- Command: `pnpm -r typecheck`
+  - Output: `packages/maas-sdk typecheck: Done`; `packages/dsh-qiniu-maas typecheck: Done`
+- Command: `git diff --check`
+  - Output: no output; exit code 0
+- Task 4/UI was not started.
