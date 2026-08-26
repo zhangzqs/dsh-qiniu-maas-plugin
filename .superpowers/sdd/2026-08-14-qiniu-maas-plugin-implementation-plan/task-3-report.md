@@ -36,4 +36,10 @@ Verification:
 - `git diff --check`
   - no output; exit code 0
 
-Host wiring cleanup retains and disposes settings watchers, model discovery, provider registrations, configurable-provider registrations, and private RPC handlers. Task 4 was not started.
+Host wiring cleanup retains and disposes settings watchers, model discovery, provider registrations, configurable-provider registrations, and private RPC handlers. Host compile-error follow-up:
+
+- The reported `src/host.ts:109` out-of-scope `settings` reference was already corrected to `args.settings` with the service held as `settingsService`.
+- `pnpm test`: `Test Files 3 passed (3)`, `Tests 20 passed (20)`.
+- `pnpm -r typecheck`: `packages/maas-sdk typecheck: Done`; `packages/dsh-qiniu-maas typecheck: Done`.
+- `git diff --check`: no output, exit code 0.
+- No Task 4/UI files were changed; the sensitive credential file was not read.
