@@ -49,5 +49,5 @@ test('sends a generated AK/SK Authorization value for privileged requests', asyn
   await client.getAccount();
 
   const authorization = request?.headers.get('authorization');
-  expect(authorization).toMatch(/^Qiniu test-ak:[A-Za-z0-9_-]+$/);
+  expect(authorization).toBe('Qiniu test-ak:GoyhJ0Y_tiIoe0-jBHJcJGdygxQ');
 });
