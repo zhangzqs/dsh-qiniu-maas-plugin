@@ -128,7 +128,20 @@ export class MaaSClient {
     }
     let response: Response;
     try { response = await this.fetcher(url, { method: 'GET', headers }); } catch { throw new MaaSError({ operation, message: 'Qiniu transport request failed' }); }
-    if (!response.ok) throw new MaaSError({ operation, status: response.status, providerCode: response.headers.get('x-error-code') ?? undefined, requestId: response.headers.get('x-reqid') ?? response.headers.get('x-request-id') ?? undefined, message: `Qiniu request failed (${response.status})` });
+    if (!response.ok) {
+      let providerCode = response.headers.get('x-error-code') ?? undefined;
+      try {
+        const body = await response.clone().json() as JsonRecord;
+        providerCode = typeof body.code === 'string'
+          ? body.code
+          : typeof body.error_code === 'string'
+            ? body.error_code
+            : typeof body.errorCode === 'string' ? body.errorCode : providerCode;
+      } catch {
+        // Non-JSON error bodies are intentionally ignored.
+      }
+      throw new MaaSError({ operation, status: response.status, providerCode, requestId: response.headers.get('x-reqid') ?? response.headers.get('x-request-id') ?? undefined, message: `Qiniu request failed (${response.status})` });
+    }
     return response;
   }
 

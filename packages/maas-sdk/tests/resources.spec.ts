@@ -74,3 +74,10 @@ test('normalizes provider code from a structured error without exposing credenti
   const fetcher: typeof fetch = async () => new Response(JSON.stringify({ status: false, code: 'AUTH_FAILED', error: 'secret details' }), { status: 200, headers: { 'x-reqid': 'req-1' } });
   await expect(new MaaSClient({ fetch: fetcher, accessKey: 'ak', secretKey: 'sk' }).listApiKeys()).rejects.toMatchObject({ name: 'MaaSError', status: 200, providerCode: 'AUTH_FAILED', requestId: 'req-1' });
 });
+
+test('extracts a provider code from a non-success JSON response without exposing its body', async () => {
+  const fetcher: typeof fetch = async () => new Response(JSON.stringify({ code: 'QUOTA_EXCEEDED', error: 'secret account details' }), { status: 429, headers: { 'x-request-id': 'req-429' } });
+  await expect(new MaaSClient({ fetch: fetcher, accessKey: 'ak', secretKey: 'sk' }).listApiKeys()).rejects.toMatchObject({
+    name: 'MaaSError', status: 429, providerCode: 'QUOTA_EXCEEDED', requestId: 'req-429'
+  });
+});

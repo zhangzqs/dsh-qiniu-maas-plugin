@@ -40,3 +40,15 @@ The SDK now provides public marketplace options and model-detail filtering, API-
 - `git diff --check`: passed.
 
 The existing untracked `packages/maas-sdk/tests/fixtures.ts` was validated, used by the new resource tests, and included in the Task 2 commit. The prohibited credential configuration file was not read.
+
+## Continuation Regression Fix
+
+The checkout already contained the Task 2 implementation at commit `5e26c30`. An additional contract test was added in `packages/maas-sdk/tests/resources.spec.ts` for provider codes returned in non-success JSON response bodies.
+
+TDD evidence:
+
+- RED: the new test failed 1/7 with HTTP 429 producing `providerCode: undefined` instead of `QUOTA_EXCEEDED`.
+- GREEN: the client now reads only the provider-code fields (`code`, `error_code`, or `errorCode`) from a cloned JSON error body, while retaining a constant redacted message and excluding body text.
+- Focused resources test: 7/7 passed.
+- Existing client test: 8/8 passed unchanged.
+- Recursive typecheck: passed.
