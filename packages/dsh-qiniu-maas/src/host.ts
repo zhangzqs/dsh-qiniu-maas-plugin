@@ -8,11 +8,11 @@ export interface QiniuHostConfig {
   fetch?: typeof globalThis.fetch
 }
 
-type Registration = { dispose?: () => void; replace?: (routes: readonly string[]) => void } | (() => void)
+type CallableRegistration = (() => void) & { replace?: (routes: readonly string[]) => void }
+type Registration = CallableRegistration
 type SettingsScope = {
   get: () => unknown
   watch: (callback: (value: unknown) => void) => () => void
-  dispose: () => void
 }
 type LlmService = {
   registerConfigurableProviders: (entries: readonly typeof providerEntry[]) => Registration
@@ -35,7 +35,7 @@ type ContextLike = {
   get: (name: string) => unknown
   effect: (callback: () => void | (() => void), name?: string) => unknown
 }
-type DiscoveryRequest = { provider: string; signal?: AbortSignal }
+type DiscoveryRequest = { provider?: string; signal?: AbortSignal }
 type QiniuDiscoveryModel = { id: string; name: string; contextWindow?: number; maxTokens?: number }
 
 const providerEntry = {
@@ -48,8 +48,12 @@ const providerEntry = {
 export const inject = ['llm'] as const
 
 function disposeRegistration(registration: Registration | undefined): void {
-  if (typeof registration === 'function') registration()
-  else registration?.dispose?.()
+  registration?.()
+}
+
+function replaceRegistration(registration: Registration, routes: readonly string[]): void {
+  if (typeof registration.replace === 'function') registration.replace(routes)
+  else registration()
 }
 
 function fetchFor(ctx: ContextLike, config: QiniuHostConfig): typeof globalThis.fetch {
@@ -100,9 +104,9 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
   let stopWatching: (() => void) | undefined
   const rebuild = (next: unknown): void => {
     const nextSettings = normalizeQiniuSettings(next)
-    const routes = buildProviderSnapshot(nextSettings).models.length > 0 ? [QINIU_SETTINGS_NS] : []
+    const routes = [QINIU_SETTINGS_NS]
     if (!directoryRegistration) directoryRegistration = ctx.llm.registerConfigurableProviders([providerEntry])
-    if (adapterRegistration && typeof adapterRegistration !== 'function') adapterRegistration.replace?.(routes)
+    if (adapterRegistration) replaceRegistration(adapterRegistration, routes)
     else if (routes.length > 0) adapterRegistration = ctx.llm.registerAdapter(routes, adapter)
     state.replace(nextSettings)
   }
@@ -121,7 +125,6 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
   }
   ctx.effect(() => () => {
     stopWatching?.()
-    scope?.dispose()
     disposeRegistration(discoveryRegistration)
     disposeRegistration(adapterRegistration)
     disposeRegistration(directoryRegistration)

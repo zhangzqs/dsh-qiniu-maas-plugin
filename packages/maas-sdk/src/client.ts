@@ -44,7 +44,11 @@ export class MaaSClient {
       const value = this.record(item, 'listApiKeys');
       const quota = this.record(value.quota, 'listApiKeys');
       const key = this.string(value.key, 'listApiKeys');
-      const maskedValue = key.startsWith('sk-') && !key.includes('*') ? `${key.slice(0, 7)}***${key.slice(-4)}` : key;
+      const maskedValue = key.includes('*')
+         ? key
+         : key.length <= 4
+           ? '*'.repeat(key.length)
+           : `${key.slice(0, Math.min(7, key.length - 4))}***${key.slice(-4)}`;
       return {
         maskedValue, name: this.string(value.name, 'listApiKeys'),
         createdAt: this.string(value.createdAt, 'listApiKeys'), lastUsed: this.string(value.lastUsed, 'listApiKeys'),

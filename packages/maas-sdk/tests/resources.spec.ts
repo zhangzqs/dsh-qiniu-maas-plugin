@@ -46,8 +46,17 @@ test('lists API keys from the documented management endpoint with normalized met
     maskedValue: 'sk-live***abcd', name: 'Production', createdAt: '2026-01-01T00:00:00+08:00',
     lastUsed: '', enabled: true, totalTokens: 1234,
     quota: { daily: { enabled: true, used: 12, limit: 100 }, monthly: { enabled: false, used: 12, limit: -1 }, total: { enabled: true, used: 1234, limit: 10000 } }
+  }, {
+    maskedValue: 'legacy-***alue', name: 'Legacy', createdAt: '2026-01-02T00:00:00+08:00',
+    lastUsed: '', enabled: true, totalTokens: 0,
+    quota: { daily: { enabled: true, used: 0, limit: 100 }, monthly: { enabled: true, used: 0, limit: 100 }, total: { enabled: true, used: 0, limit: 1000 } }
+  }, {
+    maskedValue: 'sk-already***masked', name: 'Masked', createdAt: '2026-01-03T00:00:00+08:00',
+    lastUsed: '', enabled: true, totalTokens: 0,
+    quota: { daily: { enabled: true, used: 0, limit: 100 }, monthly: { enabled: true, used: 0, limit: 100 }, total: { enabled: true, used: 0, limit: 1000 } }
   }]);
   expect(JSON.stringify(keys)).not.toContain('sk-live-super-secret-abcd');
+  expect(JSON.stringify(keys)).not.toContain('legacy-full-secret-value');
 });
 
 test('serializes usage parameters and normalizes usage items', async () => {

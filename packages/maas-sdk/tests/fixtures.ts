@@ -31,6 +31,30 @@ export const apiKeysResponse = {
       monthly: { enabled: false, used: 12, limit: -1 },
       total: { enables: true, used: 1234, limit: 10000 }
     }
+  }, {
+    key: 'legacy-full-secret-value',
+    name: 'Legacy',
+    createdAt: '2026-01-02T00:00:00+08:00',
+    lastUsed: '',
+    enabled: true,
+    totalTokens: 0,
+    quota: {
+      daily: { enabled: true, used: 0, limit: 100 },
+      monthly: { enabled: true, used: 0, limit: 100 },
+      total: { enabled: true, used: 0, limit: 1000 }
+    }
+  }, {
+    key: 'sk-already***masked',
+    name: 'Masked',
+    createdAt: '2026-01-03T00:00:00+08:00',
+    lastUsed: '',
+    enabled: true,
+    totalTokens: 0,
+    quota: {
+      daily: { enabled: true, used: 0, limit: 100 },
+      monthly: { enabled: true, used: 0, limit: 100 },
+      total: { enabled: true, used: 0, limit: 1000 }
+    }
   }]
 };
 

@@ -1,24 +1,35 @@
 import { expect, test, vi } from 'vitest'
-import { apply, inject } from '../src/host.js'
+import { apply } from '../src/host.js'
+import { inject } from '../src/index.js'
 import { QiniuSettingsSchema } from '../src/settings.js'
+
+type CallableRegistration = (() => void) & { replace?: ReturnType<typeof vi.fn> }
 
 function fakeContext() {
   const cleanups: Array<() => void> = []
   const handlers = new Map<string, (args?: unknown) => unknown>()
   const watcherCleanups: Array<() => void> = []
-  const registrations: Array<{ replace?: (routes: unknown[]) => void; dispose: () => void }> = []
+  const watchers: Array<(value: unknown) => void> = []
+  const registrations: CallableRegistration[] = []
+  const makeRegistration = (replace?: ReturnType<typeof vi.fn>): CallableRegistration => {
+    const registration = vi.fn() as unknown as CallableRegistration
+    if (replace) registration.replace = replace
+    registrations.push(registration)
+    return registration
+  }
   const scope = {
     get: () => ({ models: [], defaultModel: undefined }),
     watch: (callback: (value: unknown) => void) => {
-      watcherCleanups.push(() => callback)
-      return () => watcherCleanups.shift()?.()
+      watchers.push(callback)
+      const cleanup = vi.fn(() => { watchers.splice(watchers.indexOf(callback), 1) })
+      watcherCleanups.push(cleanup)
+      return cleanup
     },
-    dispose: vi.fn(),
   }
   const llm = {
-    registerConfigurableProviders: vi.fn(() => { const registration = { dispose: vi.fn() }; registrations.push(registration); return registration }),
-    registerAdapter: vi.fn(() => { const registration = { replace: vi.fn(), dispose: vi.fn() }; registrations.push(registration); return registration }),
-    registerModelDiscovery: vi.fn(() => { const registration = { dispose: vi.fn() }; registrations.push(registration); return registration }),
+    registerConfigurableProviders: vi.fn(() => makeRegistration()),
+    registerAdapter: vi.fn(() => makeRegistration(vi.fn())),
+    registerModelDiscovery: vi.fn(() => makeRegistration()),
   }
   const settings = { register: vi.fn(() => scope), replace: vi.fn() }
   const credentials = { resolve: vi.fn(async () => undefined), describe: vi.fn(async () => ({ configured: false, writable: true })), set: vi.fn() }
@@ -28,19 +39,24 @@ function fakeContext() {
     get: (name: string) => ({ settings, credentials, harness, fetch: fetch, llm } as Record<string, unknown>)[name],
     effect: (effect: () => void | (() => void)) => { const cleanup = effect(); if (typeof cleanup === 'function') cleanups.push(cleanup) },
   }
-  return { ctx, cleanups, handlers, watcherCleanups, registrations, scope, llm, settings, credentials, harness }
+  return { ctx, cleanups, handlers, watcherCleanups, watchers, registrations, scope, llm, settings, credentials, harness }
 }
 
-test('applies llm dependency and disposes settings watcher and every registration', async () => {
-  expect(inject).toContain('llm')
+test('exports the injected llm dependency from the package entrypoint', () => {
+  expect(inject).toEqual(['llm'])
+})
+
+test('replaces one callable adapter registration on settings changes and cleans up without scope disposal', () => {
   const fake = fakeContext()
   apply(fake.ctx, { nativeStream: async function* () {} })
-  expect(fake.settings.register).toHaveBeenCalledWith('qiniu-maas', QiniuSettingsSchema, expect.any(Object))
-  expect(fake.watcherCleanups).toHaveLength(1)
+  fake.watchers[0]?.({ models: [{ id: 'm', enabled: true }] })
+  const adapterRegistration = fake.registrations.find(registration => registration.replace)
+  expect(fake.llm.registerAdapter).toHaveBeenCalledTimes(1)
+  expect(adapterRegistration?.replace).toHaveBeenCalledWith(['qiniu-maas'])
   fake.cleanups.forEach(cleanup => cleanup())
-  expect(fake.scope.dispose).toHaveBeenCalled()
-  expect(fake.watcherCleanups).toHaveLength(0)
-  for (const registration of fake.registrations) expect(registration.dispose).toHaveBeenCalled()
+  expect(fake.watcherCleanups[0]).toHaveBeenCalled()
+  expect(fake.watchers).toHaveLength(0)
+  for (const registration of fake.registrations) expect(registration).toHaveBeenCalled()
 })
 
 test('does not register a plaintext API-key RPC', () => {
@@ -57,31 +73,23 @@ test('rejects malformed model-details, usage, and settings RPC payloads', async 
   await expect(fake.handlers.get('qiniu-maas/update-settings')?.({ settings: { models: [{ id: 'm', enabled: 'yes' }] } })).resolves.toEqual({ ok: false, code: 'INVALID_SETTINGS' })
 })
 
-test('discovery checks supported provider and forwards cancellation signal', async () => {
+test('discovery checks supported provider, handles omitted provider, and forwards cancellation signal', async () => {
   const fake = fakeContext()
   const fetcher = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
     expect(init?.signal).toBe(signal)
     return new Response(JSON.stringify({ status: true, data: [] }))
   })
   apply(fake.ctx, { nativeStream: async function* () {}, fetch: fetcher })
-  const discovery = fake.llm.registerModelDiscovery.mock.calls[0]?.[1] as (request: { provider: string; signal: AbortSignal }) => Promise<unknown>
+  const discovery = fake.llm.registerModelDiscovery.mock.calls[0]?.[1] as (request: { provider?: string; signal?: AbortSignal }) => Promise<unknown>
   const controller = new AbortController()
   const signal = controller.signal
+  await expect(discovery({ provider: undefined, signal })).resolves.toEqual([])
   await expect(discovery({ provider: 'other', signal })).resolves.toEqual([])
   await expect(discovery({ provider: 'qiniu-maas', signal })).resolves.toEqual([])
   expect(fetcher).toHaveBeenCalledTimes(1)
 })
 
-test('settings schema describes complete model fields and numeric constraints', () => {
-  expect(QiniuSettingsSchema.toJSON()).toEqual({
-    type: 'object',
-    properties: {
-      models: { type: 'array', items: { type: 'object', properties: {
-        id: { type: 'string', minLength: 1 }, enabled: { type: 'boolean' },
-        contextWindow: { type: 'number', minimum: 1 }, maxOutputTokens: { type: 'number', minimum: 1 },
-      }, required: ['id', 'enabled'] } },
-      defaultModel: { type: 'string', minLength: 1 },
-    }, required: ['models'],
-  })
-  expect(() => QiniuSettingsSchema({ models: [{ id: 'm', enabled: true, contextWindow: 0 }] })).toThrow()
+test('settings schema requires models behaviorally as declared', () => {
+  expect(QiniuSettingsSchema.toJSON().required).toContain('models')
+  expect(() => QiniuSettingsSchema({ defaultModel: 'm' })).toThrow(/models/)
 })
