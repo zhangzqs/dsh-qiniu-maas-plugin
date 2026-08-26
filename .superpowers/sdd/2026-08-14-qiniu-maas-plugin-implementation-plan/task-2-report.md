@@ -67,3 +67,11 @@ TDD evidence:
 ## Independent Verification Follow-up
 
 Independent verification reported the baseline Task 2 suite at 14/14 tests passing, recursive typecheck passing, and `git diff --check` passing before this report update.
+
+## Final Review-Fix Verification
+
+- `pnpm exec vitest run packages/maas-sdk/tests/resources.spec.ts`: 1 file, 7 tests passed.
+- `pnpm exec vitest run packages/maas-sdk/tests/client.spec.ts`: 1 file, 8 tests passed.
+- `pnpm test`: 2 files, 15 tests passed.
+- `pnpm -r typecheck`: passed.
+- `git diff --check`: passed.
