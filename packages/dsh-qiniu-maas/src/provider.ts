@@ -68,7 +68,7 @@ export class QiniuAdapter {
     return Promise.resolve(this.options.snapshot().models.filter(model => model.provider === provider))
   }
 
-  resolveModel(provider: string, model: string): Promise<PreparedAdapterCall['model']> {
+  resolveModel(provider: string, model: string, _signal?: AbortSignal): Promise<PreparedAdapterCall['model']> {
     const found = this.options.snapshot().models.find(item => item.provider === provider && item.id === model)
     const info = found ?? { provider, id: model, name: model }
     return Promise.resolve({
@@ -78,8 +78,8 @@ export class QiniuAdapter {
     })
   }
 
-  prepareCall(provider: string, model: string): Promise<PreparedAdapterCall> {
-    return this.resolveModel(provider, model).then(info => ({ model: info, stream: options => this.stream(options) }))
+  prepareCall(provider: string, model: string, signal?: AbortSignal): Promise<PreparedAdapterCall> {
+    return this.resolveModel(provider, model, signal).then(info => ({ model: info, stream: options => this.stream(options) }))
   }
 
   async *stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
