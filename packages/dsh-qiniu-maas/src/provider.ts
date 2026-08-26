@@ -55,11 +55,11 @@ export interface QiniuAdapterOptions {
 }
 
 export class QiniuAdapter extends LlmAdapter {
-  private readonly options: QiniuAdapterOptions
+  private readonly options: QiniuAdapterOptions;
 
   constructor(options: QiniuAdapterOptions) {
-    super()
-    this.options = options
+    super();
+    this.options = options;
   }
 
   providerInfo(provider: string): { id: string; name: string } { return { id: provider, name: 'Qiniu MaaS' } }

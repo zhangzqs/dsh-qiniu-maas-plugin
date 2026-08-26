@@ -113,3 +113,13 @@ Final verification:
 - `pnpm test`: 4 files, 28 tests passed
 - `pnpm typecheck`: workspace typecheck passed
 - `git diff --check`: passed
+
+## Task 3 Adapter-Contract Final Verification
+
+- `packages/dsh-qiniu-maas/src/provider.ts` uses the actual `@deepseek-ai/dsh-llm` contracts and explicitly declares `QiniuAdapter extends LlmAdapter`.
+- The derived adapter constructor explicitly calls `super()` before assigning its private `options` field.
+- Host composition preserves the optional typed native delegate boundary and reports its precise unavailable state without implementing inference.
+- Package metadata declares `@deepseek-ai/dsh-llm` for the DSH runtime peer and development typecheck.
+- Provider and host focused tests: 2 files, 13 tests passed.
+- Full test suite: 4 files, 28 tests passed.
+- Workspace typecheck and `git diff --check` passed.
