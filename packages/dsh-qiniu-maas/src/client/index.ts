@@ -267,7 +267,7 @@ export function applyClient(ctx: ClientContextLike): void {
   ctx.slots.inject('settings.section', () => ctx.slots.register({
     name: 'settings.section', id: 'qiniu-maas', order: 20,
     label: () => t('nav') || 'Qiniu MaaS',
-    inject: () => injected,
+    inject: injected,
   }, SettingsPageEntry))
 }
 
