@@ -8,6 +8,7 @@ import type { UsageViewState } from './UsagePanel.js'
 import { usageState } from './UsagePanel.js'
 import { billingState, type BillingViewState } from './BillingPanel.js'
 import { QINIU_CREDENTIAL_REFS } from '../settings.js'
+import { zh, en } from './locales.js'
 
 export const injectClient = ['slots', 'locale', 'connection', 'remote', 'settingsScope', 'settingsSchema'] as const
 export const inject = injectClient
@@ -34,6 +35,7 @@ type SettingsRuntime = {
   modelDetails?: ModelDetailsState
   listeners: Set<() => void>
   settingsUnsubscribe?: () => void
+  activeTab?: 'marketplace' | 'enabled' | 'credentials' | 'apiKeys' | 'usage'
 }
 
 type ClientContextLike = {
@@ -56,7 +58,7 @@ function createRuntime(): SettingsRuntime {
 }
 
 function runtimeSnapshot(runtime: SettingsRuntime) {
-  return { models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, billing: runtime.billing, query: runtime.query, marketplaceLoading: runtime.marketplaceLoading, marketplaceError: runtime.marketplaceError, apiKeyError: runtime.apiKeyError, managementCredentialsError: runtime.managementCredentialsError, credentialStatus: runtime.credentialStatus, credentialStatusError: runtime.credentialStatusError, modelDetails: runtime.modelDetails }
+  return { models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, billing: runtime.billing, query: runtime.query, activeTab: runtime.activeTab, marketplaceLoading: runtime.marketplaceLoading, marketplaceError: runtime.marketplaceError, apiKeyError: runtime.apiKeyError, managementCredentialsError: runtime.managementCredentialsError, credentialStatus: runtime.credentialStatus, credentialStatusError: runtime.credentialStatusError, modelDetails: runtime.modelDetails }
 }
 
 async function hostCall(connection: Connection | undefined, endpoint: string, args: Record<string, unknown> = {}): Promise<unknown> {
@@ -207,6 +209,7 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
     },
     refresh: async () => actions.load(),
     setQuery: (query: string) => { runtime.query = query; notify() },
+    setTab: (tab: SettingsRuntime['activeTab']) => { runtime.activeTab = tab; notify() },
     addModel: async (model: MarketplaceModel) => {
       const current = settings.getSnapshot().value?.models ?? []
       if (!current.some(selection => selection.id === model.id)) await update([...current, createModelSelection(model.id)])
@@ -255,7 +258,7 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
     getSnapshot: () => currentSnapshot,
     subscribe: (listener: () => void) => { runtime.listeners.add(listener); return () => runtime.listeners.delete(listener) },
   }
-  const injected: Record<string, unknown> = { settings, actions, runtime, dispose: () => { runtime.settingsUnsubscribe?.(); runtime.settingsUnsubscribe = undefined; runtime.listeners.clear(); clearManualApiKeyDrafts(); clearManagementCredentialDraft() }, hooks: { snapshot }, useSnapshot: () => snapshot.getSnapshot() }
+  const injected: Record<string, unknown> = { settings, actions, runtime, translate: ((key: keyof typeof en) => ctx.locale.bind('qiniu-maas')(key)) as (key: keyof typeof en) => string, dispose: () => { runtime.settingsUnsubscribe?.(); runtime.settingsUnsubscribe = undefined; runtime.listeners.clear(); clearManualApiKeyDrafts(); clearManagementCredentialDraft() }, hooks: { snapshot }, useSnapshot: () => snapshot.getSnapshot() }
   Object.defineProperties(injected, {
     models: { enumerable: true, get: () => runtime.models },
     apiKeys: { enumerable: true, get: () => runtime.apiKeys },
@@ -272,6 +275,7 @@ export function createSettingsPageEntry(injected: Record<string, unknown>): (own
 }
 
 export function applyClient(ctx: ClientContextLike): void {
+  ctx.effect(() => ctx.locale.register('qiniu-maas', { zh, en }), 'qiniu-maas: dictionaries')
   ctx.effect(() => {
     const doc = (globalThis as { document?: { createElement?: (tag: string) => { textContent: string; remove: () => void }; head?: { appendChild: (node: unknown) => void } } }).document
     const style = doc?.createElement?.('style')

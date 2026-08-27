@@ -23,13 +23,15 @@ function reportItems(report: unknown): string[] {
   })
 }
 
-export function UsagePanel(props: { state: UsageViewState }): JSX.Element {
-  const text = props.state.kind === 'ak-sk-required' ? 'AK/SK credentials are required for usage.' : props.state.kind === 'loading' ? 'Loading usage...' : props.state.kind === 'unavailable' ? 'Usage unavailable.' : props.state.kind === 'error' ? props.state.message ?? 'Unable to load usage.' : 'Usage loaded.'
+export function UsagePanel(props: { state: UsageViewState; t?: QiniuTranslate }): JSX.Element {
+  const t = props.t ?? ((key: keyof typeof import('./locales.js').en) => ({ 'section.usage': 'Usage', 'state.usageRequired': 'AK/SK credentials are required for usage.', 'state.loadingUsage': 'Loading usage...', 'state.usageUnavailable': 'Usage unavailable.', 'state.usageLoaded': 'Usage loaded.' } as Record<string, string>)[key] ?? key)
+  const text = props.state.kind === 'ak-sk-required' ? t('state.usageRequired') : props.state.kind === 'loading' ? t('state.loadingUsage') : props.state.kind === 'unavailable' ? t('state.usageUnavailable') : props.state.kind === 'error' ? props.state.message ?? t('state.usageUnavailable') : t('state.usageLoaded')
   return (
     <section className="qiniu-usage" aria-live="polite">
-      <h2>Usage</h2>
+      <h2>{t('section.usage')}</h2>
       <p>{text}</p>
       {props.state.kind === 'success' ? <ul>{reportItems(props.state.report).map(item => <li key={item}>{item}</li>)}</ul> : null}
     </section>
   )
 }
+import type { QiniuTranslate } from './locales.js'

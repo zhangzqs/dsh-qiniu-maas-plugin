@@ -1,4 +1,5 @@
 import type { ChangeEvent, ReactNode } from 'react'
+import type { QiniuTranslate } from './locales.js'
 
 export interface MarketplaceModel {
   id: string
@@ -52,19 +53,27 @@ export interface ModelMarketplaceProps {
   onDetails?: (model: MarketplaceModel) => void
   loading?: boolean
   error?: string
+  t?: QiniuTranslate
 }
 
 export function ModelMarketplace(props: ModelMarketplaceProps): ReactNode {
+  const t = props.t ?? ((key: keyof typeof import('./locales.js').en) => ({
+    'tab.marketplace': 'Marketplace', 'tab.enabled': 'Enabled models', 'tab.credentials': 'AK/SK', 'tab.apiKeys': 'API Key', 'tab.usage': 'Usage',
+    'section.marketplace': 'Public marketplace', 'section.enabled': 'Enabled models', 'section.credentials': 'Management credentials', 'section.apiKeys': 'API keys', 'section.usage': 'Usage', 'section.status': 'Credential status',
+    'button.add': 'Add', 'button.added': 'Added', 'button.details': 'Details', 'button.refresh': 'Refresh', 'button.disable': 'Disable', 'button.enable': 'Enable', 'button.remove': 'Remove', 'button.save': 'Save', 'button.use': 'Use', 'button.useManually': 'Use manually',
+    'label.accessKey': 'Access Key', 'label.secretKey': 'Secret Key', 'label.searchModels': 'Search models', 'label.enterApiKey': 'Enter API key', 'label.contextWindow': 'contextWindow', 'label.maxOutputTokens': 'maxOutputTokens',
+    'state.loadingMarketplace': 'Loading marketplace...', 'state.noModels': 'No models found.',
+  } as Record<string, string>)[key] ?? key)
   const selections = new Set((props.selections ?? []).map(selection => selection.id))
   const models = filterMarketplaceModels(props.models, props.query ?? '')
   const status = props.loading
-    ? <p className="qiniu-marketplace-status" aria-live="polite">Loading marketplace...</p>
+    ? <p className="qiniu-marketplace-status" aria-live="polite">{t('state.loadingMarketplace')}</p>
     : props.error
       ? <p className="qiniu-marketplace-status" aria-live="polite">{props.error}</p>
-      : models.length === 0 ? <p className="qiniu-marketplace-status" aria-live="polite">No models found.</p> : null
+      : models.length === 0 ? <p className="qiniu-marketplace-status" aria-live="polite">{t('state.noModels')}</p> : null
   return (
     <section className="qiniu-marketplace" aria-label="Public model marketplace">
-      <h2>Public marketplace</h2>
+      <h2>{t('section.marketplace')}</h2>
       {status}
       <div className="qiniu-model-grid">
         {models.map(model => (
@@ -74,17 +83,17 @@ export function ModelMarketplace(props: ModelMarketplaceProps): ReactNode {
             {model.description ? <p>{model.description}</p> : null}
             <div className="qiniu-badges">{model.capabilities.map(capability => <span key={capability}>{capability}</span>)}</div>
             <dl>
-              {model.contextWindow ? <div><dt>Context</dt><dd>{model.contextWindow}</dd></div> : null}
-              {model.maxOutputTokens ? <div><dt>Max output</dt><dd>{model.maxOutputTokens}</dd></div> : null}
+              {model.contextWindow ? <div><dt>{t('label.context')}</dt><dd>{model.contextWindow}</dd></div> : null}
+              {model.maxOutputTokens ? <div><dt>{t('label.maxOutput')}</dt><dd>{model.maxOutputTokens}</dd></div> : null}
             </dl>
-            <button type="button" disabled={selections.has(model.id)} onClick={() => props.onAdd?.(model)}>{selections.has(model.id) ? 'Added' : 'Add'}</button>
-            <button type="button" onClick={() => props.onDetails?.(model)}>Details</button>
+            <button type="button" disabled={selections.has(model.id)} onClick={() => props.onAdd?.(model)}>{selections.has(model.id) ? t('button.added') : t('button.add')}</button>
+            <button type="button" onClick={() => props.onDetails?.(model)}>{t('button.details')}</button>
           </article>
         ))}
       </div>
       <div className="qiniu-marketplace-tools">
-        <input type="search" value={props.query ?? ''} placeholder="Search models" onChange={(event: ChangeEvent<HTMLInputElement>) => props.onQueryChange?.(event.target.value)} />
-        <button type="button" onClick={props.onRefresh}>Refresh</button>
+        <input type="search" value={props.query ?? ''} placeholder={t('label.searchModels')} onChange={(event: ChangeEvent<HTMLInputElement>) => props.onQueryChange?.(event.target.value)} />
+        <button type="button" onClick={props.onRefresh}>{t('button.refresh')}</button>
       </div>
     </section>
   )

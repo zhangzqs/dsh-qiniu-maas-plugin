@@ -95,6 +95,7 @@ async function openQiniuSettings(page: Page, testInfo: { skip: (condition: boole
   }
   await nav.click()
   await expect(page.getByRole('heading', { name: 'Public marketplace' })).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'Marketplace', exact: true })).toHaveAttribute('aria-selected', 'true')
 }
 
 test.describe('Qiniu MaaS browser acceptance (mock API)', () => {
@@ -129,6 +130,7 @@ test.describe('Qiniu MaaS browser acceptance (mock API)', () => {
     await expect(page.getByText(MODEL_ID, { exact: true })).toBeVisible()
     const card = page.locator('article').filter({ hasText: MODEL_ID }).first()
     await card.getByRole('button', { name: 'Add', exact: true }).click()
+    await page.getByRole('tab', { name: 'Enabled models', exact: true }).click()
     const enabled = page.locator('.qiniu-enabled-model').filter({ hasText: MODEL_ID }).first()
     await expect(enabled).toBeVisible()
     await expect(enabled.getByRole('button', { name: 'Disable', exact: true })).toBeVisible()
@@ -145,12 +147,14 @@ test.describe('Qiniu MaaS browser acceptance (mock API)', () => {
     await card.getByRole('button', { name: 'Details', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Model details' })).toBeVisible()
     await card.getByRole('button', { name: 'Add', exact: true }).click()
+    await page.getByRole('tab', { name: 'Enabled models', exact: true }).click()
     const enabled = page.locator('.qiniu-enabled-model').filter({ hasText: MODEL_ID }).first()
     await enabled.getByLabel('contextWindow').fill('64000')
     await enabled.getByLabel('maxOutputTokens').fill('4096')
   })
 
   test('refuses using a masked API key and offers manual entry', async ({ page }) => {
+    await page.getByRole('tab', { name: 'API Key', exact: true }).click()
     const row = page.locator('article').filter({ hasText: 'acceptance-key' }).first()
     const useButton = row.getByRole('button', { name: 'Use', exact: true })
     await expect(useButton).toBeDisabled()
@@ -160,10 +164,22 @@ test.describe('Qiniu MaaS browser acceptance (mock API)', () => {
   })
 
   test('renders API-key and management states without exposing credentials', async ({ page }) => {
+    await page.getByRole('tab', { name: 'API Key', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'API keys' })).toBeVisible()
     await expect(page.getByText('acceptance-key', { exact: true })).toBeVisible()
+    await page.getByRole('tab', { name: 'AK/SK', exact: true }).click()
     await expect(page.getByText('AK/SK credentials required for management data.')).toBeVisible()
     await expect(page.locator('body')).not.toContainText('access-key-secret')
     await expect(page.locator('body')).not.toContainText('inference-api-key')
+  })
+
+  test('switches between the five settings tabs', async ({ page }) => {
+    const tabs = ['Marketplace', 'Enabled models', 'AK/SK', 'API Key', 'Usage']
+    await expect(page.getByRole('tab')).toHaveCount(5)
+    for (const name of tabs) {
+      await page.getByRole('tab', { name, exact: true }).click()
+      await expect(page.getByRole('tab', { name, exact: true })).toHaveAttribute('aria-selected', 'true')
+    }
+    await expect(page.locator('[role="tabpanel"]:visible').getByRole('heading', { name: 'Usage', exact: true }).first()).toBeVisible()
   })
 })
