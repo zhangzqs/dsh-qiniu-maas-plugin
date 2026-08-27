@@ -1,3 +1,4 @@
+import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { LlmAdapter } from '@deepseek-ai/dsh-llm'
 import { MaaSClient } from '@qiniu/maas-sdk'
 import { QiniuAdapter, buildProviderSnapshot, createQiniuProviderState } from './provider.js'
@@ -28,6 +29,9 @@ type SettingsService = {
 }
 type HarnessService = {
   handle: (name: string, handler: (args?: unknown) => unknown) => () => void
+}
+type WebServer = {
+  register: (route: { kind: 'prefix'; path: string; handler: (req: IncomingMessage, res: ServerResponse) => void | Promise<void> }) => () => void
 }
 type ContextLike = {
   llm: LlmService
@@ -146,9 +150,7 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
     disposeRegistration(directoryRegistration)
   }, 'qiniu-maas lifecycle')
 
-  const harness = ctx.get('harness') as HarnessService | undefined
   const credentials = () => ctx.get('credentials') as CredentialsService | undefined
-  if (!harness) return
   const hasManagementCredentials = async (): Promise<boolean> => Boolean(await credential(ctx, QINIU_CREDENTIAL_REFS.accessKey) && await credential(ctx, QINIU_CREDENTIAL_REFS.secretKey))
   const withManagement = async <T>(operation: (client: MaaSClient) => Promise<T>): Promise<T | { code: 'AK_SK_REQUIRED' }> => {
     if (!await hasManagementCredentials()) return { code: 'AK_SK_REQUIRED' }
@@ -157,30 +159,46 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
     const client = new MaaSClient({ fetch: fetchFor(ctx, config), accessKey: (await service.resolve(QINIU_CREDENTIAL_REFS.accessKey))?.value, secretKey: (await service.resolve(QINIU_CREDENTIAL_REFS.secretKey))?.value })
     return operation(client)
   }
-  const handles = [
-    harness.handle('qiniu-maas/set-management-credentials', async args => {
+  const handlers: Record<string, (args?: unknown) => unknown> = {
+    'set-management-credentials': async args => {
       const accessKey = managementCredentialArg(args, 'accessKey')
       const secretKey = managementCredentialArg(args, 'secretKey')
       const service = credentials()
       if (!accessKey || !secretKey || !service?.set) return { ok: false as const, code: 'INVALID_MANAGEMENT_CREDENTIALS' as const }
-      try {
-        await service.set(QINIU_CREDENTIAL_REFS.accessKey, accessKey)
-        await service.set(QINIU_CREDENTIAL_REFS.secretKey, secretKey)
-        return { ok: true as const }
-      } catch {
-        return { ok: false as const, code: 'CREDENTIAL_WRITE_FAILED' as const }
-      }
-    }),
-    harness.handle('qiniu-maas/set-inference-api-key', async args => { const value = apiKeyArg(args); const service = credentials(); if (!value || !service?.set) return { ok: false as const, code: 'INVALID_API_KEY' as const }; try { await service.set(QINIU_CREDENTIAL_REFS.inferenceApiKey, value); return { ok: true as const } } catch { return { ok: false as const, code: 'CREDENTIAL_WRITE_FAILED' as const } } }),
-    harness.handle('qiniu-maas/list-models', () => managementClient(ctx, config).listModels()),
-    harness.handle('qiniu-maas/model-details', args => { const id = stringArg(args, 'id'); return id ? managementClient(ctx, config).getModelDetails(id) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) }),
-    harness.handle('qiniu-maas/list-api-keys', () => withManagement(client => client.listApiKeys())),
-    harness.handle('qiniu-maas/usage', args => { const params = usageArgs(args); return params ? withManagement(client => client.getUsage(params)) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) }),
-    harness.handle('qiniu-maas/get-bill', args => { const params = billArgs(args); return params ? withManagement(client => client.getBill(params)) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) }),
-    harness.handle('qiniu-maas/update-settings', async args => { const settings = record(args)?.settings; if (!settingsService || !settings) return { ok: false as const, code: 'INVALID_SETTINGS' as const }; try { const normalized = normalizeQiniuSettings(settings); await settingsService.replace(QINIU_SETTINGS_NS, normalized); return { ok: true as const } } catch { return { ok: false as const, code: 'INVALID_SETTINGS' as const } } }),
-    harness.handle('qiniu-maas/credential-status', async () => { const service = credentials(); const describe = async (ref: string) => service ? service.describe(ref) : { configured: false, writable: false }; return { accessKey: await describe(QINIU_CREDENTIAL_REFS.accessKey), secretKey: await describe(QINIU_CREDENTIAL_REFS.secretKey), inferenceApiKey: await describe(QINIU_CREDENTIAL_REFS.inferenceApiKey) } }),
-  ]
-  ctx.effect(() => () => { for (const dispose of handles) dispose() }, 'qiniu-maas rpc')
+      try { await service.set(QINIU_CREDENTIAL_REFS.accessKey, accessKey); await service.set(QINIU_CREDENTIAL_REFS.secretKey, secretKey); return { ok: true as const } } catch { return { ok: false as const, code: 'CREDENTIAL_WRITE_FAILED' as const } }
+    },
+    'set-inference-api-key': async args => { const value = apiKeyArg(args); const service = credentials(); if (!value || !service?.set) return { ok: false as const, code: 'INVALID_API_KEY' as const }; try { await service.set(QINIU_CREDENTIAL_REFS.inferenceApiKey, value); return { ok: true as const } } catch { return { ok: false as const, code: 'CREDENTIAL_WRITE_FAILED' as const } } },
+    'list-models': () => managementClient(ctx, config).listModels(),
+    'model-details': args => { const id = stringArg(args, 'id'); return id ? managementClient(ctx, config).getModelDetails(id) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) },
+    'list-api-keys': () => withManagement(client => client.listApiKeys()),
+    'usage': args => { const params = usageArgs(args); return params ? withManagement(client => client.getUsage(params)) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) },
+    'get-bill': args => { const params = billArgs(args); return params ? withManagement(client => client.getBill(params)) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) },
+    'update-settings': async args => { const settings = record(args)?.settings; if (!settingsService || !settings) return { ok: false as const, code: 'INVALID_SETTINGS' as const }; try { const normalized = normalizeQiniuSettings(settings); await settingsService.replace(QINIU_SETTINGS_NS, normalized); return { ok: true as const } } catch { return { ok: false as const, code: 'INVALID_SETTINGS' as const } } },
+    'credential-status': async () => { const service = credentials(); const describe = async (ref: string) => service ? service.describe(ref) : { configured: false, writable: false }; return { accessKey: await describe(QINIU_CREDENTIAL_REFS.accessKey), secretKey: await describe(QINIU_CREDENTIAL_REFS.secretKey), inferenceApiKey: await describe(QINIU_CREDENTIAL_REFS.inferenceApiKey) } },
+  }
+  const harness = ctx.get('harness') as HarnessService | undefined
+  const handles = harness ? Object.entries(handlers).map(([name, handler]) => harness.handle(`qiniu-maas/${name}`, handler)) : []
+  const webServer = ctx.get('webServer') as WebServer | undefined
+  const routeDisposer = webServer?.register({ kind: 'prefix', path: '/api/qiniu-maas', handler: async (req, res) => {
+    if (req.method !== 'POST') { res.writeHead(405); res.end('method not allowed'); return }
+    const endpoint = new URL(req.url ?? '/', 'http://dsh.local').pathname.slice('/api/qiniu-maas/'.length)
+    const handler = endpoint && handlers[endpoint]
+    if (!handler) { res.writeHead(404); res.end('not found'); return }
+    const chunks: Buffer[] = []
+    for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+    let message: { rpcId?: unknown; method?: unknown; payload?: unknown }
+    try { message = JSON.parse(Buffer.concat(chunks).toString('utf8')) } catch { res.writeHead(400); res.end('body is not JSON'); return }
+    if (message.method !== `qiniu-maas/${endpoint}` || typeof message.rpcId !== 'string') { res.writeHead(400); res.end('invalid request'); return }
+    try {
+      const value = await handler(message.payload)
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.end(JSON.stringify({ type: 'server-response', rpcId: message.rpcId, result: { ok: true, value } }))
+    } catch {
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.end(JSON.stringify({ type: 'server-response', rpcId: message.rpcId, result: { ok: false, error: { code: 'handler-failure', message: 'Qiniu MaaS request failed' } } }))
+    }
+  }})
+  ctx.effect(() => () => { for (const dispose of handles) dispose(); routeDisposer?.() }, 'qiniu-maas rpc')
 }
 
 export const name = QINIU_SETTINGS_NS

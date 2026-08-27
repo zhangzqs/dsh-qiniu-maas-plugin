@@ -35,14 +35,37 @@ function fakeContext() {
   const settings = { register: vi.fn(() => scope), replace: vi.fn() }
   const credentials = { resolve: vi.fn(async () => undefined), describe: vi.fn(async () => ({ configured: false, writable: true })), set: vi.fn() }
   const harness = { handle: vi.fn((name: string, handler: (args?: unknown) => unknown) => { handlers.set(name, handler); return () => handlers.delete(name) }) }
+  const webServer = { register: vi.fn(() => vi.fn()) }
   const ctx = {
     llm,
-    get: (name: string) => ({ settings, credentials, harness, fetch: fetch, llm } as Record<string, unknown>)[name],
+    get: (name: string) => ({ settings, credentials, harness, fetch: fetch, llm, webServer } as Record<string, unknown>)[name],
     effect: (effect: () => void | (() => void)) => { const cleanup = effect(); if (typeof cleanup === 'function') cleanups.push(cleanup) },
   }
-  return { ctx, cleanups, handlers, watcherCleanups, watchers, registrations, scope, llm, settings, credentials, harness }
+  return { ctx, cleanups, handlers, watcherCleanups, watchers, registrations, scope, llm, settings, credentials, harness, webServer }
 }
 
+test('registers the qiniu HTTP RPC prefix and disposes it with the host plugin', () => {
+  const fake = fakeContext()
+  apply(fake.ctx)
+  expect(fake.webServer.register).toHaveBeenCalledWith(expect.objectContaining({ kind: 'prefix', path: '/api/qiniu-maas', handler: expect.any(Function) }))
+  expect(fake.webServer.register).toHaveBeenCalledTimes(1)
+  fake.cleanups.forEach(cleanup => cleanup())
+  expect(fake.webServer.register.mock.results[0]?.value).toHaveBeenCalled()
+})
+test('web route responds with the shared handler result envelope', async () => {
+  const fake = fakeContext()
+  apply(fake.ctx)
+  const route = fake.webServer.register.mock.calls[0]?.[0]
+  const response = { writeHead: vi.fn(), end: vi.fn() }
+  const request = {
+    method: 'POST',
+    url: '/api/qiniu-maas/credential-status',
+    async *[Symbol.asyncIterator]() { yield Buffer.from(JSON.stringify({ type: 'client-request', rpcId: 'rpc-1', method: 'qiniu-maas/credential-status', payload: {} })) },
+  }
+  await route.handler(request as never, response as never)
+  expect(response.writeHead).toHaveBeenCalledWith(200, { 'content-type': 'application/json' })
+  expect(JSON.parse(response.end.mock.calls[0]?.[0] as string)).toMatchObject({ type: 'server-response', rpcId: 'rpc-1', result: { ok: true } })
+})
 test('exports the injected llm dependency from the package entrypoint', () => {
   expect(inject).toEqual(['llm'])
 })
