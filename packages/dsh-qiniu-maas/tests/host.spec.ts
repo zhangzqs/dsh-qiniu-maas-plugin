@@ -68,7 +68,7 @@ test('web route responds with the shared handler result envelope', async () => {
   expect(JSON.parse(response.end.mock.calls[0]?.[0] as string)).toMatchObject({ type: 'server-response', rpcId: 'rpc-1', result: { ok: true } })
 })
 test('exports the injected llm dependency from the package entrypoint', () => {
-  expect(inject).toEqual(['llm', 'webServer'])
+  expect(inject).toEqual(['llm', 'webServer', 'settings', 'credentials'])
 })
 
 test('replaces one callable adapter registration on settings changes and cleans up without scope disposal', () => {

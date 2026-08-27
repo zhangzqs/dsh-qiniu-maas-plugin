@@ -28,14 +28,25 @@ const marketplacePayload = {
   ],
 }
 
+const marketplaceModels = [
+  {
+    id: MODEL_ID,
+    name: 'DeepSeek V4 Flash',
+    description: 'Fast DeepSeek model for interactive workloads.',
+    contextWindow: 128000,
+    maxOutputTokens: 8192,
+    capabilities: ['text-input', 'text-output', 'reasoning'],
+  },
+]
+
 async function installQiniuRoutes(page: Page): Promise<void> {
   await page.route(/\/api\/qiniu-maas\//, async route => {
     const endpoint = new URL(route.request().url()).pathname.split('/').pop()
     const requestBody = route.request().postDataJSON() as { rpcId?: string }
     const value = endpoint === 'list-models'
-      ? marketplacePayload.data
+      ? marketplaceModels
       : endpoint === 'list-api-keys'
-        ? [{ name: 'acceptance-key', maskedValue: '********', enabled: true, createdAt: '2026-01-01', lastUsed: 'never' }]
+        ? [{ name: 'acceptance-key', maskedValue: '********', enabled: true, createdAt: '2026-01-01', lastUsed: 'never', totalTokens: 0, quota: { daily: { enabled: false, used: 0, limit: 0 }, monthly: { enabled: false, used: 0, limit: 0 }, total: { enabled: false, used: 0, limit: 0 } } }]
         : endpoint === 'credential-status'
           ? { accessKey: { configured: false, writable: true }, secretKey: { configured: false, writable: true }, inferenceApiKey: { configured: false, writable: true } }
           : endpoint === 'usage' || endpoint === 'get-bill'
@@ -68,7 +79,7 @@ async function openQiniuSettings(page: Page, testInfo: { skip: (condition: boole
   const body = page.locator('body')
   await expect(body).toBeVisible()
   await page.getByRole('button', { name: 'Settings', exact: true }).click()
-  const nav = page.getByText('Qiniu MaaS', { exact: true }).first()
+  const nav = page.getByRole('button', { name: 'Qiniu MaaS', exact: true })
   if (await nav.count() === 0) {
     testInfo.skip(true, 'Qiniu MaaS plugin is not mounted in the DSH GUI')
     return

@@ -49,7 +49,7 @@ const providerEntry = {
   settingsPath: [],
 }
 
-export const inject = ['llm', 'webServer'] as const
+export const inject = ['llm', 'webServer', 'settings', 'credentials'] as const
 
 function disposeRegistration(registration: Registration | undefined): void {
   registration?.()

@@ -61,12 +61,29 @@ function runtimeSnapshot(runtime: SettingsRuntime) {
 
 async function hostCall(connection: Connection | undefined, endpoint: string, args: Record<string, unknown> = {}): Promise<unknown> {
   if (!connection?.rpc) return undefined
-  const response = await connection.rpc.call('/api', endpoint, { args })
-  if (response && typeof response === 'object' && 'ok' in response) {
-    const envelope = response as { ok: boolean; value?: unknown; error?: unknown }
-    return envelope.ok ? envelope.value : envelope.error
+  {
+    try {
+      const response = await connection.rpc.call('/api', endpoint, { args })
+      if (response && typeof response === 'object' && 'ok' in response) {
+        const envelope = response as { ok: boolean; value?: unknown; error?: unknown }
+        return envelope.ok ? envelope.value : envelope.error
+      }
+      return response
+    } catch {
+      // Dynamic plugin endpoints may not have a generated DSH descriptor yet.
+      // Retry through the same standard envelope and validate only its generic shape.
+    }
   }
-  return response
+  const response = await globalThis.fetch(`/api/${endpoint}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ type: 'client-request', rpcId: crypto.randomUUID(), method: endpoint, payload: { args } }),
+  })
+  if (!response.ok) throw new Error(`RPC transport failed: HTTP ${response.status}`)
+  const message = await response.json() as { result?: { ok?: boolean; value?: unknown; error?: unknown } }
+  const result = message.result
+  if (!result?.ok) return result?.error
+  return result.value
 }
 
 function throwRpcError(value: unknown): unknown {
