@@ -49,7 +49,7 @@ test('exports the injected llm dependency from the package entrypoint', () => {
 
 test('replaces one callable adapter registration on settings changes and cleans up without scope disposal', () => {
   const fake = fakeContext()
-  apply(fake.ctx, { nativeStream: async function* () {} })
+  apply(fake.ctx)
   fake.watchers[0]?.({ models: [{ id: 'm', enabled: true }] })
   const adapterRegistration = fake.registrations.find(registration => registration.replace)
   expect(fake.llm.registerAdapter).toHaveBeenCalledTimes(1)
@@ -63,33 +63,33 @@ test('replaces one callable adapter registration on settings changes and cleans 
 
 test('registers a QiniuAdapter accepted by the native DSH llm runtime', () => {
   const fake = fakeContext()
-  apply(fake.ctx, { nativeStream: async function* () {} })
+  apply(fake.ctx)
   fake.watchers[0]?.({ models: [{ id: 'm', enabled: true }] })
 
   const adapter = fake.llm.registerAdapter.mock.calls[0]?.[1]
   expect(adapter).toBeInstanceOf(LlmAdapter)
 })
 
-test('reports the native delegate as unavailable when composition does not provide one', async () => {
+test('reports the missing inference API key before making a request', async () => {
   const fake = fakeContext()
   apply(fake.ctx)
   fake.watchers[0]?.({ models: [{ id: 'm', enabled: true }] })
 
   const adapter = fake.llm.registerAdapter.mock.calls[0]?.[1]
   await expect(Array.fromAsync(adapter.stream({ provider: 'qiniu-maas', model: 'm', messages: [] }))).rejects.toThrow(
-    'qiniu-maas native DSH provider delegate is unavailable',
+    'qiniu-maas inference API Key is not configured',
   )
 })
 
 test('does not register a plaintext API-key RPC', () => {
   const fake = fakeContext()
-  apply(fake.ctx, { nativeStream: async function* () {} })
+  apply(fake.ctx)
   expect(fake.handlers.has('qiniu-maas/use-api-key')).toBe(false)
 })
 
 test('sets both management credentials through the credentials service and rejects masked or blank values', async () => {
   const fake = fakeContext()
-  apply(fake.ctx, { nativeStream: async function* () {} })
+  apply(fake.ctx)
   const handler = fake.handlers.get('qiniu-maas/set-management-credentials')!
   await expect(handler({ accessKey: ' ', secretKey: 'secret' })).resolves.toEqual({ ok: false, code: 'INVALID_MANAGEMENT_CREDENTIALS' })
   await expect(handler({ accessKey: 'ak-****', secretKey: 'secret' })).resolves.toEqual({ ok: false, code: 'INVALID_MANAGEMENT_CREDENTIALS' })
@@ -100,13 +100,13 @@ test('sets both management credentials through the credentials service and rejec
 })
 test('rejects masked inference API keys before credential writes', async () => {
   const fake = fakeContext()
-  apply(fake.ctx, { nativeStream: async function* () {} })
+  apply(fake.ctx)
   await expect(fake.handlers.get('qiniu-maas/set-inference-api-key')?.({ value: '****1234' })).resolves.toEqual({ ok: false, code: 'INVALID_API_KEY' })
   expect(fake.credentials.set).not.toHaveBeenCalled()
 })
 test('validates inference API-key payloads before credential writes', async () => {
   const fake = fakeContext()
-  apply(fake.ctx, { nativeStream: async function* () {} })
+  apply(fake.ctx)
   const handler = fake.handlers.get('qiniu-maas/set-inference-api-key')!
   await expect(handler({ value: '   ' })).resolves.toEqual({ ok: false, code: 'INVALID_API_KEY' })
   await expect(handler({ value: 'sk-...1234' })).resolves.toEqual({ ok: false, code: 'INVALID_API_KEY' })
@@ -115,7 +115,7 @@ test('validates inference API-key payloads before credential writes', async () =
 })
 test('rejects malformed model-details, usage, and settings RPC payloads', async () => {
   const fake = fakeContext()
-  apply(fake.ctx, { nativeStream: async function* () {} })
+  apply(fake.ctx)
   await expect(fake.handlers.get('qiniu-maas/model-details')?.({ id: 7 })).resolves.toEqual({ code: 'INVALID_PAYLOAD' })
   await expect(fake.handlers.get('qiniu-maas/usage')?.({ start: 7 })).resolves.toEqual({ code: 'INVALID_PAYLOAD' })
   await expect(fake.handlers.get('qiniu-maas/update-settings')?.({ settings: { models: [{ id: 'm', enabled: 'yes' }] } })).resolves.toEqual({ ok: false, code: 'INVALID_SETTINGS' })

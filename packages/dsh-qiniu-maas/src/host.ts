@@ -2,10 +2,7 @@ import type { LlmAdapter } from '@deepseek-ai/dsh-llm'
 import { MaaSClient } from '@qiniu/maas-sdk'
 import { QiniuAdapter, buildProviderSnapshot, createQiniuProviderState } from './provider.js'
 import { QINIU_CREDENTIAL_REFS, QINIU_SETTINGS_NS, QiniuSettingsSchema, normalizeQiniuSettings } from './settings.js'
-import type { NativeProviderDelegate } from './provider.js'
-
 export interface QiniuHostConfig {
-  nativeStream?: NativeProviderDelegate
   fetch?: typeof globalThis.fetch
 }
 
@@ -115,7 +112,7 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
   const adapter = new QiniuAdapter({
     snapshot: state.snapshot,
     resolveApiKey: () => credential(ctx, QINIU_CREDENTIAL_REFS.inferenceApiKey),
-    delegate: config.nativeStream,
+    fetch: fetchFor(ctx, config),
   })
   let adapterRegistration: Registration | undefined
   let directoryRegistration: Registration | undefined

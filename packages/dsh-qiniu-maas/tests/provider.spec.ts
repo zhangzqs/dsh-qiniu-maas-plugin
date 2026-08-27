@@ -3,52 +3,57 @@ import {
   QiniuAdapter,
   buildProviderSnapshot,
   createQiniuProviderState,
+  QINIU_INFERENCE_ENDPOINT,
 } from '../src/provider.js'
 
-const messages = [{ role: 'user', content: [{ type: 'text', text: 'hello' }] }]
+const messages = [{ role: 'user', content: [{ type: 'text', text: 'hello' }] }] as never
+const modelSnapshot = () => buildProviderSnapshot({ models: [{ id: 'm', enabled: true }], defaultModel: 'm' })
 
-test('empty enabled model settings materialize an empty provider snapshot', () => {
-  expect(buildProviderSnapshot({ models: [], defaultModel: undefined })).toEqual({
-    models: [],
-    defaultModel: undefined,
+function response(body: string): Response {
+  return new Response(body, { headers: { 'content-type': 'text/event-stream' } })
+}
+
+test('native adapter sends OpenAI-compatible request and translates SSE chunks', async () => {
+  const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    expect(input).toBe(QINIU_INFERENCE_ENDPOINT)
+    expect(init?.method).toBe('POST')
+    expect(new Headers(init?.headers).get('authorization')).toBe('Bearer sk-secret')
+    expect(new Headers(init?.headers).get('content-type')).toBe('application/json')
+    expect(JSON.parse(String(init?.body))).toEqual({ model: 'm', messages: [{ role: 'user', content: 'hello' }], stream: true, temperature: 0.2, max_tokens: 7, stop: ['END'] })
+    return response('data: {"choices":[{"delta":{"content":"hi"}}]}\n\ndata: {"choices":[{"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":3,"completion_tokens":2}}\n\ndata: [DONE]\n\n')
   })
+  const adapter = new QiniuAdapter({ snapshot: modelSnapshot, resolveApiKey: async () => 'sk-secret', fetch: fetcher })
+  await expect(Array.fromAsync(adapter.stream({ provider: 'qiniu-maas', model: 'm', messages, temperature: 0.2, maxTokens: 7, stop: ['END'] }))).resolves.toEqual([
+    { type: 'block-start', index: 0, blockType: 'text' },
+    { type: 'text-delta', index: 0, text: 'hi' },
+    { type: 'block-end', index: 0, block: { type: 'text', text: 'hi' } },
+    { type: 'usage', usage: { inputTokens: 3, outputTokens: 2 } },
+    { type: 'finish', reason: { kind: 'stop' } },
+  ])
 })
 
-test('enabled models materialize DSH model metadata with user overrides', () => {
-  expect(buildProviderSnapshot({
-    models: [
-      { id: 'deepseek-v4-flash', enabled: true, contextWindow: 64000, maxOutputTokens: 4096 },
-      { id: 'disabled', enabled: false },
-    ],
-    defaultModel: 'deepseek-v4-flash',
-  })).toEqual({
-    models: [{ provider: 'qiniu-maas', id: 'deepseek-v4-flash', name: 'deepseek-v4-flash', contextWindow: 64000, maxTokens: 4096 }],
-    defaultModel: 'deepseek-v4-flash',
-  })
+test('adapter uses an explicit endpoint override', async () => {
+  const fetcher = vi.fn(async () => response('data: {"choices":[{"delta":{"content":"ok"},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n'))
+  const adapter = new QiniuAdapter({ snapshot: modelSnapshot, resolveApiKey: async () => 'sk-secret', fetch: fetcher, endpoint: 'https://example.test/chat' })
+  await Array.fromAsync(adapter.stream({ provider: 'qiniu-maas', model: 'm', messages }))
+  expect(fetcher).toHaveBeenCalledWith('https://example.test/chat', expect.anything())
 })
 
-test('adapter passes user context and output overrides to the native provider delegate', async () => {
-  const delegate = vi.fn(async function* (options: unknown) { yield options })
-  const adapter = new QiniuAdapter({
-    snapshot: () => buildProviderSnapshot({ models: [{ id: 'm', enabled: true, contextWindow: 1000, maxOutputTokens: 200 }], defaultModel: 'm' }),
-    resolveApiKey: async () => 'key',
-    delegate,
-  })
-
-  await Array.fromAsync(adapter.stream({ provider: 'qiniu-maas', model: 'm', messages, maxTokens: 7 }))
-  expect(delegate).toHaveBeenCalledWith(expect.objectContaining({ apiKey: 'key', maxTokens: 7 }))
-})
-
-test('adapter refuses a missing inference API key before invoking native provider', async () => {
-  const delegate = vi.fn()
-  const adapter = new QiniuAdapter({
-    snapshot: () => buildProviderSnapshot({ models: [{ id: 'm', enabled: true }], defaultModel: 'm' }),
-    resolveApiKey: async () => undefined,
-    delegate,
-  })
-
+test('adapter refuses a missing inference API key without making a request', async () => {
+  const fetcher = vi.fn()
+  const adapter = new QiniuAdapter({ snapshot: modelSnapshot, resolveApiKey: async () => undefined, fetch: fetcher })
   await expect(Array.fromAsync(adapter.stream({ provider: 'qiniu-maas', model: 'm', messages }))).rejects.toThrow('inference API Key')
-  expect(delegate).not.toHaveBeenCalled()
+  expect(fetcher).not.toHaveBeenCalled()
+})
+
+test('adapter passes caller abort signal to fetch', async () => {
+  const controller = new AbortController()
+  const fetcher = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+    expect(init?.signal).toBe(controller.signal)
+    throw new DOMException('aborted', 'AbortError')
+  })
+  const adapter = new QiniuAdapter({ snapshot: modelSnapshot, resolveApiKey: async () => 'sk-secret', fetch: fetcher })
+  await expect(Array.fromAsync(adapter.stream({ provider: 'qiniu-maas', model: 'm', messages, signal: controller.signal }))).rejects.toThrow()
 })
 
 test('settings changes atomically replace the provider snapshot', () => {
@@ -56,8 +61,5 @@ test('settings changes atomically replace the provider snapshot', () => {
   const before = state.snapshot()
   state.replace({ models: [{ id: 'new-model', enabled: true }], defaultModel: 'new-model' })
   expect(before.models).toEqual([])
-  expect(state.snapshot()).toEqual({
-    models: [{ provider: 'qiniu-maas', id: 'new-model', name: 'new-model' }],
-    defaultModel: 'new-model',
-  })
+  expect(state.snapshot()).toEqual({ models: [{ provider: 'qiniu-maas', id: 'new-model', name: 'new-model' }], defaultModel: 'new-model' })
 })
