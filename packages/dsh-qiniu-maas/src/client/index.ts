@@ -1,7 +1,7 @@
 import { SettingsPage } from './SettingsPage.js'
 import { qiniuStyles } from './styles.js'
 import { createModelSelection, updateModelSelection, type MarketplaceModel, type ModelSelection } from './ModelMarketplace.js'
-import { canUseApiKey } from './ApiKeyPanel.js'
+import { canUseApiKey, clearManualApiKeyDrafts } from './ApiKeyPanel.js'
 import type { ApiKeySummary } from './ApiKeyPanel.js'
 import { mapRpcError } from './UsagePanel.js'
 import type { UsageViewState } from './UsagePanel.js'
@@ -51,6 +51,14 @@ async function hostCall(connection: Connection | undefined, endpoint: string, ar
   return response
 }
 
+function throwRpcError(value: unknown): unknown {
+  if (value && typeof value === 'object' && 'code' in value) {
+    const error = value as { code: unknown; message?: unknown }
+    throw new Error(typeof error.message === 'string' ? error.message : String(error.code))
+  }
+  return value
+}
+
 export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRuntime = createRuntime()): Record<string, unknown> {
   const connection = ctx.get?.('connection') as Connection | undefined
   const scopeService = ctx.get?.('settingsScope') as SettingsScope | undefined
@@ -94,8 +102,12 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
     credentialStatus: async () => {
       try {
         const result = await hostCall(connection, 'qiniu-maas/credential-status')
-        if (result && typeof result === 'object' && 'accessKey' in result) runtime.credentialStatus = result as CredentialStatus
-        runtime.credentialStatusError = undefined
+        if (result && typeof result === 'object' && 'accessKey' in result) {
+          runtime.credentialStatus = result as CredentialStatus
+          runtime.credentialStatusError = undefined
+        } else if (result && typeof result === 'object' && 'code' in result) {
+          runtime.credentialStatusError = String((result as { code: unknown }).code)
+        }
         runtime.listeners.forEach(listener => listener())
         return result
       } catch (error) {
@@ -136,20 +148,20 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
       const current = settings.getSnapshot().value?.models ?? []
       await update(updateModelSelection(current, id, patch))
     },
-    useApiKey: (key: ApiKeySummary) => {
-      if (!key.enabled || !canUseApiKey(key.maskedValue)) return Promise.reject(new Error('A complete API key is required'))
-      return hostCall(connection, 'qiniu-maas/set-inference-api-key', { value: key.maskedValue })
+    useApiKey: async (key: ApiKeySummary) => {
+      if (!key.enabled || !canUseApiKey(key.maskedValue)) throw new Error('A complete API key is required')
+      return throwRpcError(await hostCall(connection, 'qiniu-maas/set-inference-api-key', { value: key.maskedValue }))
     },
-    setManualApiKey: (value: string) => {
-      if (!canUseApiKey(value)) return Promise.reject(new Error('A complete API key is required'))
-      return hostCall(connection, 'qiniu-maas/set-inference-api-key', { value })
+    setManualApiKey: async (value: string) => {
+      if (!canUseApiKey(value)) throw new Error('A complete API key is required')
+      return throwRpcError(await hostCall(connection, 'qiniu-maas/set-inference-api-key', { value }))
     },
   }
   const snapshot = {
     getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, query: runtime.query, credentialStatus: runtime.credentialStatus, credentialStatusError: runtime.credentialStatusError, modelDetails: runtime.modelDetails }),
     subscribe: (listener: () => void) => { runtime.listeners.add(listener); return () => runtime.listeners.delete(listener) },
   }
-  const injected: Record<string, unknown> = { settings, actions, runtime, dispose: () => runtime.settingsUnsubscribe?.(), hooks: { snapshot }, useSnapshot: () => {
+  const injected: Record<string, unknown> = { settings, actions, runtime, dispose: () => { runtime.settingsUnsubscribe?.(); clearManualApiKeyDrafts() }, hooks: { snapshot }, useSnapshot: () => {
     const react = (globalThis as { React?: { useSyncExternalStore?: (subscribe: (listener: () => void) => () => void, getSnapshot: () => unknown, getServerSnapshot?: () => unknown) => unknown } }).React
     return react?.useSyncExternalStore?.(snapshot.subscribe, snapshot.getSnapshot, snapshot.getSnapshot) ?? snapshot.getSnapshot()
   } }
