@@ -78,6 +78,15 @@ async function openQiniuSettings(page: Page, testInfo: { skip: (condition: boole
   }
   const body = page.locator('body')
   await expect(body).toBeVisible()
+  const reset = await page.request.post(`${GUI_URL}/api/settings.replace`, {
+    data: {
+      type: 'client-request',
+      rpcId: `e2e-reset-${Date.now()}`,
+      method: 'settings.replace',
+      payload: { ns: 'qiniu-maas', section: { models: [] } },
+    },
+  })
+  expect(reset.ok()).toBe(true)
   await page.getByRole('button', { name: 'Settings', exact: true }).click()
   const nav = page.getByRole('button', { name: 'Qiniu MaaS', exact: true })
   if (await nav.count() === 0) {
