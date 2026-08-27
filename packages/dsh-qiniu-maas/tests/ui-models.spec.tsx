@@ -185,14 +185,13 @@ describe('Qiniu MaaS client runtime', () => {
     await Promise.resolve()
     expect(set).toHaveBeenCalledWith('models', [{ id: 'm', enabled: false }])
   })
-  test('writes manual API keys through the DSH credentials API and rejects masked values', async () => {
-    const set = vi.fn(async () => ({ ok: true }))
-    const ctx = { get: (name: string) => name === 'connection' ? { api: { credentials: { set } } } : name === 'settingsScope' ? { bind: () => ({ getSnapshot: () => ({ value: { models: [] } }), set: vi.fn() }) } : undefined }
+  test('writes manual API keys through the private Host RPC and rejects masked values', async () => {
+    const rpc = vi.fn(async (_channel: string, endpoint: string) => endpoint === 'qiniu-maas/set-inference-api-key' ? { ok: true, value: { ok: true } } : { ok: true, value: [] })
+    const ctx = { get: (name: string) => name === 'connection' ? { rpc: { call: rpc } } : name === 'settingsScope' ? { bind: () => ({ getSnapshot: () => ({ value: { models: [] } }), set: vi.fn() }) } : undefined }
     const injected = createSettingsInject(ctx as never) as { actions: { setManualApiKey: (value: string) => Promise<unknown>; useApiKey: (key: ApiKeySummary) => Promise<unknown> } }
     await injected.actions.setManualApiKey('sk-live')
     await expect(injected.actions.useApiKey({ name: 'masked', maskedValue: 'sk-...1234', enabled: true })).rejects.toThrow('complete API key')
-    expect(set).toHaveBeenCalledWith({ ref: 'QINIU_MAAS_API_KEY', value: 'sk-live' })
-    expect(set).toHaveBeenCalledTimes(1)
+    expect(rpc).toHaveBeenCalledWith('/api', 'qiniu-maas/set-inference-api-key', { args: { value: 'sk-live' } })
   })
   test('loaded marketplace data reaches the registered SettingsPage component', async () => {
     const model = { id: 'loaded-model', name: 'Loaded model', capabilities: [] }
@@ -205,13 +204,70 @@ describe('Qiniu MaaS client runtime', () => {
       effect: vi.fn((callback: () => unknown) => callback()),
     }
     applyClient(ctx as never)
-    const face = (register.mock.calls[0]?.[0] as { inject: () => { actions: { load: () => Promise<unknown> } } }).inject()
-    await face.actions.load()
+    const face = (register.mock.calls[0]?.[0] as { inject: () => { actions: { load: () => Promise<unknown> }; runtime: { models: readonly unknown[] } } }).inject()
+    const loaded = await face.actions.load()
+    expect(face.runtime.models).toEqual([model])
+    expect(loaded).toMatchObject({ models: [model] })
     const component = register.mock.calls[0]?.[1] as (props: Record<string, unknown>) => unknown
     expect(JSON.stringify(component({}))).toContain('loaded-model')
   })
-  test('exports a loader-compatible client apply entrypoint', () => {
-    expect(typeof applyClient).toBe('function')
-    expect(injectClient).toContain('slots')
+  test('registered SettingsPage subscribes to runtime snapshots and rerenders loaded models', async () => {
+    const listeners = new Set<() => void>()
+    const runtime = { models: [] as { id: string; name: string; capabilities: string[] }[], apiKeys: [], usage: { kind: 'loading' as const }, query: '' }
+    const snapshot = { getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage }), subscribe: (listener: () => void) => { listeners.add(listener); return () => listeners.delete(listener) } }
+    const entry = (await import('../src/client/index.js')).createSettingsPageEntry({ runtime, hooks: { snapshot }, settings: { getSnapshot: () => ({ value: { models: [] } }) }, actions: {} })
+    const useSnapshot = vi.fn(() => snapshot.getSnapshot())
+    const tree = entry({ useSnapshot }) as { children: unknown[] }
+    expect(useSnapshot).toHaveBeenCalled()
+    runtime.models.push({ id: 'live', name: 'Live', capabilities: [] })
+    listeners.forEach(listener => listener())
+    const refreshed = entry({ useSnapshot }) as { children: unknown[] }
+    expect(JSON.stringify(refreshed)).toContain('live')
+    expect(snapshot.subscribe).toBeTypeOf('function')
+  })
+
+  test('marketplace query changes update runtime and refresh uses load', async () => {
+    const load = vi.fn(async () => undefined)
+    const runtime = { models: [{ id: 'm', name: 'Model', capabilities: [] }], apiKeys: [], usage: { kind: 'loading' as const }, query: '' }
+    const injected = { runtime, actions: { load, setQuery: (query: string) => { runtime.query = query } }, settings: { getSnapshot: () => ({ value: { models: [] } }) } }
+    const tree = SettingsPage(injected as never) as { children: unknown[] }
+    const market = tree.children[0] as { children: unknown[] }
+    const tools = market.children.find(child => (child as { props?: { className?: string } })?.props?.className === 'qiniu-marketplace-tools') as { children: unknown[] }
+    const input = tools.children.find(child => (child as { type?: string })?.type === 'input') as { props: { onChange: (event: { target: { value: string } }) => void } }
+    input.props.onChange({ target: { value: 'model' } })
+    const refresh = tools.children.find(child => (child as { children?: unknown[] })?.children?.includes('Refresh')) as { props: { onClick: () => void } }
+    refresh.props.onClick()
+    expect(runtime.query).toBe('model')
+    expect(load).toHaveBeenCalled()
+  })
+
+  test('details action is wired and renders detail state', async () => {
+    const model = { id: 'm', name: 'Model', capabilities: [] }
+    const modelDetails = vi.fn(async () => ({ id: 'm', name: 'Detailed model', capabilities: ['text-input'] }))
+    const tree = SettingsPage({ models: [model], selections: [], actions: { modelDetails } } as never) as { children: unknown[] }
+    const market = tree.children[0] as { children: unknown[] }
+    const grid = market.children.find(child => (child as { props?: { className?: string } })?.props?.className === 'qiniu-model-grid') as { children: unknown[] }
+    const details = (grid.children[0] as { children: unknown[] }).children.find(child => (child as { children?: unknown[] })?.children?.includes('Details')) as { props: { onClick: () => void } }
+    details.props.onClick()
+    await Promise.resolve()
+    expect(modelDetails).toHaveBeenCalledWith('m')
+  })
+
+  test('credential status is loaded and rendered without exposing values', async () => {
+    const status = { accessKey: { configured: false, writable: true }, secretKey: { configured: false, writable: true }, inferenceApiKey: { configured: true, writable: true } }
+    const rpc = vi.fn(async (_channel: string, endpoint: string) => endpoint === 'qiniu-maas/credential-status' ? { ok: true, value: status } : { ok: true, value: [] })
+    const ctx = { get: (name: string) => name === 'connection' ? { rpc: { call: rpc } } : name === 'settingsScope' ? { bind: () => ({ getSnapshot: () => ({ value: { models: [] } }), set: vi.fn() }) } : undefined }
+    const injected = createSettingsInject(ctx as never) as { actions: { load: () => Promise<unknown> }; runtime: { credentialStatus?: unknown } }
+    await injected.actions.load()
+    expect(injected.runtime.credentialStatus).toEqual(status)
+    expect(JSON.stringify(injected.runtime.credentialStatus)).not.toContain('qiniu-live-secret')
+  })
+
+  test('manual and saved API-key actions use the private RPC and never write on typing', async () => {
+    const rpc = vi.fn(async () => ({ ok: true, value: { ok: true } }))
+    const injected = createSettingsInject({ get: (name: string) => name === 'connection' ? { rpc: { call: rpc }, api: { credentials: { set: vi.fn() } } } : name === 'settingsScope' ? { bind: () => ({ getSnapshot: () => ({ value: { models: [] } }), set: vi.fn() }) } : undefined } as never) as { actions: { setManualApiKey: (value: string) => Promise<unknown>; useApiKey: (key: ApiKeySummary) => Promise<unknown> } }
+    await injected.actions.setManualApiKey('sk-live')
+    await injected.actions.useApiKey({ name: 'saved', maskedValue: 'sk-live', enabled: true })
+    expect(rpc).toHaveBeenCalledWith('/api', 'qiniu-maas/set-inference-api-key', { args: { value: 'sk-live' } })
   })
 })

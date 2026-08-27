@@ -14,11 +14,17 @@ export const inject = injectClient
 type SettingsScope = { bind: (spec: { namespace: string }) => { getSnapshot: () => { value?: { models?: ModelSelection[] } }; set: (field: string, value: unknown) => Promise<void> } }
 type CredentialApi = { set: (request: { ref: string; value: string }) => Promise<unknown> }
 type Connection = { api?: { credentials?: CredentialApi }; rpc?: { call: (channel: string, endpoint: string, payload: { args: Record<string, unknown> }) => Promise<unknown> } }
+type CredentialState = { configured: boolean; writable: boolean }
+type CredentialStatus = { accessKey: CredentialState; secretKey: CredentialState; inferenceApiKey: CredentialState }
+type ModelDetailsState = { kind: 'loading' | 'unavailable' | 'error' | 'success'; model?: MarketplaceModel; message?: string }
+
 type SettingsRuntime = {
   models: MarketplaceModel[]
   apiKeys: ApiKeySummary[]
   usage: UsageViewState
   query: string
+  credentialStatus?: CredentialStatus
+  modelDetails?: ModelDetailsState
   listeners: Set<() => void>
 }
 
@@ -58,14 +64,33 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
       runtime.listeners.forEach(listener => listener())
       return result
     },
-    modelDetails: (id: string) => hostCall(connection, 'qiniu-maas/model-details', { id }),
+    modelDetails: async (id: string) => {
+      runtime.modelDetails = { kind: 'loading' }
+      runtime.listeners.forEach(listener => listener())
+      try {
+        const result = await hostCall(connection, 'qiniu-maas/model-details', { id })
+        if (result && typeof result === 'object' && 'code' in result) runtime.modelDetails = { kind: 'error', message: String((result as { code: unknown }).code) }
+        else runtime.modelDetails = { kind: 'success', model: result as MarketplaceModel }
+        runtime.listeners.forEach(listener => listener())
+        return result
+      } catch (error) {
+        runtime.modelDetails = { kind: 'error', message: error instanceof Error ? error.message : 'Unable to load model details.' }
+        runtime.listeners.forEach(listener => listener())
+        return error
+      }
+    },
     listApiKeys: async () => {
       const result = await hostCall(connection, 'qiniu-maas/list-api-keys')
       if (Array.isArray(result)) runtime.apiKeys = result as ApiKeySummary[]
       runtime.listeners.forEach(listener => listener())
       return result
     },
-    credentialStatus: () => hostCall(connection, 'qiniu-maas/credential-status'),
+    credentialStatus: async () => {
+      const result = await hostCall(connection, 'qiniu-maas/credential-status')
+      if (result && typeof result === 'object' && 'accessKey' in result) runtime.credentialStatus = result as CredentialStatus
+      runtime.listeners.forEach(listener => listener())
+      return result
+    },
     usage: async (args: Record<string, unknown> = {}) => {
       const result = await hostCall(connection, 'qiniu-maas/usage', args)
       runtime.usage = usageState(result)
@@ -73,9 +98,17 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
       return result
     },
     load: async () => {
-      const [modelResult, keyResult, usageResult] = await Promise.all([actions.listModels(), actions.listApiKeys(), actions.usage()])
-      return { models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, results: [modelResult, keyResult, usageResult] }
+      const results = await Promise.allSettled([actions.listModels(), actions.listApiKeys(), actions.usage(), actions.credentialStatus()])
+      return {
+        models: runtime.models,
+        apiKeys: runtime.apiKeys,
+        usage: runtime.usage,
+        credentialStatus: runtime.credentialStatus,
+        results: results.map(result => result.status === 'fulfilled' ? result.value : result.reason),
+      }
     },
+    refresh: async () => actions.load(),
+    setQuery: (query: string) => { runtime.query = query; runtime.listeners.forEach(listener => listener()) },
     addModel: async (model: MarketplaceModel) => {
       const current = settings.getSnapshot().value?.models ?? []
       if (!current.some(selection => selection.id === model.id)) await update([...current, createModelSelection(model.id)])
@@ -86,20 +119,21 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
     },
     useApiKey: (key: ApiKeySummary) => {
       if (!key.enabled || !canUseApiKey(key.maskedValue)) return Promise.reject(new Error('A complete API key is required'))
-      const credentials = connection?.api?.credentials
-      return credentials ? credentials.set({ ref: QINIU_CREDENTIAL_REFS.inferenceApiKey, value: key.maskedValue }) : Promise.reject(new Error('Credential API unavailable'))
+      return hostCall(connection, 'qiniu-maas/set-inference-api-key', { value: key.maskedValue })
     },
     setManualApiKey: (value: string) => {
       if (!canUseApiKey(value)) return Promise.reject(new Error('A complete API key is required'))
-      const credentials = connection?.api?.credentials
-      return credentials ? credentials.set({ ref: QINIU_CREDENTIAL_REFS.inferenceApiKey, value }) : Promise.reject(new Error('Credential API unavailable'))
+      return hostCall(connection, 'qiniu-maas/set-inference-api-key', { value })
     },
   }
   const snapshot = {
-    getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage }),
+    getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, query: runtime.query, credentialStatus: runtime.credentialStatus, modelDetails: runtime.modelDetails }),
     subscribe: (listener: () => void) => { runtime.listeners.add(listener); return () => runtime.listeners.delete(listener) },
   }
-  const injected: Record<string, unknown> = { settings, actions, runtime, hooks: { snapshot } }
+  const injected: Record<string, unknown> = { settings, actions, runtime, hooks: { snapshot }, useSnapshot: () => {
+    const react = (globalThis as { React?: { useSyncExternalStore?: (subscribe: (listener: () => void) => () => void, getSnapshot: () => unknown, getServerSnapshot?: () => unknown) => unknown } }).React
+    return react?.useSyncExternalStore?.(snapshot.subscribe, snapshot.getSnapshot, snapshot.getSnapshot) ?? snapshot.getSnapshot()
+  } }
   Object.defineProperties(injected, {
     models: { enumerable: true, get: () => runtime.models },
     apiKeys: { enumerable: true, get: () => runtime.apiKeys },
