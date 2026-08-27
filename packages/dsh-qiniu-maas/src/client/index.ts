@@ -229,10 +229,7 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
     getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, billing: runtime.billing, query: runtime.query, marketplaceLoading: runtime.marketplaceLoading, marketplaceError: runtime.marketplaceError, apiKeyError: runtime.apiKeyError, managementCredentialsError: runtime.managementCredentialsError, credentialStatus: runtime.credentialStatus, credentialStatusError: runtime.credentialStatusError, modelDetails: runtime.modelDetails }),
     subscribe: (listener: () => void) => { runtime.listeners.add(listener); return () => runtime.listeners.delete(listener) },
   }
-  const injected: Record<string, unknown> = { settings, actions, runtime, dispose: () => { runtime.settingsUnsubscribe?.(); runtime.settingsUnsubscribe = undefined; runtime.listeners.clear(); clearManualApiKeyDrafts(); clearManagementCredentialDraft() }, hooks: { snapshot }, useSnapshot: () => {
-    const react = (globalThis as { React?: { useSyncExternalStore?: (subscribe: (listener: () => void) => () => void, getSnapshot: () => unknown, getServerSnapshot?: () => unknown) => unknown } }).React
-    return react?.useSyncExternalStore?.(snapshot.subscribe, snapshot.getSnapshot, snapshot.getSnapshot) ?? snapshot.getSnapshot()
-  } }
+  const injected: Record<string, unknown> = { settings, actions, runtime, dispose: () => { runtime.settingsUnsubscribe?.(); runtime.settingsUnsubscribe = undefined; runtime.listeners.clear(); clearManualApiKeyDrafts(); clearManagementCredentialDraft() }, hooks: { snapshot }, useSnapshot: () => snapshot.getSnapshot() }
   Object.defineProperties(injected, {
     models: { enumerable: true, get: () => runtime.models },
     apiKeys: { enumerable: true, get: () => runtime.apiKeys },
