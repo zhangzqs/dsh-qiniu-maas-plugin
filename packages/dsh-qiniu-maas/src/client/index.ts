@@ -11,7 +11,7 @@ import { QINIU_CREDENTIAL_REFS } from '../settings.js'
 export const injectClient = ['slots', 'locale', 'connection', 'remote', 'settingsScope', 'settingsSchema'] as const
 export const inject = injectClient
 
-type SettingsScope = { bind: (spec: { namespace: string }) => { getSnapshot: () => { value?: { models?: ModelSelection[] } }; set: (field: string, value: unknown) => Promise<void> } }
+type SettingsScope = { bind: (spec: { namespace: string }) => { getSnapshot: () => { value?: { models?: ModelSelection[] } }; subscribe?: (listener: () => void) => () => void; set: (field: string, value: unknown) => Promise<void> } }
 type CredentialApi = { set: (request: { ref: string; value: string }) => Promise<unknown> }
 type Connection = { api?: { credentials?: CredentialApi }; rpc?: { call: (channel: string, endpoint: string, payload: { args: Record<string, unknown> }) => Promise<unknown> } }
 type CredentialState = { configured: boolean; writable: boolean }
@@ -25,7 +25,10 @@ type SettingsRuntime = {
   query: string
   credentialStatus?: CredentialStatus
   modelDetails?: ModelDetailsState
+  modelsError?: string
+  apiKeysError?: string
   listeners: Set<() => void>
+  settingsUnsubscribe?: () => void
 }
 
 type ClientContextLike = {
@@ -56,6 +59,9 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
   const settings = scope === undefined
     ? { getSnapshot: () => ({ value: undefined }) }
     : scope
+  if (scope?.subscribe && runtime.settingsUnsubscribe === undefined) {
+    runtime.settingsUnsubscribe = scope.subscribe(() => runtime.listeners.forEach(listener => listener()))
+  }
   const update = async (models: ModelSelection[]): Promise<void> => { await scope?.set('models', models) }
   const actions = {
     listModels: async () => {
@@ -69,8 +75,8 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
       runtime.listeners.forEach(listener => listener())
       try {
         const result = await hostCall(connection, 'qiniu-maas/model-details', { id })
-        if (result && typeof result === 'object' && 'code' in result) runtime.modelDetails = { kind: 'error', message: String((result as { code: unknown }).code) }
-        else runtime.modelDetails = { kind: 'success', model: result as MarketplaceModel }
+         if (result === undefined) runtime.modelDetails = { kind: 'unavailable' }
+         else if (result && typeof result === 'object' && 'code' in result) runtime.modelDetails = { kind: 'error', message: String((result as { code: unknown }).code) }
         runtime.listeners.forEach(listener => listener())
         return result
       } catch (error) {
@@ -130,7 +136,7 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
     getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, query: runtime.query, credentialStatus: runtime.credentialStatus, modelDetails: runtime.modelDetails }),
     subscribe: (listener: () => void) => { runtime.listeners.add(listener); return () => runtime.listeners.delete(listener) },
   }
-  const injected: Record<string, unknown> = { settings, actions, runtime, hooks: { snapshot }, useSnapshot: () => {
+  const injected: Record<string, unknown> = { settings, actions, runtime, dispose: () => runtime.settingsUnsubscribe?.(), hooks: { snapshot }, useSnapshot: () => {
     const react = (globalThis as { React?: { useSyncExternalStore?: (subscribe: (listener: () => void) => () => void, getSnapshot: () => unknown, getServerSnapshot?: () => unknown) => unknown } }).React
     return react?.useSyncExternalStore?.(snapshot.subscribe, snapshot.getSnapshot, snapshot.getSnapshot) ?? snapshot.getSnapshot()
   } }
@@ -161,6 +167,7 @@ export function applyClient(ctx: ClientContextLike): void {
   }, 'qiniu-maas: styles')
   const t = ctx.locale.bind('settings.qiniu-maas')
   const injected = createSettingsInject(ctx)
+  ctx.effect(() => () => { (injected.dispose as (() => void) | undefined)?.() }, 'qiniu-maas: settings subscription')
   const actions = injected.actions as { load?: () => Promise<unknown> }
   void actions.load?.().catch(() => undefined)
   const SettingsPageEntry = createSettingsPageEntry(injected)

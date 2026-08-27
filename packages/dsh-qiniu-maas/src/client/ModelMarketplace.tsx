@@ -26,9 +26,9 @@ export function updateModelSelection(selections: readonly ModelSelection[], id: 
   if (patch.remove) return selections.filter(selection => selection.id !== id)
   return selections.map(selection => selection.id === id ? {
     ...selection,
-    ...(patch.enabled === undefined ? {} : { enabled: patch.enabled }),
-    ...(patch.contextWindow === undefined ? {} : { contextWindow: patch.contextWindow }),
-    ...(patch.maxOutputTokens === undefined ? {} : { maxOutputTokens: patch.maxOutputTokens }),
+    ...(Object.prototype.hasOwnProperty.call(patch, 'enabled') ? { enabled: patch.enabled } : {}),
+    ...(Object.prototype.hasOwnProperty.call(patch, 'contextWindow') ? { contextWindow: patch.contextWindow } : {}),
+    ...(Object.prototype.hasOwnProperty.call(patch, 'maxOutputTokens') ? { maxOutputTokens: patch.maxOutputTokens } : {}),
   } : selection)
 }
 
