@@ -38,6 +38,7 @@ function fakeContext() {
   const webServer = { register: vi.fn(() => vi.fn()) }
   const ctx = {
     llm,
+    webServer,
     get: (name: string) => ({ settings, credentials, harness, fetch: fetch, llm, webServer } as Record<string, unknown>)[name],
     effect: (effect: () => void | (() => void)) => { const cleanup = effect(); if (typeof cleanup === 'function') cleanups.push(cleanup) },
   }
@@ -67,7 +68,7 @@ test('web route responds with the shared handler result envelope', async () => {
   expect(JSON.parse(response.end.mock.calls[0]?.[0] as string)).toMatchObject({ type: 'server-response', rpcId: 'rpc-1', result: { ok: true } })
 })
 test('exports the injected llm dependency from the package entrypoint', () => {
-  expect(inject).toEqual(['llm'])
+  expect(inject).toEqual(['llm', 'webServer'])
 })
 
 test('replaces one callable adapter registration on settings changes and cleans up without scope disposal', () => {

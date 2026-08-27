@@ -35,6 +35,7 @@ type WebServer = {
 }
 type ContextLike = {
   llm: LlmService
+  webServer: WebServer
   get: (name: string) => unknown
   effect: (callback: () => void | (() => void), name?: string) => unknown
 }
@@ -48,7 +49,7 @@ const providerEntry = {
   settingsPath: [],
 }
 
-export const inject = ['llm'] as const
+export const inject = ['llm', 'webServer'] as const
 
 function disposeRegistration(registration: Registration | undefined): void {
   registration?.()
@@ -178,8 +179,8 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
   }
   const harness = ctx.get('harness') as HarnessService | undefined
   const handles = harness ? Object.entries(handlers).map(([name, handler]) => harness.handle(`qiniu-maas/${name}`, handler)) : []
-  const webServer = ctx.get('webServer') as WebServer | undefined
-  const routeDisposer = webServer?.register({ kind: 'prefix', path: '/api/qiniu-maas', handler: async (req, res) => {
+  const webServer = ctx.webServer
+  const routeDisposer = webServer.register({ kind: 'prefix', path: '/api/qiniu-maas', handler: async (req, res) => {
     if (req.method !== 'POST') { res.writeHead(405); res.end('method not allowed'); return }
     const endpoint = new URL(req.url ?? '/', 'http://dsh.local').pathname.slice('/api/qiniu-maas/'.length)
     const handler = endpoint && handlers[endpoint]
