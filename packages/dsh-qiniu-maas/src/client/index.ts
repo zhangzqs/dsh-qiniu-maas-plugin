@@ -24,9 +24,8 @@ type SettingsRuntime = {
   usage: UsageViewState
   query: string
   credentialStatus?: CredentialStatus
+  credentialStatusError?: string
   modelDetails?: ModelDetailsState
-  modelsError?: string
-  apiKeysError?: string
   listeners: Set<() => void>
   settingsUnsubscribe?: () => void
 }
@@ -75,8 +74,9 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
       runtime.listeners.forEach(listener => listener())
       try {
         const result = await hostCall(connection, 'qiniu-maas/model-details', { id })
-         if (result === undefined) runtime.modelDetails = { kind: 'unavailable' }
-         else if (result && typeof result === 'object' && 'code' in result) runtime.modelDetails = { kind: 'error', message: String((result as { code: unknown }).code) }
+          if (result === undefined) runtime.modelDetails = { kind: 'unavailable' }
+          else if (result && typeof result === 'object' && 'code' in result) runtime.modelDetails = { kind: 'error', message: String((result as { code: unknown }).code) }
+          else runtime.modelDetails = { kind: 'success', model: result as MarketplaceModel }
         runtime.listeners.forEach(listener => listener())
         return result
       } catch (error) {
@@ -92,16 +92,29 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
       return result
     },
     credentialStatus: async () => {
-      const result = await hostCall(connection, 'qiniu-maas/credential-status')
-      if (result && typeof result === 'object' && 'accessKey' in result) runtime.credentialStatus = result as CredentialStatus
-      runtime.listeners.forEach(listener => listener())
-      return result
+      try {
+        const result = await hostCall(connection, 'qiniu-maas/credential-status')
+        if (result && typeof result === 'object' && 'accessKey' in result) runtime.credentialStatus = result as CredentialStatus
+        runtime.credentialStatusError = undefined
+        runtime.listeners.forEach(listener => listener())
+        return result
+      } catch (error) {
+        runtime.credentialStatusError = error instanceof Error ? error.message : 'Unable to load credential status.'
+        runtime.listeners.forEach(listener => listener())
+        return error
+      }
     },
     usage: async (args: Record<string, unknown> = {}) => {
-      const result = await hostCall(connection, 'qiniu-maas/usage', args)
-      runtime.usage = usageState(result)
-      runtime.listeners.forEach(listener => listener())
-      return result
+      try {
+        const result = await hostCall(connection, 'qiniu-maas/usage', args)
+        runtime.usage = usageState(result)
+        runtime.listeners.forEach(listener => listener())
+        return result
+      } catch (error) {
+        runtime.usage = { kind: 'error', message: error instanceof Error ? error.message : 'Unable to load usage.' }
+        runtime.listeners.forEach(listener => listener())
+        return error
+      }
     },
     load: async () => {
       const results = await Promise.allSettled([actions.listModels(), actions.listApiKeys(), actions.usage(), actions.credentialStatus()])
@@ -133,7 +146,7 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
     },
   }
   const snapshot = {
-    getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, query: runtime.query, credentialStatus: runtime.credentialStatus, modelDetails: runtime.modelDetails }),
+    getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, query: runtime.query, credentialStatus: runtime.credentialStatus, credentialStatusError: runtime.credentialStatusError, modelDetails: runtime.modelDetails }),
     subscribe: (listener: () => void) => { runtime.listeners.add(listener); return () => runtime.listeners.delete(listener) },
   }
   const injected: Record<string, unknown> = { settings, actions, runtime, dispose: () => runtime.settingsUnsubscribe?.(), hooks: { snapshot }, useSnapshot: () => {

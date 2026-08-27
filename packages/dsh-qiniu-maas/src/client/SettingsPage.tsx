@@ -10,9 +10,9 @@ function el(type: string, props: Record<string, unknown> | null, ...children: un
 type CredentialStatus = { accessKey: { configured: boolean; writable: boolean }; secretKey: { configured: boolean; writable: boolean }; inferenceApiKey: { configured: boolean; writable: boolean } }
 type ModelDetailsState = { kind: 'loading' | 'unavailable' | 'error' | 'success'; model?: MarketplaceModel; message?: string }
 
-function CredentialStatusPanel(props: { status?: CredentialStatus }): unknown {
+function CredentialStatusPanel(props: { status?: CredentialStatus; error?: string }): unknown {
   const status = props.status
-  const state = status === undefined ? 'Loading credential status...' : status.accessKey.configured && status.secretKey.configured ? 'AK/SK credentials configured.' : 'AK/SK credentials required for management data.'
+  const state = props.error ? `Unable to load credential status: ${props.error}` : status === undefined ? 'Loading credential status...' : status.accessKey.configured && status.secretKey.configured ? 'AK/SK credentials configured.' : 'AK/SK credentials required for management data.'
   return el('section', { className: 'qiniu-credential-status', 'aria-live': 'polite' }, el('h2', null, 'Credential status'), el('p', null, state), status ? el('ul', null,
     el('li', null, `Access Key: ${status.accessKey.configured ? 'configured' : 'not configured'}`),
     el('li', null, `Secret Key: ${status.secretKey.configured ? 'configured' : 'not configured'}`),
@@ -42,8 +42,8 @@ export interface SettingsPageProps {
   onUseApiKey?: (key: ApiKeySummary) => void
   onManualApiKey?: (value: string) => void
   manualApiKey?: string
-  runtime?: { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query: string; credentialStatus?: CredentialStatus; modelDetails?: ModelDetailsState }
-  useSnapshot?: () => { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query?: string; credentialStatus?: CredentialStatus; modelDetails?: ModelDetailsState }
+  runtime?: { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query: string; credentialStatus?: CredentialStatus; credentialStatusError?: string; modelDetails?: ModelDetailsState }
+  useSnapshot?: () => { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query?: string; credentialStatus?: CredentialStatus; modelDetails?: ModelDetailsState; credentialStatusError?: string }
 }
 
 export function SettingsPage(props: SettingsPageProps): unknown {
@@ -84,6 +84,6 @@ export function SettingsPage(props: SettingsPageProps): unknown {
     ApiKeyPanel({ keys: apiKeys, onUse: props.onUseApiKey ?? (key => { void actions.useApiKey?.(key) }), onManualEntry: props.onManualApiKey ?? (value => { void actions.setManualApiKey?.(value) }), manualValue: props.manualApiKey }),
     UsagePanel({ state: usage }),
     ModelDetailsPanel({ state: modelDetails }),
-    CredentialStatusPanel({ status: credentialStatus }),
+    CredentialStatusPanel({ status: credentialStatus, error: observed?.credentialStatusError ?? runtime?.credentialStatusError }),
   )
 }
