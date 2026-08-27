@@ -74,7 +74,7 @@ export const billResponse = {
     model_id: 'deepseek-v4-flash',
     time_series: [{
       time: '2026-08-01T00:00:00+08:00',
-      items: [{ name: 'input_tokens', usage: { count: 4.5, unit: 'k/tokens' }, fee: 0.12, key: 'input' }],
+      items: [{ name: 'input_tokens', usage: { count: 4.5, unit: 'k/tokens' }, fee: 0.12, key: 'sk-billing-secret-value' }],
       total_fee: 0.12,
       total_requests: 2
     }],
