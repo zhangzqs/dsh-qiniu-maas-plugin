@@ -5,6 +5,25 @@ import { UsagePanel, usageState } from '../src/client/UsagePanel.js'
 import { apply as applyClient, injectClient, createSettingsInject, mapRpcError } from '../src/client/index.js'
 import { SettingsPage } from '../src/client/SettingsPage.js'
 
+type ElementLike = { type?: string; props?: Record<string, unknown> }
+function childrenOf(node: unknown): unknown[] {
+  if (typeof node === 'string' || typeof node === 'number') return [node]
+  const children = (node as ElementLike)?.props?.children
+  const list = children === undefined ? [] : Array.isArray(children) ? children : [children]
+  return list.flatMap(child => Array.isArray(child) ? child : [child]).filter(child => child !== null && child !== undefined && child !== false)
+}
+function propsOf(node: unknown): Record<string, unknown> { return (node as ElementLike)?.props ?? {} }
+function typeOf(node: unknown): string | undefined { return (node as ElementLike)?.type }
+function findElement(node: unknown, predicate: (value: unknown) => boolean): unknown {
+  if (!node || typeof node !== 'object' || !('type' in node)) return undefined
+  if (predicate(node)) return node
+  for (const child of childrenOf(node)) {
+    const found = findElement(child, predicate)
+    if (found) return found
+  }
+  return undefined
+}
+
 describe('Qiniu MaaS model settings UI', () => {
   test('renders public marketplace data without management credentials', () => {
     const models = [{ id: 'qwen-turbo', name: 'Qwen Turbo', capabilities: ['text-input'] }]
@@ -53,23 +72,23 @@ describe('Qiniu MaaS model settings UI', () => {
 
   test('renders API key list metadata with masked Use refusal', () => {
     const tree = ApiKeyPanel({ keys: [{ name: 'production', maskedValue: 'qiniu***key', enabled: true }] }) as { children: unknown[] }
-    const row = tree.children[1] as { children: unknown[] }
-    const button = row.children[3] as { props: { disabled: boolean } }
+    const row = childrenOf(tree)[1] as { children: unknown[] }
+    const button = childrenOf(row)[3] as { props: { disabled: boolean } }
     expect(button.props.disabled).toBe(true)
   })
 
   test('keeps manual key draft when explicit submission fails', async () => {
     const onManualEntry = vi.fn(async () => { throw new Error('write failed') })
     const tree = ApiKeyPanel({ keys: [{ name: 'production', maskedValue: 'qiniu***key', enabled: true }], onManualEntry }) as { children: unknown[] }
-    const row = tree.children[1] as { children: unknown[] }
-    const input = row.children.find((child) => (child as { type?: string })?.type === 'input') as { props: { onChange: (event: { target: { value: string } }) => void; defaultValue: string } }
+    const row = childrenOf(tree)[1] as { children: unknown[] }
+    const input = childrenOf(row).find((child) => (child as { type?: string })?.type === 'input') as { props: { onChange: (event: { target: { value: string } }) => void; defaultValue: string } }
     input.props.onChange({ target: { value: 'qiniu-live-key' } })
-    const manual = row.children.find((child) => (child as { children?: unknown[] })?.children?.includes('Use manually')) as { props: { onClick: () => Promise<void> } }
+    const manual = childrenOf(row).find((child) => childrenOf(child).includes('Use manually')) as { props: { onClick: () => Promise<void> } }
     await manual.props.onClick()
     expect(onManualEntry).toHaveBeenCalledWith('qiniu-live-key')
     const next = ApiKeyPanel({ keys: [{ name: 'production', maskedValue: 'qiniu***key', enabled: true }] }) as { children: unknown[] }
-    const nextRow = next.children[1] as { children: unknown[] }
-    const nextInput = nextRow.children.find((child) => (child as { type?: string })?.type === 'input') as { props: { defaultValue: string } }
+    const nextRow = childrenOf(next)[1] as { children: unknown[] }
+    const nextInput = childrenOf(nextRow).find((child) => (child as { type?: string })?.type === 'input') as { props: { defaultValue: string } }
     expect(nextInput.props.defaultValue).toBe('qiniu-live-key')
   })
 
@@ -88,17 +107,17 @@ describe('Qiniu MaaS model settings UI', () => {
       onUpdateSelection: onUpdate,
       onRemoveSelection: onRemove,
     }) as { children: unknown[] }
-    const section = tree.children[1] as { children: unknown[] }
-    const row = section.children[1] as { children: unknown[] }
-    const disable = row.children.find((child) => (child as { children?: unknown[] })?.children?.includes('Disable')) as { props: { onClick: () => void } }
+    const section = childrenOf(tree)[1] as { children: unknown[] }
+    const row = childrenOf(section)[1] as { children: unknown[] }
+    const disable = childrenOf(row).find((child) => childrenOf(child).includes('Disable')) as { props: { onClick: () => void } }
     disable.props.onClick()
     expect(onUpdate).toHaveBeenCalledWith('qwen-turbo', { enabled: false })
-    const inputs = row.children.filter((child) => (child as { type?: string })?.type === 'input') as { props: { onChange: (event: { target: { value: string } }) => void } }[]
+    const inputs = childrenOf(row).filter((child) => (child as { type?: string })?.type === 'input') as { props: { onChange: (event: { target: { value: string } }) => void } }[]
     inputs[0]?.props.onChange({ target: { value: '32768' } })
     inputs[1]?.props.onChange({ target: { value: '8192' } })
     expect(onUpdate).toHaveBeenCalledWith('qwen-turbo', { contextWindow: 32768 })
     expect(onUpdate).toHaveBeenCalledWith('qwen-turbo', { maxOutputTokens: 8192 })
-    const remove = row.children.find((child) => (child as { children?: unknown[] })?.children?.includes('Remove')) as { props: { onClick: () => void } }
+    const remove = childrenOf(row).find((child) => childrenOf(child).includes('Remove')) as { props: { onClick: () => void } }
     remove.props.onClick()
     expect(onRemove).toHaveBeenCalledWith('qwen-turbo')
   })
@@ -106,11 +125,10 @@ describe('Qiniu MaaS model settings UI', () => {
   test('exposes named model inputs and routes all control callbacks', () => {
     const onChange = vi.fn()
     const tree = SettingsPage({ selections: [{ id: 'm', enabled: false }], onSelectionChange: onChange }) as { children: unknown[] }
-    const row = ((tree.children[1] as { children: unknown[] }).children[1]) as { children: unknown[] }
-    const enable = row.children.find((child) => (child as { children?: unknown[] }).children?.includes('Enable')) as { props: { onClick: () => void } }
+    const enable = findElement(tree, child => typeOf(child) === 'button' && childrenOf(child).includes('Enable')) as { props: { onClick: () => void } }
     enable.props.onClick()
-    const context = row.children.find((child) => (child as { props?: { name?: string } }).props?.name === 'contextWindow') as { props: { 'aria-label': string; onChange: (event: { target: { value: string } }) => void } }
-    const output = row.children.find((child) => (child as { props?: { name?: string } }).props?.name === 'maxOutputTokens') as { props: { 'aria-label': string; onChange: (event: { target: { value: string } }) => void } }
+    const context = findElement(tree, child => (child as { props?: { name?: string } }).props?.name === 'contextWindow') as { props: { 'aria-label': string; onChange: (event: { target: { value: string } }) => void } }
+    const output = findElement(tree, child => (child as { props?: { name?: string } }).props?.name === 'maxOutputTokens') as { props: { 'aria-label': string; onChange: (event: { target: { value: string } }) => void } }
     expect(context.props['aria-label']).toBe('contextWindow')
     expect(output.props['aria-label']).toBe('maxOutputTokens')
     context.props.onChange({ target: { value: '16384' } })
@@ -126,9 +144,9 @@ describe('Qiniu MaaS model settings UI', () => {
     const tree = ModelMarketplace({
       models: [{ id: 'm', name: 'Model', capabilities: ['text-input'] }], onAdd, onDetails,
     }) as { children: unknown[] }
-    const grid = tree.children.find((child) => (child as { props?: { className?: string } }).props?.className === 'qiniu-model-grid') as { children: unknown[] }
-    const card = grid.children[0] as { children: unknown[] }
-    const buttons = card.children.filter((child) => (child as { type?: string })?.type === 'button') as { props: { onClick: () => void }; children: unknown[] }[]
+    const grid = childrenOf(tree).find((child) => (child as { props?: { className?: string } }).props?.className === 'qiniu-model-grid') as { children: unknown[] }
+    const card = childrenOf(grid)[0] as { children: unknown[] }
+    const buttons = childrenOf(card).filter((child) => (child as { type?: string })?.type === 'button') as { props: { onClick: () => void }; children: unknown[] }[]
     buttons[0]?.props.onClick()
     buttons[1]?.props.onClick()
     expect(onAdd).toHaveBeenCalledWith(expect.objectContaining({ id: 'm' }))
@@ -139,10 +157,10 @@ describe('Qiniu MaaS model settings UI', () => {
     const onUse = vi.fn()
     const onManualEntry = vi.fn()
     const tree = ApiKeyPanel({ keys: [{ name: 'production', maskedValue: 'qiniu***key', enabled: true }], onUse, onManualEntry }) as { children: unknown[] }
-    const row = tree.children[1] as { children: unknown[] }
-    const input = row.children.find((child) => (child as { type?: string })?.type === 'input') as { props: { onChange: (event: { target: { value: string } }) => void } }
+    const row = childrenOf(tree)[1] as { children: unknown[] }
+    const input = childrenOf(row).find((child) => (child as { type?: string })?.type === 'input') as { props: { onChange: (event: { target: { value: string } }) => void } }
     input.props.onChange({ target: { value: 'qiniu-live-key' } })
-    const manual = row.children.find((child) => (child as { children?: unknown[] })?.children?.includes('Use manually')) as { props: { onClick: () => void } }
+    const manual = childrenOf(row).find((child) => childrenOf(child).includes('Use manually')) as { props: { onClick: () => void } }
     manual.props.onClick()
     expect(onUse).not.toHaveBeenCalled()
     expect(onManualEntry).toHaveBeenCalledWith('qiniu-live-key')
@@ -221,9 +239,9 @@ describe('Qiniu MaaS client runtime', () => {
     applyClient(ctx as never)
     const component = (ctx.slots.register as ReturnType<typeof vi.fn>).mock.calls[0]?.[1] as (props: Record<string, unknown>) => { children?: unknown[] }
     const tree = component({ close: vi.fn() })
-    const enabled = tree.children?.[1] as { children?: unknown[] }
-    const model = enabled.children?.[1] as { children?: unknown[] }
-    const disable = model.children?.[2] as { props?: { onClick?: () => void } }
+    const enabled = childrenOf(tree)?.[1] as { children?: unknown[] }
+    const model = childrenOf(enabled)?.[1] as { children?: unknown[] }
+    const disable = childrenOf(model)?.[2] as { props?: { onClick?: () => void } }
     disable.props?.onClick?.()
     await Promise.resolve()
     expect(set).toHaveBeenCalledWith('models', [{ id: 'm', enabled: false }])
@@ -232,12 +250,12 @@ describe('Qiniu MaaS client runtime', () => {
     const rpc = vi.fn(async () => ({ ok: true, value: { ok: true } }))
     const injected = createSettingsInject({ get: (name: string) => name === 'connection' ? { rpc: { call: rpc } } : name === 'settingsScope' ? { bind: () => ({ getSnapshot: () => ({ value: { models: [] } }), set: vi.fn() }) } : undefined } as never) as { actions: { setManagementCredentials: (accessKey: string, secretKey: string) => Promise<unknown> } }
     const tree = SettingsPage({ actions: injected.actions, selections: [] }) as { children: unknown[] }
-    const section = tree.children.find(child => (child as { props?: { className?: string } })?.props?.className === 'qiniu-management-credentials') as { children: unknown[] }
-    const inputs = section.children.flatMap(child => (child as { children?: unknown[] })?.children ?? []).filter(child => (child as { type?: string })?.type === 'input') as { props: { onChange: (event: { target: { value: string } }) => void } }[]
+    const section = childrenOf(tree).find(child => (child as { props?: { className?: string } })?.props?.className === 'qiniu-management-credentials') as { children: unknown[] }
+    const inputs = childrenOf(section).flatMap(child => childrenOf(child)).filter(child => (child as { type?: string })?.type === 'input') as { props: { onChange: (event: { target: { value: string } }) => void } }[]
     inputs[0]?.props.onChange({ target: { value: 'ak-live' } })
     inputs[1]?.props.onChange({ target: { value: 'sk-live' } })
     expect(rpc).not.toHaveBeenCalledWith('/api', 'qiniu-maas/set-management-credentials', expect.anything())
-    const save = section.children.find(child => (child as { children?: unknown[] })?.children?.includes('Save')) as { props: { onClick: () => Promise<void> } }
+    const save = findElement(tree, child => typeOf(child) === 'button' && childrenOf(child).some(value => typeof value === 'string' && value.includes('Save'))) as { props: { onClick: () => Promise<void> } }
     await save.props.onClick()
     expect(rpc).toHaveBeenCalledWith('/api', 'qiniu-maas/set-management-credentials', { args: { accessKey: 'ak-live', secretKey: 'sk-live' } })
   })
@@ -290,11 +308,9 @@ describe('Qiniu MaaS client runtime', () => {
     const runtime = { models: [{ id: 'm', name: 'Model', capabilities: [] }], apiKeys: [], usage: { kind: 'loading' as const }, query: '' }
     const injected = { runtime, actions: { load, setQuery: (query: string) => { runtime.query = query } }, settings: { getSnapshot: () => ({ value: { models: [] } }) } }
     const tree = SettingsPage(injected as never) as { children: unknown[] }
-    const market = tree.children[0] as { children: unknown[] }
-    const tools = market.children.find(child => (child as { props?: { className?: string } })?.props?.className === 'qiniu-marketplace-tools') as { children: unknown[] }
-    const input = tools.children.find(child => (child as { type?: string })?.type === 'input') as { props: { onChange: (event: { target: { value: string } }) => void } }
+    const input = findElement(tree, child => typeOf(child) === 'input' && (child as { props?: { placeholder?: string } }).props?.placeholder === 'Search models') as { props: { onChange: (event: { target: { value: string } }) => void } }
     input.props.onChange({ target: { value: 'model' } })
-    const refresh = tools.children.find(child => (child as { children?: unknown[] })?.children?.includes('Refresh')) as { props: { onClick: () => void } }
+    const refresh = findElement(tree, child => typeOf(child) === 'button' && childrenOf(child).includes('Refresh')) as { props: { onClick: () => void } }
     refresh.props.onClick()
     expect(runtime.query).toBe('model')
     expect(load).toHaveBeenCalled()
@@ -304,9 +320,7 @@ describe('Qiniu MaaS client runtime', () => {
     const model = { id: 'm', name: 'Model', capabilities: [] }
     const modelDetails = vi.fn(async () => ({ id: 'm', name: 'Detailed model', capabilities: ['text-input'] }))
     const tree = SettingsPage({ models: [model], selections: [], actions: { modelDetails } } as never) as { children: unknown[] }
-    const market = tree.children[0] as { children: unknown[] }
-    const grid = market.children.find(child => (child as { props?: { className?: string } })?.props?.className === 'qiniu-model-grid') as { children: unknown[] }
-    const details = (grid.children[0] as { children: unknown[] }).children.find(child => (child as { children?: unknown[] })?.children?.includes('Details')) as { props: { onClick: () => void } }
+    const details = findElement(tree, child => typeOf(child) === 'button' && childrenOf(child).includes('Details')) as { props: { onClick: () => void } }
     details.props.onClick()
     await Promise.resolve()
     expect(modelDetails).toHaveBeenCalledWith('m')

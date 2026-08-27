@@ -23,10 +23,12 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@qiniu/maas-sdk": "workspace:*"
+    "@qiniu/maas-sdk": "workspace:*",
+    "react": "^18.2.0"
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-llm": "*"
+    "@deepseek-ai/dsh-llm": "*",
+    "@types/react": "~18.3.1"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "*",

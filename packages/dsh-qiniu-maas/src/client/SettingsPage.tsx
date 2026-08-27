@@ -1,11 +1,7 @@
+import type { ChangeEvent, ReactNode } from 'react'
 import { ModelMarketplace, type MarketplaceModel, type ModelSelection } from './ModelMarketplace.js'
 import { ApiKeyPanel, type ApiKeySummary } from './ApiKeyPanel.js'
 import { UsagePanel, type UsageViewState } from './UsagePanel.js'
-
-function el(type: string, props: Record<string, unknown> | null, ...children: unknown[]): unknown {
-  const react = (globalThis as { React?: { createElement: (...args: unknown[]) => unknown } }).React
-  return react?.createElement(type, props, ...children) ?? { type, props, children }
-}
 
 type CredentialStatus = { accessKey: { configured: boolean; writable: boolean }; secretKey: { configured: boolean; writable: boolean }; inferenceApiKey: { configured: boolean; writable: boolean } }
 type ModelDetailsState = { kind: 'loading' | 'unavailable' | 'error' | 'success'; model?: MarketplaceModel; message?: string }
@@ -17,7 +13,7 @@ export function clearManagementCredentialDraft(): void {
   managementDraft.secretKey = ''
 }
 
-function ManagementCredentialsPanel(props: { onSave?: (accessKey: string, secretKey: string) => void | Promise<unknown>; error?: string }): unknown {
+function ManagementCredentialsPanel(props: { onSave?: (accessKey: string, secretKey: string) => void | Promise<unknown>; error?: string }): ReactNode {
   const save = async (): Promise<void> => {
     try {
       await props.onSave?.(managementDraft.accessKey, managementDraft.secretKey)
@@ -26,29 +22,38 @@ function ManagementCredentialsPanel(props: { onSave?: (accessKey: string, secret
       // Keep the transient draft available for retry; the parent renders the error.
     }
   }
-  return el('section', { className: 'qiniu-management-credentials', 'aria-live': 'polite' },
-    el('h2', null, 'Management credentials'),
-    props.error ? el('p', { className: 'qiniu-management-credentials-error' }, props.error) : null,
-    el('label', null, 'Access Key', el('input', { type: 'password', name: 'accessKey', autoComplete: 'off', value: managementDraft.accessKey, onChange: (event: { target: { value: string } }) => { managementDraft.accessKey = event.target.value } })),
-    el('label', null, 'Secret Key', el('input', { type: 'password', name: 'secretKey', autoComplete: 'off', value: managementDraft.secretKey, onChange: (event: { target: { value: string } }) => { managementDraft.secretKey = event.target.value } })),
-    el('button', { type: 'button', onClick: save }, 'Save'),
+  return (
+    <section className="qiniu-management-credentials" aria-live="polite">
+      <h2>Management credentials</h2>
+      {props.error ? <p className="qiniu-management-credentials-error">{props.error}</p> : null}
+      <label>Access Key <input type="password" name="accessKey" autoComplete="off" value={managementDraft.accessKey} onChange={(event: ChangeEvent<HTMLInputElement>) => { managementDraft.accessKey = event.target.value }} /></label>
+      <label>Secret Key <input type="password" name="secretKey" autoComplete="off" value={managementDraft.secretKey} onChange={(event: ChangeEvent<HTMLInputElement>) => { managementDraft.secretKey = event.target.value }} /></label>
+      <button type="button" onClick={() => void save()}>Save</button>
+    </section>
   )
 }
-function CredentialStatusPanel(props: { status?: CredentialStatus; error?: string }): unknown {
+
+function CredentialStatusPanel(props: { status?: CredentialStatus; error?: string }): ReactNode {
   const status = props.status
   const state = props.error ? `Unable to load credential status: ${props.error}` : status === undefined ? 'Loading credential status...' : status.accessKey.configured && status.secretKey.configured ? 'AK/SK credentials configured.' : 'AK/SK credentials required for management data.'
-  return el('section', { className: 'qiniu-credential-status', 'aria-live': 'polite' }, el('h2', null, 'Credential status'), el('p', null, state), status ? el('ul', null,
-    el('li', null, `Access Key: ${status.accessKey.configured ? 'configured' : 'not configured'}`),
-    el('li', null, `Secret Key: ${status.secretKey.configured ? 'configured' : 'not configured'}`),
-    el('li', null, `Inference API Key: ${status.inferenceApiKey.configured ? 'configured' : 'not configured'}`),
-  ) : null)
+  return (
+    <section className="qiniu-credential-status" aria-live="polite">
+      <h2>Credential status</h2>
+      <p>{state}</p>
+      {status ? <ul>
+        <li>Access Key: {status.accessKey.configured ? 'configured' : 'not configured'}</li>
+        <li>Secret Key: {status.secretKey.configured ? 'configured' : 'not configured'}</li>
+        <li>Inference API Key: {status.inferenceApiKey.configured ? 'configured' : 'not configured'}</li>
+      </ul> : null}
+    </section>
+  )
 }
 
-function ModelDetailsPanel(props: { state?: ModelDetailsState }): unknown {
+function ModelDetailsPanel(props: { state?: ModelDetailsState }): ReactNode {
   const state = props.state
   if (!state) return null
   const text = state.kind === 'loading' ? 'Loading model details...' : state.kind === 'error' ? state.message ?? 'Unable to load model details.' : state.kind === 'unavailable' ? 'Model details unavailable.' : state.model ? `${state.model.name}: ${state.model.description ?? 'No description available.'}` : 'Model details loaded.'
-  return el('section', { className: 'qiniu-model-details', 'aria-live': 'polite' }, el('h2', null, 'Model details'), el('p', null, text))
+  return <section className="qiniu-model-details" aria-live="polite"><h2>Model details</h2><p>{text}</p></section>
 }
 
 export interface SettingsPageProps {
@@ -71,7 +76,7 @@ export interface SettingsPageProps {
   useSnapshot?: () => { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query?: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; managementCredentialsError?: string; credentialStatus?: CredentialStatus; modelDetails?: ModelDetailsState; credentialStatusError?: string }
 }
 
-export function SettingsPage(props: SettingsPageProps): unknown {
+export function SettingsPage(props: SettingsPageProps): ReactNode {
   const injectedSelections = props.settings?.getSnapshot().value?.models
   const selections = props.selections ?? injectedSelections ?? []
   const actions = props.actions ?? {}
@@ -95,25 +100,28 @@ export function SettingsPage(props: SettingsPageProps): unknown {
   }
   const addModel = props.onAddModel ?? (model => { void actions.addModel?.(model) })
   const showDetails = props.onModelDetails ?? (model => { void actions.modelDetails?.(model.id) })
-  return el('div', { className: 'qiniu-settings' },
-    ModelMarketplace({ models, selections, query, loading: marketplaceLoading, error: marketplaceError, onQueryChange: actions.setQuery, onAdd: addModel, onDetails: showDetails, onRefresh: () => { void (actions.refresh ?? actions.load ?? actions.listModels)?.() } }),
-    el('section', { className: 'qiniu-enabled-models' },
-      el('h2', null, 'Enabled models'),
-      ...selections.map(selection => el('div', { key: selection.id, className: 'qiniu-enabled-model' },
-        el('strong', null, selection.id),
-        el('span', null, selection.enabled ? ' Enabled' : ' Disabled'),
-        el('button', { type: 'button', onClick: () => change(selection.id, { enabled: !selection.enabled }) }, selection.enabled ? 'Disable' : 'Enable'),
-        el('span', null, 'contextWindow'),
-        el('input', { type: 'number', name: 'contextWindow', 'aria-label': 'contextWindow', value: selection.contextWindow ?? '', min: 1, onChange: (event: { target: { value: string } }) => change(selection.id, { contextWindow: event.target.value ? Number(event.target.value) : undefined }) }),
-        el('span', null, 'maxOutputTokens'),
-        el('input', { type: 'number', name: 'maxOutputTokens', 'aria-label': 'maxOutputTokens', value: selection.maxOutputTokens ?? '', min: 1, onChange: (event: { target: { value: string } }) => change(selection.id, { maxOutputTokens: event.target.value ? Number(event.target.value) : undefined }) }),
-        el('button', { type: 'button', onClick: () => change(selection.id, { remove: true }) }, 'Remove'),
-      )),
-    ),
-        ManagementCredentialsPanel({ onSave: props.onManagementCredentials ?? ((accessKey, secretKey) => actions.setManagementCredentials?.(accessKey, secretKey)), error: managementCredentialsError }),
-    ApiKeyPanel({ keys: apiKeys, onUse: props.onUseApiKey ?? (key => actions.useApiKey?.(key) as Promise<void>), onManualEntry: props.onManualApiKey ?? (value => actions.setManualApiKey?.(value) as Promise<void>), manualValue: props.manualApiKey, error: apiKeyError }),
-    UsagePanel({ state: usage }),
-    ModelDetailsPanel({ state: modelDetails }),
-    CredentialStatusPanel({ status: credentialStatus, error: observed?.credentialStatusError ?? runtime?.credentialStatusError }),
+  return (
+    <div className="qiniu-settings">
+      {ModelMarketplace({ models, selections, query, loading: marketplaceLoading, error: marketplaceError, onQueryChange: actions.setQuery, onAdd: addModel, onDetails: showDetails, onRefresh: () => { void (actions.refresh ?? actions.load ?? actions.listModels)?.() } })}
+      <section className="qiniu-enabled-models">
+        <h2>Enabled models</h2>
+        {selections.map(selection => (
+          <div key={selection.id} className="qiniu-enabled-model">
+            <strong>{selection.id}</strong><span>{selection.enabled ? ' Enabled' : ' Disabled'}</span>
+            <button type="button" onClick={() => change(selection.id, { enabled: !selection.enabled })}>{selection.enabled ? 'Disable' : 'Enable'}</button>
+            <span>contextWindow</span>
+            <input type="number" name="contextWindow" aria-label="contextWindow" value={selection.contextWindow ?? ''} min={1} onChange={(event: ChangeEvent<HTMLInputElement>) => change(selection.id, { contextWindow: event.target.value ? Number(event.target.value) : undefined })} />
+            <span>maxOutputTokens</span>
+            <input type="number" name="maxOutputTokens" aria-label="maxOutputTokens" value={selection.maxOutputTokens ?? ''} min={1} onChange={(event: ChangeEvent<HTMLInputElement>) => change(selection.id, { maxOutputTokens: event.target.value ? Number(event.target.value) : undefined })} />
+            <button type="button" onClick={() => change(selection.id, { remove: true })}>Remove</button>
+          </div>
+        ))}
+      </section>
+      {ManagementCredentialsPanel({ onSave: props.onManagementCredentials ?? ((accessKey, secretKey) => actions.setManagementCredentials?.(accessKey, secretKey)), error: managementCredentialsError })}
+      {ApiKeyPanel({ keys: apiKeys, onUse: props.onUseApiKey ?? (key => actions.useApiKey?.(key) as Promise<void>), onManualEntry: props.onManualApiKey ?? (value => actions.setManualApiKey?.(value) as Promise<void>), manualValue: props.manualApiKey, error: apiKeyError })}
+      {UsagePanel({ state: usage })}
+      {ModelDetailsPanel({ state: modelDetails })}
+      {CredentialStatusPanel({ status: credentialStatus, error: observed?.credentialStatusError ?? runtime?.credentialStatusError })}
+    </div>
   )
 }
