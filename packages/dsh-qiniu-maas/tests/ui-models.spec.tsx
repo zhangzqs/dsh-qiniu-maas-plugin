@@ -228,6 +228,22 @@ describe('Qiniu MaaS client runtime', () => {
     await Promise.resolve()
     expect(set).toHaveBeenCalledWith('models', [{ id: 'm', enabled: false }])
   })
+  test('sets management credentials through private RPC only when Save is pressed', async () => {
+    const rpc = vi.fn(async () => ({ ok: true, value: { ok: true } }))
+    const injected = createSettingsInject({ get: (name: string) => name === 'connection' ? { rpc: { call: rpc } } : name === 'settingsScope' ? { bind: () => ({ getSnapshot: () => ({ value: { models: [] } }), set: vi.fn() }) } : undefined } as never) as { actions: { setManagementCredentials: (accessKey: string, secretKey: string) => Promise<unknown> } }
+    const tree = SettingsPage({ actions: injected.actions, selections: [] }) as { children: unknown[] }
+    const section = tree.children.find(child => (child as { props?: { className?: string } })?.props?.className === 'qiniu-management-credentials') as { children: unknown[] }
+    const inputs = section.children.flatMap(child => (child as { children?: unknown[] })?.children ?? []).filter(child => (child as { type?: string })?.type === 'input') as { props: { onChange: (event: { target: { value: string } }) => void } }[]
+    inputs[0]?.props.onChange({ target: { value: 'ak-live' } })
+    inputs[1]?.props.onChange({ target: { value: 'sk-live' } })
+    expect(rpc).not.toHaveBeenCalledWith('/api', 'qiniu-maas/set-management-credentials', expect.anything())
+    const save = section.children.find(child => (child as { children?: unknown[] })?.children?.includes('Save')) as { props: { onClick: () => Promise<void> } }
+    await save.props.onClick()
+    expect(rpc).toHaveBeenCalledWith('/api', 'qiniu-maas/set-management-credentials', { args: { accessKey: 'ak-live', secretKey: 'sk-live' } })
+  })
+  test('renders management credential save errors', () => {
+    expect(JSON.stringify(SettingsPage({ selections: [], runtime: { models: [], apiKeys: [], usage: { kind: 'unavailable' }, query: '', managementCredentialsError: 'write failed' } }))).toContain('write failed')
+  })
   test('writes manual API keys through the private Host RPC and rejects masked values', async () => {
     const rpc = vi.fn(async (_channel: string, endpoint: string) => endpoint === 'qiniu-maas/set-inference-api-key' ? { ok: true, value: { ok: true } } : { ok: true, value: [] })
     const ctx = { get: (name: string) => name === 'connection' ? { rpc: { call: rpc } } : name === 'settingsScope' ? { bind: () => ({ getSnapshot: () => ({ value: { models: [] } }), set: vi.fn() }) } : undefined }

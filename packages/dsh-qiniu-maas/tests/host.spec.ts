@@ -87,6 +87,17 @@ test('does not register a plaintext API-key RPC', () => {
   expect(fake.handlers.has('qiniu-maas/use-api-key')).toBe(false)
 })
 
+test('sets both management credentials through the credentials service and rejects masked or blank values', async () => {
+  const fake = fakeContext()
+  apply(fake.ctx, { nativeStream: async function* () {} })
+  const handler = fake.handlers.get('qiniu-maas/set-management-credentials')!
+  await expect(handler({ accessKey: ' ', secretKey: 'secret' })).resolves.toEqual({ ok: false, code: 'INVALID_MANAGEMENT_CREDENTIALS' })
+  await expect(handler({ accessKey: 'ak-****', secretKey: 'secret' })).resolves.toEqual({ ok: false, code: 'INVALID_MANAGEMENT_CREDENTIALS' })
+  await expect(handler({ accessKey: 'ak-live', secretKey: 'sk-...1234' })).resolves.toEqual({ ok: false, code: 'INVALID_MANAGEMENT_CREDENTIALS' })
+  await expect(handler({ accessKey: 'ak-live', secretKey: 'sk-live' })).resolves.toEqual({ ok: true })
+  expect(fake.credentials.set).toHaveBeenNthCalledWith(1, 'QINIU_ACCESS_KEY', 'ak-live')
+  expect(fake.credentials.set).toHaveBeenNthCalledWith(2, 'QINIU_SECRET_KEY', 'sk-live')
+})
 test('rejects masked inference API keys before credential writes', async () => {
   const fake = fakeContext()
   apply(fake.ctx, { nativeStream: async function* () {} })

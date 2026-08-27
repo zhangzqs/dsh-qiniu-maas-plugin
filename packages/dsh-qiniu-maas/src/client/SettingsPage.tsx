@@ -10,6 +10,30 @@ function el(type: string, props: Record<string, unknown> | null, ...children: un
 type CredentialStatus = { accessKey: { configured: boolean; writable: boolean }; secretKey: { configured: boolean; writable: boolean }; inferenceApiKey: { configured: boolean; writable: boolean } }
 type ModelDetailsState = { kind: 'loading' | 'unavailable' | 'error' | 'success'; model?: MarketplaceModel; message?: string }
 
+const managementDraft = { accessKey: '', secretKey: '' }
+
+export function clearManagementCredentialDraft(): void {
+  managementDraft.accessKey = ''
+  managementDraft.secretKey = ''
+}
+
+function ManagementCredentialsPanel(props: { onSave?: (accessKey: string, secretKey: string) => void | Promise<unknown>; error?: string }): unknown {
+  const save = async (): Promise<void> => {
+    try {
+      await props.onSave?.(managementDraft.accessKey, managementDraft.secretKey)
+      clearManagementCredentialDraft()
+    } catch {
+      // Keep the transient draft available for retry; the parent renders the error.
+    }
+  }
+  return el('section', { className: 'qiniu-management-credentials', 'aria-live': 'polite' },
+    el('h2', null, 'Management credentials'),
+    props.error ? el('p', { className: 'qiniu-management-credentials-error' }, props.error) : null,
+    el('label', null, 'Access Key', el('input', { type: 'password', name: 'accessKey', autoComplete: 'off', value: managementDraft.accessKey, onChange: (event: { target: { value: string } }) => { managementDraft.accessKey = event.target.value } })),
+    el('label', null, 'Secret Key', el('input', { type: 'password', name: 'secretKey', autoComplete: 'off', value: managementDraft.secretKey, onChange: (event: { target: { value: string } }) => { managementDraft.secretKey = event.target.value } })),
+    el('button', { type: 'button', onClick: save }, 'Save'),
+  )
+}
 function CredentialStatusPanel(props: { status?: CredentialStatus; error?: string }): unknown {
   const status = props.status
   const state = props.error ? `Unable to load credential status: ${props.error}` : status === undefined ? 'Loading credential status...' : status.accessKey.configured && status.secretKey.configured ? 'AK/SK credentials configured.' : 'AK/SK credentials required for management data.'
@@ -29,7 +53,7 @@ function ModelDetailsPanel(props: { state?: ModelDetailsState }): unknown {
 
 export interface SettingsPageProps {
   settings?: { getSnapshot: () => { value?: { models?: readonly ModelSelection[] } } }
-  actions?: { load?: () => unknown; refresh?: () => unknown; listModels?: () => unknown; modelDetails?: (id: string) => unknown; setQuery?: (query: string) => void; addModel?: (model: MarketplaceModel) => void | Promise<void>; updateSelection?: (id: string, patch: Partial<ModelSelection> & { remove?: boolean }) => void | Promise<void>; useApiKey?: (key: ApiKeySummary) => void | Promise<unknown>; setManualApiKey?: (value: string) => void | Promise<unknown> }
+  actions?: { load?: () => unknown; refresh?: () => unknown; listModels?: () => unknown; modelDetails?: (id: string) => unknown; setQuery?: (query: string) => void; addModel?: (model: MarketplaceModel) => void | Promise<void>; updateSelection?: (id: string, patch: Partial<ModelSelection> & { remove?: boolean }) => void | Promise<void>; useApiKey?: (key: ApiKeySummary) => void | Promise<unknown>; setManualApiKey?: (value: string) => void | Promise<unknown>; setManagementCredentials?: (accessKey: string, secretKey: string) => void | Promise<unknown> }
   models?: readonly MarketplaceModel[]
   selections?: readonly ModelSelection[]
   apiKeys?: readonly ApiKeySummary[]
@@ -41,9 +65,10 @@ export interface SettingsPageProps {
   onModelDetails?: (model: MarketplaceModel) => void
   onUseApiKey?: (key: ApiKeySummary) => void
   onManualApiKey?: (value: string) => void
+  onManagementCredentials?: (accessKey: string, secretKey: string) => void | Promise<unknown>
   manualApiKey?: string
-  runtime?: { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; credentialStatus?: CredentialStatus; credentialStatusError?: string; modelDetails?: ModelDetailsState }
-  useSnapshot?: () => { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query?: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; credentialStatus?: CredentialStatus; modelDetails?: ModelDetailsState; credentialStatusError?: string }
+  runtime?: { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; credentialStatus?: CredentialStatus; credentialStatusError?: string; managementCredentialsError?: string; modelDetails?: ModelDetailsState }
+  useSnapshot?: () => { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query?: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; managementCredentialsError?: string; credentialStatus?: CredentialStatus; modelDetails?: ModelDetailsState; credentialStatusError?: string }
 }
 
 export function SettingsPage(props: SettingsPageProps): unknown {
@@ -61,6 +86,7 @@ export function SettingsPage(props: SettingsPageProps): unknown {
   const marketplaceLoading = observed?.marketplaceLoading ?? runtime?.marketplaceLoading
   const marketplaceError = observed?.marketplaceError ?? runtime?.marketplaceError
   const apiKeyError = observed?.apiKeyError ?? runtime?.apiKeyError
+  const managementCredentialsError = observed?.managementCredentialsError ?? runtime?.managementCredentialsError
   const change = (id: string, patch: Partial<ModelSelection> & { remove?: boolean }): void => {
     if (patch.remove) props.onRemoveSelection?.(id)
     else props.onUpdateSelection?.(id, patch)
@@ -84,6 +110,7 @@ export function SettingsPage(props: SettingsPageProps): unknown {
         el('button', { type: 'button', onClick: () => change(selection.id, { remove: true }) }, 'Remove'),
       )),
     ),
+        ManagementCredentialsPanel({ onSave: props.onManagementCredentials ?? ((accessKey, secretKey) => actions.setManagementCredentials?.(accessKey, secretKey)), error: managementCredentialsError }),
     ApiKeyPanel({ keys: apiKeys, onUse: props.onUseApiKey ?? (key => actions.useApiKey?.(key) as Promise<void>), onManualEntry: props.onManualApiKey ?? (value => actions.setManualApiKey?.(value) as Promise<void>), manualValue: props.manualApiKey, error: apiKeyError }),
     UsagePanel({ state: usage }),
     ModelDetailsPanel({ state: modelDetails }),

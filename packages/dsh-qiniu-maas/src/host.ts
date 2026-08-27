@@ -82,6 +82,10 @@ function apiKeyArg(args: unknown): string | undefined {
   const value = stringArg(args, 'value')
   return value && value.trim() && !/[*…]|\.\.\./.test(value) ? value : undefined
 }
+function managementCredentialArg(args: unknown, key: string): string | undefined {
+  const value = stringArg(args, key)
+  return value && value.trim() && !/[*…]|\.\.\./.test(value) ? value : undefined
+}
 function usageArgs(args: unknown): Record<string, string> | undefined {
   const value = record(args)
   if (!value) return undefined
@@ -145,6 +149,19 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
     return operation(client)
   }
   const handles = [
+    harness.handle('qiniu-maas/set-management-credentials', async args => {
+      const accessKey = managementCredentialArg(args, 'accessKey')
+      const secretKey = managementCredentialArg(args, 'secretKey')
+      const service = credentials()
+      if (!accessKey || !secretKey || !service?.set) return { ok: false as const, code: 'INVALID_MANAGEMENT_CREDENTIALS' as const }
+      try {
+        await service.set(QINIU_CREDENTIAL_REFS.accessKey, accessKey)
+        await service.set(QINIU_CREDENTIAL_REFS.secretKey, secretKey)
+        return { ok: true as const }
+      } catch {
+        return { ok: false as const, code: 'CREDENTIAL_WRITE_FAILED' as const }
+      }
+    }),
     harness.handle('qiniu-maas/set-inference-api-key', async args => { const value = apiKeyArg(args); const service = credentials(); if (!value || !service?.set) return { ok: false as const, code: 'INVALID_API_KEY' as const }; try { await service.set(QINIU_CREDENTIAL_REFS.inferenceApiKey, value); return { ok: true as const } } catch { return { ok: false as const, code: 'CREDENTIAL_WRITE_FAILED' as const } } }),
     harness.handle('qiniu-maas/list-models', () => managementClient(ctx, config).listModels()),
     harness.handle('qiniu-maas/model-details', args => { const id = stringArg(args, 'id'); return id ? managementClient(ctx, config).getModelDetails(id) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) }),

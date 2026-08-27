@@ -1,4 +1,4 @@
-import { SettingsPage } from './SettingsPage.js'
+import { SettingsPage, clearManagementCredentialDraft } from './SettingsPage.js'
 import { qiniuStyles } from './styles.js'
 import { createModelSelection, updateModelSelection, type MarketplaceModel, type ModelSelection } from './ModelMarketplace.js'
 import { canUseApiKey, clearManualApiKeyDrafts } from './ApiKeyPanel.js'
@@ -28,6 +28,7 @@ type SettingsRuntime = {
   marketplaceLoading: boolean
   marketplaceError?: string
   apiKeyError?: string
+  managementCredentialsError?: string
   modelDetails?: ModelDetailsState
   listeners: Set<() => void>
   settingsUnsubscribe?: () => void
@@ -173,7 +174,19 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
         throw error
       }
     },
-    setManualApiKey: async (value: string) => {
+    setManagementCredentials: async (accessKey: string, secretKey: string) => {
+       try {
+         const result = throwRpcError(await hostCall(connection, 'qiniu-maas/set-management-credentials', { accessKey, secretKey }))
+         runtime.managementCredentialsError = undefined
+         runtime.listeners.forEach(listener => listener())
+         return result
+       } catch (error) {
+         runtime.managementCredentialsError = error instanceof Error ? error.message : 'Unable to save management credentials.'
+         runtime.listeners.forEach(listener => listener())
+         throw error
+       }
+     },
+     setManualApiKey: async (value: string) => {
       try {
         if (!canUseApiKey(value)) throw new Error('A complete API key is required')
         const result = throwRpcError(await hostCall(connection, 'qiniu-maas/set-inference-api-key', { value }))
@@ -188,10 +201,10 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
     },
   }
   const snapshot = {
-    getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, query: runtime.query, marketplaceLoading: runtime.marketplaceLoading, marketplaceError: runtime.marketplaceError, apiKeyError: runtime.apiKeyError, credentialStatus: runtime.credentialStatus, credentialStatusError: runtime.credentialStatusError, modelDetails: runtime.modelDetails }),
+    getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, query: runtime.query, marketplaceLoading: runtime.marketplaceLoading, marketplaceError: runtime.marketplaceError, apiKeyError: runtime.apiKeyError, managementCredentialsError: runtime.managementCredentialsError, credentialStatus: runtime.credentialStatus, credentialStatusError: runtime.credentialStatusError, modelDetails: runtime.modelDetails }),
     subscribe: (listener: () => void) => { runtime.listeners.add(listener); return () => runtime.listeners.delete(listener) },
   }
-  const injected: Record<string, unknown> = { settings, actions, runtime, dispose: () => { runtime.settingsUnsubscribe?.(); runtime.settingsUnsubscribe = undefined; runtime.listeners.clear(); clearManualApiKeyDrafts() }, hooks: { snapshot }, useSnapshot: () => {
+  const injected: Record<string, unknown> = { settings, actions, runtime, dispose: () => { runtime.settingsUnsubscribe?.(); runtime.settingsUnsubscribe = undefined; runtime.listeners.clear(); clearManualApiKeyDrafts(); clearManagementCredentialDraft() }, hooks: { snapshot }, useSnapshot: () => {
     const react = (globalThis as { React?: { useSyncExternalStore?: (subscribe: (listener: () => void) => () => void, getSnapshot: () => unknown, getServerSnapshot?: () => unknown) => unknown } }).React
     return react?.useSyncExternalStore?.(snapshot.subscribe, snapshot.getSnapshot, snapshot.getSnapshot) ?? snapshot.getSnapshot()
   } }
@@ -235,6 +248,6 @@ export function applyClient(ctx: ClientContextLike): void {
 
 export { applyClient as apply }
 
-export { SettingsPage }
+export { SettingsPage, clearManagementCredentialDraft }
 export { mapRpcError }
 export type { ApiKeySummary, UsageViewState }
