@@ -6,9 +6,12 @@
     "build": "pnpm --filter @qiniu/maas-sdk build && pnpm --filter @qiniu/dsh-qiniu-maas build",
     "test": "vitest run",
     "typecheck": "pnpm --filter @qiniu/maas-sdk build && pnpm -r typecheck",
-    "package:smoke": "pnpm --filter @qiniu/maas-sdk build && pnpm --filter @qiniu/dsh-qiniu-maas build && node scripts/package-smoke.mjs"
+    "package:smoke": "pnpm --filter @qiniu/maas-sdk build && pnpm --filter @qiniu/dsh-qiniu-maas build && node scripts/package-smoke.mjs",
+    "test:e2e:mock": "playwright test --config=playwright.config.mts e2e/mock-qiniu-maas.spec.ts",
+    "test:e2e:qiniu": "playwright test --config=playwright.config.mts e2e/qiniu-real.spec.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^22.0.0",
     "typescript": "^5.7.0",
     "vitest": "^3.2.0"
