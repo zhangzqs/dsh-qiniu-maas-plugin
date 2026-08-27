@@ -28,8 +28,21 @@ describe('Qiniu MaaS model settings UI', () => {
     })).toEqual([{ id: 'm', enabled: true, contextWindow: 32768, maxOutputTokens: 4096 }])
   })
 
+  test('clears model overrides instead of persisting undefined fields', () => {
+    expect(updateModelSelection([{ id: 'm', enabled: true, contextWindow: 32000, maxOutputTokens: 4096 }], 'm', {
+      contextWindow: undefined,
+      maxOutputTokens: undefined,
+    })).toEqual([{ id: 'm', enabled: true }])
+  })
+
   test('exposes AK_SK_REQUIRED as an explicit usage state', () => {
     expect(usageState({ code: 'AK_SK_REQUIRED' })).toEqual({ kind: 'ak-sk-required' })
+  })
+
+  test('renders marketplace loading, error, and empty-result states', () => {
+    expect(JSON.stringify(ModelMarketplace({ models: [], loading: true }))).toContain('Loading marketplace')
+    expect(JSON.stringify(ModelMarketplace({ models: [], error: 'offline' }))).toContain('offline')
+    expect(JSON.stringify(ModelMarketplace({ models: [] }))).toContain('No models found')
   })
 
   test('allows using a complete API key but refuses masked values', () => {
@@ -43,6 +56,21 @@ describe('Qiniu MaaS model settings UI', () => {
     const row = tree.children[1] as { children: unknown[] }
     const button = row.children[3] as { props: { disabled: boolean } }
     expect(button.props.disabled).toBe(true)
+  })
+
+  test('keeps manual key draft when explicit submission fails', async () => {
+    const onManualEntry = vi.fn(async () => { throw new Error('write failed') })
+    const tree = ApiKeyPanel({ keys: [{ name: 'production', maskedValue: 'qiniu***key', enabled: true }], onManualEntry }) as { children: unknown[] }
+    const row = tree.children[1] as { children: unknown[] }
+    const input = row.children.find((child) => (child as { type?: string })?.type === 'input') as { props: { onChange: (event: { target: { value: string } }) => void; defaultValue: string } }
+    input.props.onChange({ target: { value: 'qiniu-live-key' } })
+    const manual = row.children.find((child) => (child as { children?: unknown[] })?.children?.includes('Use manually')) as { props: { onClick: () => Promise<void> } }
+    await manual.props.onClick()
+    expect(onManualEntry).toHaveBeenCalledWith('qiniu-live-key')
+    const next = ApiKeyPanel({ keys: [{ name: 'production', maskedValue: 'qiniu***key', enabled: true }] }) as { children: unknown[] }
+    const nextRow = next.children[1] as { children: unknown[] }
+    const nextInput = nextRow.children.find((child) => (child as { type?: string })?.type === 'input') as { props: { defaultValue: string } }
+    expect(nextInput.props.defaultValue).toBe('qiniu-live-key')
   })
 
   test('renders controls for enabled model state and overrides', () => {

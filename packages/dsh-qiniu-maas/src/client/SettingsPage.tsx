@@ -42,8 +42,8 @@ export interface SettingsPageProps {
   onUseApiKey?: (key: ApiKeySummary) => void
   onManualApiKey?: (value: string) => void
   manualApiKey?: string
-  runtime?: { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query: string; credentialStatus?: CredentialStatus; credentialStatusError?: string; modelDetails?: ModelDetailsState }
-  useSnapshot?: () => { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query?: string; credentialStatus?: CredentialStatus; modelDetails?: ModelDetailsState; credentialStatusError?: string }
+  runtime?: { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; credentialStatus?: CredentialStatus; credentialStatusError?: string; modelDetails?: ModelDetailsState }
+  useSnapshot?: () => { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query?: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; credentialStatus?: CredentialStatus; modelDetails?: ModelDetailsState; credentialStatusError?: string }
 }
 
 export function SettingsPage(props: SettingsPageProps): unknown {
@@ -58,6 +58,9 @@ export function SettingsPage(props: SettingsPageProps): unknown {
   const query = observed?.query ?? runtime?.query ?? ''
   const credentialStatus = observed?.credentialStatus ?? runtime?.credentialStatus
   const modelDetails = observed?.modelDetails ?? runtime?.modelDetails
+  const marketplaceLoading = observed?.marketplaceLoading ?? runtime?.marketplaceLoading
+  const marketplaceError = observed?.marketplaceError ?? runtime?.marketplaceError
+  const apiKeyError = observed?.apiKeyError ?? runtime?.apiKeyError
   const change = (id: string, patch: Partial<ModelSelection> & { remove?: boolean }): void => {
     if (patch.remove) props.onRemoveSelection?.(id)
     else props.onUpdateSelection?.(id, patch)

@@ -24,12 +24,20 @@ export function createModelSelection(id: string): ModelSelection { return { id, 
 
 export function updateModelSelection(selections: readonly ModelSelection[], id: string, patch: Partial<ModelSelection> & { remove?: boolean }): ModelSelection[] {
   if (patch.remove) return selections.filter(selection => selection.id !== id)
-  return selections.map(selection => selection.id === id ? {
-    ...selection,
-    ...(Object.prototype.hasOwnProperty.call(patch, 'enabled') ? { enabled: patch.enabled } : {}),
-    ...(Object.prototype.hasOwnProperty.call(patch, 'contextWindow') ? { contextWindow: patch.contextWindow } : {}),
-    ...(Object.prototype.hasOwnProperty.call(patch, 'maxOutputTokens') ? { maxOutputTokens: patch.maxOutputTokens } : {}),
-  } : selection)
+  return selections.map(selection => {
+    if (selection.id !== id) return selection
+    const next = { ...selection }
+    if (Object.prototype.hasOwnProperty.call(patch, 'enabled')) next.enabled = patch.enabled as boolean
+    if (Object.prototype.hasOwnProperty.call(patch, 'contextWindow')) {
+      if (patch.contextWindow === undefined) delete next.contextWindow
+      else next.contextWindow = patch.contextWindow
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, 'maxOutputTokens')) {
+      if (patch.maxOutputTokens === undefined) delete next.maxOutputTokens
+      else next.maxOutputTokens = patch.maxOutputTokens
+    }
+    return next
+  })
 }
 
 function el(type: string, props: Record<string, unknown> | null, ...children: unknown[]): unknown {
@@ -45,13 +53,17 @@ export interface ModelMarketplaceProps {
   onRefresh?: () => void
   onAdd?: (model: MarketplaceModel) => void
   onDetails?: (model: MarketplaceModel) => void
+  loading?: boolean
+  error?: string
 }
 
 export function ModelMarketplace(props: ModelMarketplaceProps): unknown {
   const selections = new Set((props.selections ?? []).map(selection => selection.id))
   const models = filterMarketplaceModels(props.models, props.query ?? '')
+  const status = props.loading ? el('p', { className: 'qiniu-marketplace-status', 'aria-live': 'polite' }, 'Loading marketplace...') : props.error ? el('p', { className: 'qiniu-marketplace-status', 'aria-live': 'polite' }, props.error) : models.length === 0 ? el('p', { className: 'qiniu-marketplace-status', 'aria-live': 'polite' }, 'No models found.') : null
   return el('section', { className: 'qiniu-marketplace', 'aria-label': 'Public model marketplace' },
     el('h2', null, 'Public marketplace'),
+    ...(status ? [status] : []),
     el('div', { className: 'qiniu-model-grid' }, ...models.map(model => el('article', { key: model.id, className: 'qiniu-model-card' },
       el('h3', null, model.name), el('code', null, model.id),
       model.description ? el('p', null, model.description) : null,

@@ -25,6 +25,9 @@ type SettingsRuntime = {
   query: string
   credentialStatus?: CredentialStatus
   credentialStatusError?: string
+  marketplaceLoading: boolean
+  marketplaceError?: string
+  apiKeyError?: string
   modelDetails?: ModelDetailsState
   listeners: Set<() => void>
   settingsUnsubscribe?: () => void
@@ -38,7 +41,7 @@ type ClientContextLike = {
 }
 
 function createRuntime(): SettingsRuntime {
-  return { models: [], apiKeys: [], usage: { kind: 'loading' }, query: '', listeners: new Set() }
+  return { models: [], apiKeys: [], usage: { kind: 'loading' }, query: '', marketplaceLoading: false, listeners: new Set() }
 }
 
 async function hostCall(connection: Connection | undefined, endpoint: string, args: Record<string, unknown> = {}): Promise<unknown> {
