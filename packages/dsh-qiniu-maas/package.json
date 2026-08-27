@@ -9,10 +9,12 @@
   "exports": {
     ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" },
     "./client": { "types": "./lib/types/client/index.d.ts", "default": "./lib/client.js" },
+    "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
-  "files": ["lib/**/*.js", "lib/**/*.js.map", "lib/types/**/*.d.ts", "lib/types/**/*.d.ts.map"],
+  "files": ["lib/**/*.js", "lib/**/*.js.map", "lib/types/**/*.d.ts", "lib/types/**/*.d.ts.map", "cordis.patch.yml"],
   "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
     "client": {
       "inject": ["slots", "locale", "connection", "remote", "settingsScope", "settingsSchema"],
       "platform": "web"

@@ -1,0 +1,3 @@
+- insert:
+    - id: qiniu-maas
+      name: '@qiniu/dsh-qiniu-maas'
