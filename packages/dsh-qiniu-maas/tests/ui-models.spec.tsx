@@ -303,6 +303,18 @@ describe('Qiniu MaaS client runtime', () => {
     expect(snapshot.subscribe).toBeTypeOf('function')
   })
 
+  test('passes a selector to renderer snapshot hooks', () => {
+    const useSnapshot = vi.fn((selector: (snapshot: { models: unknown[] }) => unknown) => selector({ models: [] }))
+    SettingsPage({ selections: [], useSnapshot } as never)
+    expect(useSnapshot).toHaveBeenCalledWith(expect.any(Function))
+  })
+
+  test('keeps injected snapshots stable until runtime state changes', () => {
+    const runtime = { models: [], apiKeys: [], usage: { kind: 'loading' as const }, query: '' }
+    const injected = createSettingsInject({ get: () => undefined } as never, runtime as never) as { hooks: { snapshot: { getSnapshot: () => unknown } } }
+    expect(injected.hooks.snapshot.getSnapshot()).toBe(injected.hooks.snapshot.getSnapshot())
+  })
+
   test('marketplace query changes update runtime and refresh uses load', async () => {
     const load = vi.fn(async () => undefined)
     const runtime = { models: [{ id: 'm', name: 'Model', capabilities: [] }], apiKeys: [], usage: { kind: 'loading' as const }, query: '' }

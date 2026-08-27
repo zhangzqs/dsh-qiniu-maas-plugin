@@ -75,14 +75,14 @@ export interface SettingsPageProps {
   onManagementCredentials?: (accessKey: string, secretKey: string) => void | Promise<unknown>
   manualApiKey?: string
   runtime?: { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; billing?: BillingViewState; query: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; credentialStatus?: CredentialStatus; credentialStatusError?: string; managementCredentialsError?: string; modelDetails?: ModelDetailsState }
-  useSnapshot?: () => { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query?: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; managementCredentialsError?: string; credentialStatus?: CredentialStatus; modelDetails?: ModelDetailsState; credentialStatusError?: string }
+  useSnapshot?: <T>(selector: (snapshot: { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query?: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; managementCredentialsError?: string; credentialStatus?: CredentialStatus; modelDetails?: ModelDetailsState; credentialStatusError?: string }) => T) => T
 }
 
 export function SettingsPage(props: SettingsPageProps): ReactNode {
   const injectedSelections = props.settings?.getSnapshot().value?.models
   const selections = props.selections ?? injectedSelections ?? []
   const actions = props.actions ?? {}
-  const observed = props.useSnapshot?.()
+  const observed = props.useSnapshot?.(snapshot => snapshot)
   const runtime = props.runtime
   const models = props.models ?? observed?.models ?? runtime?.models ?? []
   const apiKeys = props.apiKeys ?? observed?.apiKeys ?? runtime?.apiKeys ?? []

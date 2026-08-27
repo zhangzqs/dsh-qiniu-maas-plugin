@@ -29,6 +29,20 @@ const marketplacePayload = {
 }
 
 async function installQiniuRoutes(page: Page): Promise<void> {
+  await page.route(/\/api\/qiniu-maas\//, async route => {
+    const endpoint = new URL(route.request().url()).pathname.split('/').pop()
+    const requestBody = route.request().postDataJSON() as { rpcId?: string }
+    const value = endpoint === 'list-models'
+      ? marketplacePayload.data
+      : endpoint === 'list-api-keys'
+        ? [{ name: 'acceptance-key', maskedValue: '********', enabled: true, createdAt: '2026-01-01', lastUsed: 'never' }]
+        : endpoint === 'credential-status'
+          ? { accessKey: { configured: false, writable: true }, secretKey: { configured: false, writable: true }, inferenceApiKey: { configured: false, writable: true } }
+          : endpoint === 'usage' || endpoint === 'get-bill'
+            ? { code: 'AK_SK_REQUIRED' }
+            : { ok: true }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ type: 'server-response', rpcId: requestBody.rpcId, result: { ok: true, value } }) })
+  })
   // Browser interception is deliberately limited to Qiniu API origins.
   await page.route(MARKETPLACE_URL, route => {
     expect(route.request().method()).toBe('GET')
@@ -53,6 +67,7 @@ async function openQiniuSettings(page: Page, testInfo: { skip: (condition: boole
   }
   const body = page.locator('body')
   await expect(body).toBeVisible()
+  await page.getByRole('button', { name: 'Settings', exact: true }).click()
   const nav = page.getByText('Qiniu MaaS', { exact: true }).first()
   if (await nav.count() === 0) {
     testInfo.skip(true, 'Qiniu MaaS plugin is not mounted in the DSH GUI')

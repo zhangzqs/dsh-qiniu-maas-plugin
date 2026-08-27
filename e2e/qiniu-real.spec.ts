@@ -11,6 +11,7 @@ async function openMountedQiniuSettings(page: import('@playwright/test').Page): 
     test.skip(true, `DSH GUI unavailable at ${GUI_URL}`)
     return
   }
+  await page.getByRole('button', { name: 'Settings', exact: true }).click()
   const pluginNav = page.getByText('Qiniu MaaS', { exact: true }).first()
   if (await pluginNav.count() === 0) {
     test.skip(true, 'Qiniu MaaS plugin is not mounted in the DSH GUI')
