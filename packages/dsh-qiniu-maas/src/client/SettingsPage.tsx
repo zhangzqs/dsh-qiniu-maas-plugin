@@ -70,7 +70,7 @@ export function SettingsPage(props: SettingsPageProps): unknown {
   const addModel = props.onAddModel ?? (model => { void actions.addModel?.(model) })
   const showDetails = props.onModelDetails ?? (model => { void actions.modelDetails?.(model.id) })
   return el('div', { className: 'qiniu-settings' },
-    ModelMarketplace({ models, selections, query, onQueryChange: actions.setQuery, onAdd: addModel, onDetails: showDetails, onRefresh: () => { void (actions.refresh ?? actions.load ?? actions.listModels)?.() } }),
+    ModelMarketplace({ models, selections, query, loading: marketplaceLoading, error: marketplaceError, onQueryChange: actions.setQuery, onAdd: addModel, onDetails: showDetails, onRefresh: () => { void (actions.refresh ?? actions.load ?? actions.listModels)?.() } }),
     el('section', { className: 'qiniu-enabled-models' },
       el('h2', null, 'Enabled models'),
       ...selections.map(selection => el('div', { key: selection.id, className: 'qiniu-enabled-model' },
@@ -84,7 +84,7 @@ export function SettingsPage(props: SettingsPageProps): unknown {
         el('button', { type: 'button', onClick: () => change(selection.id, { remove: true }) }, 'Remove'),
       )),
     ),
-    ApiKeyPanel({ keys: apiKeys, onUse: props.onUseApiKey ?? (key => { void actions.useApiKey?.(key) }), onManualEntry: props.onManualApiKey ?? (value => { void actions.setManualApiKey?.(value) }), manualValue: props.manualApiKey }),
+    ApiKeyPanel({ keys: apiKeys, onUse: props.onUseApiKey ?? (key => actions.useApiKey?.(key) as Promise<void>), onManualEntry: props.onManualApiKey ?? (value => actions.setManualApiKey?.(value) as Promise<void>), manualValue: props.manualApiKey, error: apiKeyError }),
     UsagePanel({ state: usage }),
     ModelDetailsPanel({ state: modelDetails }),
     CredentialStatusPanel({ status: credentialStatus, error: observed?.credentialStatusError ?? runtime?.credentialStatusError }),
