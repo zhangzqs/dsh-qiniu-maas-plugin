@@ -5,6 +5,12 @@ const MODEL_ID = 'deepseek-v4-flash'
 const MARKETPLACE_URL = /^https:\/\/api\.qiniu\.com\/ai\/v1\/market\/models(?:\?.*)?$/
 const API_KEYS_URL = /^https:\/\/api\.qiniu\.com\/ai\/inapi\/v3\/apikeys(?:\?.*)?$/
 const USAGE_URL = /^https:\/\/api\.qiniu\.com\/ai\/inapi\/v3\/stat\/(?:new|bill\/range)(?:\?.*)?$/
+const QINIU_API_ORIGIN = 'api.qiniu.com'
+const CREDENTIAL_QUERY = /(?:^|[?&])(?:access[_-]?key|secret[_-]?key|ak|sk|api[_-]?key|apikey|token|authorization)=[^&#]*/i
+const CREDENTIAL_HEADER = /^(?:authorization|proxy-authorization|x-api-key|api-key|x-qiniu-(?:ak|sk)|x-qiniu-(?:access|secret)-key)$/i
+const CREDENTIAL_LOG_VALUE = /(?:access[_-]?key|secret[_-]?key|api[_-]?key|apikey|authorization|bearer)\s*[:=]\s*(?!\*{2,}|masked|undefined|null)[^\s,;]+/i
+
+type ObservedRequest = { url: string; headers: Record<string, string> }
 
 const marketplacePayload = {
   data: [
@@ -57,9 +63,31 @@ async function openQiniuSettings(page: Page, testInfo: { skip: (condition: boole
 }
 
 test.describe('Qiniu MaaS browser acceptance (mock API)', () => {
+  let observedRequests: ObservedRequest[]
+  let consoleMessages: string[]
+
   test.beforeEach(async ({ page }, testInfo) => {
+    observedRequests = []
+    consoleMessages = []
+    page.on('request', request => {
+      observedRequests.push({ url: request.url(), headers: request.headers() })
+    })
+    page.on('console', message => {
+      consoleMessages.push(message.text())
+    })
     await installQiniuRoutes(page)
     await openQiniuSettings(page, testInfo)
+  })
+
+  test.afterEach(() => {
+    const qiniuRequests = observedRequests.filter(request => new URL(request.url).hostname === QINIU_API_ORIGIN)
+    const leakedQuery = qiniuRequests.filter(request => CREDENTIAL_QUERY.test(request.url))
+    const leakedHeaders = qiniuRequests.filter(request => Object.keys(request.headers).some(name => CREDENTIAL_HEADER.test(name)))
+    const leakedConsole = consoleMessages.filter(message => CREDENTIAL_LOG_VALUE.test(message))
+    // Keep credential values out of assertion messages and test artifacts.
+    expect(leakedQuery.length, 'Qiniu request URLs must not contain credential query parameters').toBe(0)
+    expect(leakedHeaders.length, 'Qiniu request headers must not contain credential-bearing headers').toBe(0)
+    expect(leakedConsole.length, 'console messages must not contain credential assignments').toBe(0)
   })
 
   test('shows marketplace without credentials and handles exact model selection', async ({ page }) => {
@@ -85,6 +113,15 @@ test.describe('Qiniu MaaS browser acceptance (mock API)', () => {
     const enabled = page.locator('.qiniu-enabled-model').filter({ hasText: MODEL_ID }).first()
     await enabled.getByLabel('contextWindow').fill('64000')
     await enabled.getByLabel('maxOutputTokens').fill('4096')
+  })
+
+  test('refuses using a masked API key and offers manual entry', async ({ page }) => {
+    const row = page.locator('article').filter({ hasText: 'acceptance-key' }).first()
+    const useButton = row.getByRole('button', { name: 'Use', exact: true })
+    await expect(useButton).toBeDisabled()
+    await expect(useButton).toHaveAttribute('title', /masked API key cannot be used/i)
+    await expect(row.getByPlaceholder('Enter API key')).toHaveAttribute('type', 'password')
+    await expect(row.getByRole('button', { name: 'Use manually', exact: true })).toBeVisible()
   })
 
   test('renders API-key and management states without exposing credentials', async ({ page }) => {

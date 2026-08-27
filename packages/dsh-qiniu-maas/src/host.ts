@@ -97,6 +97,18 @@ function usageArgs(args: unknown): Record<string, string> | undefined {
   return result
 }
 
+function billArgs(args: unknown): { start: string; end: string; grain: 'month' | 'day' | 'hour' | 'five_minute' | 'minute'; api_key?: string } | undefined {
+  const value = record(args)
+  if (!value || typeof value.start !== 'string' || typeof value.end !== 'string' || typeof value.grain !== 'string') return undefined
+  if (!['month', 'day', 'hour', 'five_minute', 'minute'].includes(value.grain)) return undefined
+  const result: { start: string; end: string; grain: 'month' | 'day' | 'hour' | 'five_minute' | 'minute'; api_key?: string } = { start: value.start, end: value.end, grain: value.grain as 'month' | 'day' | 'hour' | 'five_minute' | 'minute' }
+  if (value.api_key !== undefined) {
+    if (typeof value.api_key !== 'string' || !value.api_key.trim() || /[*…]|\.\.\./.test(value.api_key)) return undefined
+    result.api_key = value.api_key
+  }
+  return result
+}
+
 export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
   let state = createQiniuProviderState(normalizeQiniuSettings({ models: [], defaultModel: undefined }))
   const settingsService = ctx.get('settings') as SettingsService | undefined
@@ -167,6 +179,7 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
     harness.handle('qiniu-maas/model-details', args => { const id = stringArg(args, 'id'); return id ? managementClient(ctx, config).getModelDetails(id) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) }),
     harness.handle('qiniu-maas/list-api-keys', () => withManagement(client => client.listApiKeys())),
     harness.handle('qiniu-maas/usage', args => { const params = usageArgs(args); return params ? withManagement(client => client.getUsage(params)) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) }),
+    harness.handle('qiniu-maas/get-bill', args => { const params = billArgs(args); return params ? withManagement(client => client.getBill(params)) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) }),
     harness.handle('qiniu-maas/update-settings', async args => { const settings = record(args)?.settings; if (!settingsService || !settings) return { ok: false as const, code: 'INVALID_SETTINGS' as const }; try { const normalized = normalizeQiniuSettings(settings); await settingsService.replace(QINIU_SETTINGS_NS, normalized); return { ok: true as const } } catch { return { ok: false as const, code: 'INVALID_SETTINGS' as const } } }),
     harness.handle('qiniu-maas/credential-status', async () => { const service = credentials(); const describe = async (ref: string) => service ? service.describe(ref) : { configured: false, writable: false }; return { accessKey: await describe(QINIU_CREDENTIAL_REFS.accessKey), secretKey: await describe(QINIU_CREDENTIAL_REFS.secretKey), inferenceApiKey: await describe(QINIU_CREDENTIAL_REFS.inferenceApiKey) } }),
   ]

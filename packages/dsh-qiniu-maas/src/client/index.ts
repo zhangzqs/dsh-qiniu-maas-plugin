@@ -6,6 +6,7 @@ import type { ApiKeySummary } from './ApiKeyPanel.js'
 import { mapRpcError } from './UsagePanel.js'
 import type { UsageViewState } from './UsagePanel.js'
 import { usageState } from './UsagePanel.js'
+import { billingState, type BillingViewState } from './BillingPanel.js'
 import { QINIU_CREDENTIAL_REFS } from '../settings.js'
 
 export const injectClient = ['slots', 'locale', 'connection', 'remote', 'settingsScope', 'settingsSchema'] as const
@@ -22,6 +23,7 @@ type SettingsRuntime = {
   models: MarketplaceModel[]
   apiKeys: ApiKeySummary[]
   usage: UsageViewState
+  billing: BillingViewState
   query: string
   credentialStatus?: CredentialStatus
   credentialStatusError?: string
@@ -41,8 +43,16 @@ type ClientContextLike = {
   effect: (callback: () => unknown, name?: string) => unknown
 }
 
+function defaultBillArgs(): Record<string, unknown> {
+  const end = new Date()
+  const start = new Date(end)
+  start.setDate(start.getDate() - 30)
+  const format = (date: Date) => date.toISOString().slice(0, 10)
+  return { start: format(start), end: format(end), grain: 'day' }
+}
+
 function createRuntime(): SettingsRuntime {
-  return { models: [], apiKeys: [], usage: { kind: 'loading' }, query: '', marketplaceLoading: false, listeners: new Set() }
+  return { models: [], apiKeys: [], usage: { kind: 'loading' }, billing: { kind: 'loading' }, query: '', marketplaceLoading: false, listeners: new Set() }
 }
 
 async function hostCall(connection: Connection | undefined, endpoint: string, args: Record<string, unknown> = {}): Promise<unknown> {
@@ -144,12 +154,27 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
         return error
       }
     },
+    billing: async (args: Record<string, unknown> = defaultBillArgs()) => {
+      runtime.billing = { kind: 'loading' }
+      runtime.listeners.forEach(listener => listener())
+      try {
+        const result = await hostCall(connection, 'qiniu-maas/get-bill', args)
+        runtime.billing = billingState(result)
+        runtime.listeners.forEach(listener => listener())
+        return result
+      } catch (error) {
+        runtime.billing = billingState(error)
+        runtime.listeners.forEach(listener => listener())
+        return error
+      }
+    },
     load: async () => {
-      const results = await Promise.allSettled([actions.listModels(), actions.listApiKeys(), actions.usage(), actions.credentialStatus()])
+      const results = await Promise.allSettled([actions.listModels(), actions.listApiKeys(), actions.usage(), actions.billing(), actions.credentialStatus()])
       return {
         models: runtime.models,
         apiKeys: runtime.apiKeys,
         usage: runtime.usage,
+        billing: runtime.billing,
         credentialStatus: runtime.credentialStatus,
         results: results.map(result => result.status === 'fulfilled' ? result.value : result.reason),
       }
@@ -201,7 +226,7 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
     },
   }
   const snapshot = {
-    getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, query: runtime.query, marketplaceLoading: runtime.marketplaceLoading, marketplaceError: runtime.marketplaceError, apiKeyError: runtime.apiKeyError, managementCredentialsError: runtime.managementCredentialsError, credentialStatus: runtime.credentialStatus, credentialStatusError: runtime.credentialStatusError, modelDetails: runtime.modelDetails }),
+    getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, billing: runtime.billing, query: runtime.query, marketplaceLoading: runtime.marketplaceLoading, marketplaceError: runtime.marketplaceError, apiKeyError: runtime.apiKeyError, managementCredentialsError: runtime.managementCredentialsError, credentialStatus: runtime.credentialStatus, credentialStatusError: runtime.credentialStatusError, modelDetails: runtime.modelDetails }),
     subscribe: (listener: () => void) => { runtime.listeners.add(listener); return () => runtime.listeners.delete(listener) },
   }
   const injected: Record<string, unknown> = { settings, actions, runtime, dispose: () => { runtime.settingsUnsubscribe?.(); runtime.settingsUnsubscribe = undefined; runtime.listeners.clear(); clearManualApiKeyDrafts(); clearManagementCredentialDraft() }, hooks: { snapshot }, useSnapshot: () => {

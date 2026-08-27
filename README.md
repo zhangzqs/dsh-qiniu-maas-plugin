@@ -14,7 +14,17 @@ pnpm package:smoke
 
 `package:smoke` builds both workspace packages and imports their compiled host and client entries with plain Node. Generated `lib/` output is ignored and is recreated by `pnpm build`.
 
-## Mounting
+## Browser Acceptance Tests
+
+The mock suite intercepts Qiniu marketplace, API-key, and usage requests. It records request URLs and header names plus browser console messages only long enough to assert that credential-bearing query parameters, headers, or log assignments are absent; raw values are never printed or written to artifacts. It also verifies that masked API-key rows disable direct use and expose manual entry without treating the masked value as usable.
+
+```sh
+pnpm test:e2e:mock
+pnpm test:e2e:qiniu
+```
+
+The real suite is opt-in and skips unless `QINIU_MAAS_REAL_E2E=1`, the external runtime credential marker exists at `/home/zzq/.config/dsh/qiniu-maas-e2e.json`, and the DSH GUI has the Qiniu MaaS plugin mounted. The marker is checked with filesystem metadata only: credential injection is performed externally by the runtime, and this repository never reads its contents. Real checks cover the mounted settings controls without filling or printing credential fields. Playwright traces, videos, screenshots, and reports remain disabled by `playwright.config.mts`.
+
 
 `cordis.yml` is a small composition example that mounts `@qiniu/dsh-qiniu-maas`. Use it as an overlay on a DSH profile that already provides the standard `llm`, settings, credentials, host RPC, and web client Slot services:
 

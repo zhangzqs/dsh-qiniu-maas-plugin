@@ -2,6 +2,7 @@ import type { ChangeEvent, ReactNode } from 'react'
 import { ModelMarketplace, type MarketplaceModel, type ModelSelection } from './ModelMarketplace.js'
 import { ApiKeyPanel, type ApiKeySummary } from './ApiKeyPanel.js'
 import { UsagePanel, type UsageViewState } from './UsagePanel.js'
+import { BillingPanel, type BillingViewState } from './BillingPanel.js'
 
 type CredentialStatus = { accessKey: { configured: boolean; writable: boolean }; secretKey: { configured: boolean; writable: boolean }; inferenceApiKey: { configured: boolean; writable: boolean } }
 type ModelDetailsState = { kind: 'loading' | 'unavailable' | 'error' | 'success'; model?: MarketplaceModel; message?: string }
@@ -62,7 +63,8 @@ export interface SettingsPageProps {
   models?: readonly MarketplaceModel[]
   selections?: readonly ModelSelection[]
   apiKeys?: readonly ApiKeySummary[]
-  usage?: UsageViewState
+   usage?: UsageViewState
+   billing?: BillingViewState
   onSelectionChange?: (id: string, patch: Partial<ModelSelection> & { remove?: boolean }) => void
   onUpdateSelection?: (id: string, patch: Partial<ModelSelection>) => void
   onRemoveSelection?: (id: string) => void
@@ -72,7 +74,7 @@ export interface SettingsPageProps {
   onManualApiKey?: (value: string) => void
   onManagementCredentials?: (accessKey: string, secretKey: string) => void | Promise<unknown>
   manualApiKey?: string
-  runtime?: { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; credentialStatus?: CredentialStatus; credentialStatusError?: string; managementCredentialsError?: string; modelDetails?: ModelDetailsState }
+  runtime?: { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; billing?: BillingViewState; query: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; credentialStatus?: CredentialStatus; credentialStatusError?: string; managementCredentialsError?: string; modelDetails?: ModelDetailsState }
   useSnapshot?: () => { models: readonly MarketplaceModel[]; apiKeys: readonly ApiKeySummary[]; usage: UsageViewState; query?: string; marketplaceLoading?: boolean; marketplaceError?: string; apiKeyError?: string; managementCredentialsError?: string; credentialStatus?: CredentialStatus; modelDetails?: ModelDetailsState; credentialStatusError?: string }
 }
 
