@@ -2,7 +2,9 @@ import { test, expect, type Page } from '@playwright/test'
 
 const GUI_URL = 'http://127.0.0.1:3080'
 const MODEL_ID = 'deepseek-v4-flash'
-const MARKETPLACE_URL = '**://api.qiniu.com/ai/v1/market/models**'
+const MARKETPLACE_URL = /^https:\/\/api\.qiniu\.com\/ai\/v1\/market\/models(?:\?.*)?$/
+const API_KEYS_URL = /^https:\/\/api\.qiniu\.com\/ai\/inapi\/v3\/apikeys(?:\?.*)?$/
+const USAGE_URL = /^https:\/\/api\.qiniu\.com\/ai\/inapi\/v3\/stat\/(?:new|bill\/range)(?:\?.*)?$/
 
 const marketplacePayload = {
   data: [
@@ -22,21 +24,18 @@ const marketplacePayload = {
 
 async function installQiniuRoutes(page: Page): Promise<void> {
   // Browser interception is deliberately limited to Qiniu API origins.
-  await page.route(MARKETPLACE_URL, route => route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify(marketplacePayload),
-  }))
-  await page.route('**://api.qiniu.com/ai/inapi/v3/apikeys**', route => route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ data: [{ name: 'acceptance-key', key: '********', enabled: true, createdAt: '2026-01-01', lastUsed: 'never', totalTokens: 0, quota: { daily: {}, monthly: {}, total: {} } }] }),
-  }))
-  await page.route('**://api.qiniu.com/ai/inapi/v3/stat/**', route => route.fulfill({
-    status: 403,
-    contentType: 'application/json',
-    body: JSON.stringify({ status: false, code: 'AK_SK_REQUIRED' }),
-  }))
+  await page.route(MARKETPLACE_URL, route => {
+    expect(route.request().method()).toBe('GET')
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(marketplacePayload) })
+  })
+  await page.route(API_KEYS_URL, route => {
+    expect(route.request().method()).toBe('GET')
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [{ name: 'acceptance-key', key: '********', enabled: true, createdAt: '2026-01-01', lastUsed: 'never', totalTokens: 0, quota: { daily: {}, monthly: {}, total: {} } }] }) })
+  })
+  await page.route(USAGE_URL, route => {
+    expect(route.request().method()).toBe('GET')
+    return route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ status: false, code: 'AK_SK_REQUIRED' }) })
+  })
 }
 
 async function openQiniuSettings(page: Page, testInfo: { skip: (condition: boolean, description: string) => void }): Promise<void> {
