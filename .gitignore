@@ -5,6 +5,10 @@ coverage/
 .playwright/
 playwright-report/
 test-results/
+e2e-artifacts/
+reports/
+.sessions/
+*.tsbuildinfo
 .env
 .env.*
 !.env.example

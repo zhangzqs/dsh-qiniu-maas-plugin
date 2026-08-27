@@ -195,7 +195,22 @@ describe('Qiniu MaaS client runtime', () => {
     expect(mapRpcError(value).kind).toBe(kind)
   })
 
-  test('registered SettingsPage receives injected settings and actions at runtime', async () => {
+  test('subscribes to settings updates and detaches listeners on dispose', () => {
+    const listeners = new Set<() => void>()
+    const unsubscribe = vi.fn(() => { listeners.clear() })
+    const runtime = { models: [], apiKeys: [], usage: { kind: 'loading' as const }, query: '' }
+    const set = vi.fn(async () => undefined)
+    const injected = createSettingsInject({ get: (name: string) => name === 'settingsScope' ? { bind: () => ({ getSnapshot: () => ({ value: { models: [] } }), set, subscribe: (listener: () => void) => { listeners.add(listener); return unsubscribe } }) } : undefined } as never, runtime as never) as { dispose: () => void; hooks: { snapshot: { subscribe: (listener: () => void) => () => void } } }
+    const listener = vi.fn()
+    const remove = injected.hooks.snapshot.subscribe(listener)
+    listeners.forEach(callback => callback())
+    expect(listener).toHaveBeenCalledTimes(1)
+    remove()
+    injected.dispose()
+    expect(unsubscribe).toHaveBeenCalled()
+    expect(listeners).toHaveLength(0)
+  })
+  test('uses settings updates to mutate enabled model state', async () => {
     const set = vi.fn(async () => undefined)
     const ctx = {
       locale: { register: vi.fn(), bind: vi.fn(() => (key: string) => key) },

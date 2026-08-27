@@ -63,6 +63,7 @@ function throwRpcError(value: unknown): unknown {
 }
 
 export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRuntime = createRuntime()): Record<string, unknown> {
+  runtime.listeners ??= new Set()
   const connection = ctx.get?.('connection') as Connection | undefined
   const scopeService = ctx.get?.('settingsScope') as SettingsScope | undefined
   const scope = scopeService?.bind({ namespace: 'qiniu-maas' })
@@ -75,10 +76,21 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
   const update = async (models: ModelSelection[]): Promise<void> => { await scope?.set('models', models) }
   const actions = {
     listModels: async () => {
-      const result = await hostCall(connection, 'qiniu-maas/list-models')
-      if (Array.isArray(result)) runtime.models = result as MarketplaceModel[]
+      runtime.marketplaceLoading = true
+      runtime.marketplaceError = undefined
       runtime.listeners.forEach(listener => listener())
-      return result
+      try {
+        const result = await hostCall(connection, 'qiniu-maas/list-models')
+        if (Array.isArray(result)) runtime.models = result as MarketplaceModel[]
+        else if (result && typeof result === 'object' && 'code' in result) runtime.marketplaceError = String((result as { code: unknown }).code)
+        return result
+      } catch (error) {
+        runtime.marketplaceError = error instanceof Error ? error.message : 'Unable to load marketplace models.'
+        throw error
+      } finally {
+        runtime.marketplaceLoading = false
+        runtime.listeners.forEach(listener => listener())
+      }
     },
     modelDetails: async (id: string) => {
       runtime.modelDetails = { kind: 'loading' }
@@ -152,19 +164,34 @@ export function createSettingsInject(ctx: ClientContextLike, runtime: SettingsRu
       await update(updateModelSelection(current, id, patch))
     },
     useApiKey: async (key: ApiKeySummary) => {
-      if (!key.enabled || !canUseApiKey(key.maskedValue)) throw new Error('A complete API key is required')
-      return throwRpcError(await hostCall(connection, 'qiniu-maas/set-inference-api-key', { value: key.maskedValue }))
+      try {
+        if (!key.enabled || !canUseApiKey(key.maskedValue)) throw new Error('A complete API key is required')
+        return throwRpcError(await hostCall(connection, 'qiniu-maas/set-inference-api-key', { value: key.maskedValue }))
+      } catch (error) {
+        runtime.apiKeyError = error instanceof Error ? error.message : 'Unable to save API key.'
+        runtime.listeners.forEach(listener => listener())
+        throw error
+      }
     },
     setManualApiKey: async (value: string) => {
-      if (!canUseApiKey(value)) throw new Error('A complete API key is required')
-      return throwRpcError(await hostCall(connection, 'qiniu-maas/set-inference-api-key', { value }))
+      try {
+        if (!canUseApiKey(value)) throw new Error('A complete API key is required')
+        const result = throwRpcError(await hostCall(connection, 'qiniu-maas/set-inference-api-key', { value }))
+        runtime.apiKeyError = undefined
+        runtime.listeners.forEach(listener => listener())
+        return result
+      } catch (error) {
+        runtime.apiKeyError = error instanceof Error ? error.message : 'Unable to save API key.'
+        runtime.listeners.forEach(listener => listener())
+        throw error
+      }
     },
   }
   const snapshot = {
-    getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, query: runtime.query, credentialStatus: runtime.credentialStatus, credentialStatusError: runtime.credentialStatusError, modelDetails: runtime.modelDetails }),
+    getSnapshot: () => ({ models: runtime.models, apiKeys: runtime.apiKeys, usage: runtime.usage, query: runtime.query, marketplaceLoading: runtime.marketplaceLoading, marketplaceError: runtime.marketplaceError, apiKeyError: runtime.apiKeyError, credentialStatus: runtime.credentialStatus, credentialStatusError: runtime.credentialStatusError, modelDetails: runtime.modelDetails }),
     subscribe: (listener: () => void) => { runtime.listeners.add(listener); return () => runtime.listeners.delete(listener) },
   }
-  const injected: Record<string, unknown> = { settings, actions, runtime, dispose: () => { runtime.settingsUnsubscribe?.(); clearManualApiKeyDrafts() }, hooks: { snapshot }, useSnapshot: () => {
+  const injected: Record<string, unknown> = { settings, actions, runtime, dispose: () => { runtime.settingsUnsubscribe?.(); runtime.settingsUnsubscribe = undefined; runtime.listeners.clear(); clearManualApiKeyDrafts() }, hooks: { snapshot }, useSnapshot: () => {
     const react = (globalThis as { React?: { useSyncExternalStore?: (subscribe: (listener: () => void) => () => void, getSnapshot: () => unknown, getServerSnapshot?: () => unknown) => unknown } }).React
     return react?.useSyncExternalStore?.(snapshot.subscribe, snapshot.getSnapshot, snapshot.getSnapshot) ?? snapshot.getSnapshot()
   } }

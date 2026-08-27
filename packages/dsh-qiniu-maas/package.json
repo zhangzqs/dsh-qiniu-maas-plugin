@@ -2,13 +2,16 @@
   "name": "@qiniu/dsh-qiniu-maas",
   "version": "0.1.0",
   "private": true,
+  "description": "Qiniu MaaS model marketplace and native DSH provider integration",
   "type": "module",
   "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
   "exports": {
     ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" },
-    "./client": { "types": "./lib/types/client/index.d.ts", "default": "./lib/client.js" },
+    "./client": { "types": "./lib/types/client/index.d.ts", "default": "./lib/client/index.js" },
     "./package.json": "./package.json"
   },
+  "files": ["lib/**/*.js", "lib/types/**/*.d.ts"],
   "dsh": {
     "client": {
       "inject": ["slots", "locale", "connection", "remote", "settingsScope", "settingsSchema"],
@@ -16,7 +19,8 @@
     }
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@qiniu/maas-sdk": "workspace:*"

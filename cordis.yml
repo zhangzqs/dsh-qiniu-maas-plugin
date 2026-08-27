@@ -1,0 +1,4 @@
+# Qiniu MaaS plugin overlay. Apply this over a DSH profile that provides the
+# standard llm, settings, credentials, host RPC, and web Slot services.
+- id: qiniu-maas
+  name: '@qiniu/dsh-qiniu-maas'
