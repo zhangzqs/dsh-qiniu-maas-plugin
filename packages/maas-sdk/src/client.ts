@@ -115,7 +115,7 @@ export class MaaSClient {
   private normalizeBillSeries(input: unknown): BillTimeSeries {
     const series = this.record(input, 'getBill');
     if (!Array.isArray(series.items)) throw new MaaSError({ operation: 'getBill', message: 'Malformed billing items' });
-    return { time: this.string(series.time, 'getBill'), items: series.items.map((item) => { const value = this.record(item, 'getBill'); const usage = this.record(value.usage, 'getBill'); return { name: this.string(value.name, 'getBill'), usage: { count: this.number(usage.count, 'getBill'), unit: this.string(usage.unit, 'getBill') }, fee: this.number(value.fee, 'getBill'), ...(typeof value.key === 'string' ? { key: value.key } : {}) } as BillItem; }), totalFee: this.number(series.total_fee, 'getBill'), ...(typeof series.total_requests === 'number' ? { totalRequests: series.total_requests } : {}) };
+    return { time: this.string(series.time, 'getBill'), items: series.items.map((item) => { const value = this.record(item, 'getBill'); const usage = this.record(value.usage, 'getBill'); return { name: this.string(value.name, 'getBill'), usage: { count: this.number(usage.count, 'getBill'), unit: this.string(usage.unit, 'getBill') }, fee: this.number(value.fee, 'getBill') }; }), totalFee: this.number(series.total_fee, 'getBill'), ...(typeof series.total_requests === 'number' ? { totalRequests: series.total_requests } : {}) };
   }
 
   private async json(response: Response, operation: string): Promise<JsonRecord> {

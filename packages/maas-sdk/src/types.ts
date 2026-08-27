@@ -64,7 +64,6 @@ export interface BillItem {
   name: string;
   usage: { count: number; unit: string };
   fee: number;
-  key?: string;
 }
 
 export interface BillTimeSeries {

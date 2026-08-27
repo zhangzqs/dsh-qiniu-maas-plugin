@@ -77,7 +77,8 @@ test('serializes bill range parameters and normalizes billing series', async () 
 
   expect(new URL(requests[0].url).search).toBe('?start=2026-08-01T00%3A00%3A00%2B08%3A00&end=2026-08-02T00%3A00%3A00%2B08%3A00&grain=day&api_key=sk-key');
   expect(requests[0].headers.get('authorization')).toBe('Qiniu ak:zvUJDgoSU9Gr9MujbdzaQAhdJ9Y');
-  expect(bill).toEqual({ models: [{ modelId: 'deepseek-v4-flash', timeSeries: [{ time: '2026-08-01T00:00:00+08:00', items: [{ name: 'input_tokens', usage: { count: 4.5, unit: 'k/tokens' }, fee: 0.12, key: 'input' }], totalFee: 0.12, totalRequests: 2 }], totalFee: 0.12, totalRequests: 2 }] });
+  expect(bill).toEqual({ models: [{ modelId: 'deepseek-v4-flash', timeSeries: [{ time: '2026-08-01T00:00:00+08:00', items: [{ name: 'input_tokens', usage: { count: 4.5, unit: 'k/tokens' }, fee: 0.12 }], totalFee: 0.12, totalRequests: 2 }], totalFee: 0.12, totalRequests: 2 }] });
+  expect(JSON.stringify(bill)).not.toContain('sk-billing-secret-value');
 });
 
 test('normalizes provider code from a structured error without exposing credentials', async () => {
