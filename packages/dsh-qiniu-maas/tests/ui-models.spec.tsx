@@ -183,9 +183,11 @@ describe('Qiniu MaaS model settings UI', () => {
     }
     applyClient(ctx as never)
     expect(register).toHaveBeenCalledWith(expect.objectContaining({ name: 'settings.section', id: 'qiniu-maas' }), expect.anything())
-    const entry = register.mock.calls[0]?.[0] as { inject?: Record<string, unknown> }
-    expect(entry.inject).toEqual(expect.objectContaining({ settings: expect.anything(), actions: expect.anything() }))
-    expect(entry.inject).toBeDefined()
+    const entry = register.mock.calls[0]?.[0] as { inject?: () => Record<string, unknown> }
+    expect(entry.inject).toEqual(expect.any(Function))
+    const face = entry.inject?.()
+    expect(face).toEqual(expect.objectContaining({ settings: expect.anything(), actions: expect.anything() }))
+    expect(entry.inject?.()).toBe(face)
   })
 })
 
@@ -279,7 +281,7 @@ describe('Qiniu MaaS client runtime', () => {
       effect: vi.fn((callback: () => unknown) => callback()),
     }
     applyClient(ctx as never)
-    const face = (register.mock.calls[0]?.[0] as { inject: { actions: { load: () => Promise<unknown> }; runtime: { models: readonly unknown[] } } }).inject
+    const face = (register.mock.calls[0]?.[0] as { inject: () => { actions: { load: () => Promise<unknown> }; runtime: { models: readonly unknown[] } } }).inject()
     const loaded = await face.actions.load()
     expect(face.runtime.models).toEqual([model])
     expect(loaded).toMatchObject({ models: [model] })

@@ -258,7 +258,6 @@ export function applyClient(ctx: ClientContextLike): void {
     if (head) head.appendChild(style)
     return () => style.remove()
   }, 'qiniu-maas: styles')
-  const t = ctx.locale.bind('settings.qiniu-maas')
   const injected = createSettingsInject(ctx)
   ctx.effect(() => () => { (injected.dispose as (() => void) | undefined)?.() }, 'qiniu-maas: settings subscription')
   const actions = injected.actions as { load?: () => Promise<unknown> }
@@ -266,8 +265,8 @@ export function applyClient(ctx: ClientContextLike): void {
   const SettingsPageEntry = createSettingsPageEntry(injected)
   ctx.slots.inject('settings.section', () => ctx.slots.register({
     name: 'settings.section', id: 'qiniu-maas', order: 20,
-    label: () => t('nav') || 'Qiniu MaaS',
-    inject: injected,
+    label: 'Qiniu MaaS',
+    inject: () => injected,
   }, SettingsPageEntry))
 }
 
