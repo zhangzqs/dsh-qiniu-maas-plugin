@@ -11,7 +11,7 @@
     "./client": { "types": "./lib/types/client/index.d.ts", "default": "./lib/client/index.js" },
     "./package.json": "./package.json"
   },
-  "files": ["lib/**/*.js", "lib/types/**/*.d.ts"],
+  "files": ["lib/**/*.js", "lib/**/*.js.map", "lib/types/**/*.d.ts", "lib/types/**/*.d.ts.map"],
   "dsh": {
     "client": {
       "inject": ["slots", "locale", "connection", "remote", "settingsScope", "settingsSchema"],
@@ -19,8 +19,10 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "build": "tsc -p tsconfig.json && tsdown",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "bundle": "tsdown",
+    "watch": "tsdown --watch"
   },
   "dependencies": {
     "@qiniu/maas-sdk": "workspace:*",
@@ -28,7 +30,8 @@
   },
   "devDependencies": {
     "@deepseek-ai/dsh-llm": "*",
-    "@types/react": "~18.3.1"
+    "@types/react": "~18.3.1",
+    "tsdown": "^0.22.2"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "*",
