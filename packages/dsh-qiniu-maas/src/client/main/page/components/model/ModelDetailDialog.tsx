@@ -3,6 +3,16 @@ import type { Model } from 'qiniu-maas-model-market';
 import { ModelAvatar } from './ModelAvatar.tsx';
 import css from './ModelDetailDialog.module.css';
 
+function formatTokenCount(value: number | undefined): string {
+  if (value === undefined) return '未知';
+  if (value < 1_000) return value.toLocaleString();
+
+  const divisor = value < 1_000_000 ? 1_000 : 1_000_000;
+  const unit = value < 1_000_000 ? 'K' : 'M';
+  const compactValue = Number((value / divisor).toFixed(1));
+  return `${compactValue}${unit}`;
+}
+
 interface Props {
   model: Model;
   onClose: () => void;
@@ -56,15 +66,14 @@ export function ModelDetailDialog({ model, onClose }: Props): ReactNode {
           <div className={css.details}>
             <span>上下文</span>
             <strong>
-              {model.model_constraints?.context_length?.toLocaleString() ||
-                '未知'}
+              {formatTokenCount(model.model_constraints?.context_length)}
             </strong>
             <span>最大输出</span>
             <strong>
-              {(
+              {formatTokenCount(
                 model.model_constraints?.max_completion_tokens ??
-                model.model_constraints?.max_tokens
-              )?.toLocaleString() || '未知'}
+                  model.model_constraints?.max_tokens,
+              )}
             </strong>
           </div>
         </section>
