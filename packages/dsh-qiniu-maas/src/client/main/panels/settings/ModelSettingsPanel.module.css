@@ -1,0 +1,61 @@
+.block {
+  display: grid;
+  gap: 12px;
+  max-width: 520px;
+}
+
+.block h3 {
+  margin: 0;
+}
+
+.label {
+  display: grid;
+  gap: 6px;
+  color: var(--dsw-alias-label-secondary, #6b7280);
+  font-size: 13px;
+}
+
+.label select {
+  min-height: 38px;
+  width: min(440px, 100%);
+  padding: 0 12px;
+  border: 1px solid var(--dsw-alias-border-l2, #cfd5df);
+  border-radius: 6px;
+  background: var(--dsw-alias-bg-layer-1, #fff);
+  color: var(--dsw-alias-label-primary, inherit);
+}
+
+.block p {
+  margin: 0;
+  color: var(--dsw-alias-label-secondary, #6b7280);
+}
+
+.block input {
+  min-height: 38px;
+  width: min(440px, 100%);
+  padding: 0 12px;
+  border: 1px solid var(--dsw-alias-border-l2, #cfd5df);
+  border-radius: 6px;
+  background: var(--dsw-alias-bg-layer-1, #fff);
+  color: var(--dsw-alias-label-primary, inherit);
+}
+
+.block button {
+  justify-self: start;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--dsw-alias-button-primary-fill, #0d6efd);
+  color: var(--dsw-alias-label-primary-foreground, #fff);
+  cursor: pointer;
+}
+
+.block button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.status {
+  color: var(--dsw-alias-label-secondary, #6b7280);
+  font-size: 13px;
+}

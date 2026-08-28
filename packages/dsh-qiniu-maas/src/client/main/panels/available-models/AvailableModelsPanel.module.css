@@ -1,0 +1,18 @@
+.list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 720px;
+}
+
+.empty {
+  padding: 40px 0;
+  color: var(--dsw-alias-label-secondary, #6b7280);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .list {
+    grid-template-columns: 1fr;
+  }
+}
