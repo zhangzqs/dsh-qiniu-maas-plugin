@@ -2,8 +2,7 @@ import { useState, type ReactNode } from 'react';
 import type { Model, QiniuRegion } from 'qiniu-maas-model-market';
 import type { QiniuInferenceProtocol } from '../../qiniu-config.ts';
 import { ModelSettingsPanel } from './panels/settings/ModelSettingsPanel.tsx';
-import { AvailableModelsPanel } from './panels/available-models/AvailableModelsPanel.tsx';
-import { ModelMarketPanel } from './panels/model-market/ModelMarketPanel.tsx';
+import { ModelsPanel } from './panels/ModelsPanel.tsx';
 import { ModelTabs, type ModelTab } from './ModelTabs.tsx';
 
 interface ModelPanelProps {
@@ -31,12 +30,11 @@ interface Props {
 }
 
 export function ModelCenterPage({ models, settings }: Props): ReactNode {
-  const [tab, setTab] = useState<ModelTab>('market');
+  const [tab, setTab] = useState<ModelTab>('models');
   return (
     <>
       <ModelTabs tab={tab} onChange={setTab} />
-      {tab === 'market' && <ModelMarketPanel {...models} />}
-      {tab === 'available' && <AvailableModelsPanel {...models} />}
+      {tab === 'models' && <ModelsPanel {...models} />}
       {tab === 'settings' && <ModelSettingsPanel {...settings} />}
     </>
   );

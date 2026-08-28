@@ -1,11 +1,10 @@
 import type { ReactNode } from 'react';
 import css from './ModelTabs.module.css';
 
-export type ModelTab = 'market' | 'available' | 'settings';
+export type ModelTab = 'models' | 'settings';
 
 const MODEL_TABS: readonly [ModelTab, string][] = [
-  ['market', '模型广场'],
-  ['available', '可用模型'],
+  ['models', '模型中心'],
   ['settings', '设置'],
 ];
 
