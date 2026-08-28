@@ -1,9 +1,9 @@
 export {
   listModels,
-  MODEL_MARKET_ENDPOINTS,
+  QINIU_LLM_BASE_URLS,
   ModelMarketError,
-  type ModelMarketEndpoint,
   type ModelMarketOptions,
+  type QiniuRegion,
 } from './client.ts';
 export type {
   Issuer,

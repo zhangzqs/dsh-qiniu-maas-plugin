@@ -1,20 +1,27 @@
 import type { Model } from './models/model.ts';
 
-export const MODEL_MARKET_ENDPOINTS = {
+const MODEL_MARKET_URLS = {
   /** 国内模型市场服务域名。 */
   cn: 'https://api.qnaigc.com/v1/market/models',
   /** 全球模型市场服务域名。 */
   global: 'https://openai.sufy.com/v1/market/models',
 } as const;
 
+export const QINIU_LLM_BASE_URLS = {
+  /** 国内 LLM 推理服务地址。 */
+  cn: 'https://api.qnaigc.com/v1',
+  /** 全球 LLM 推理服务地址。 */
+  global: 'https://openai.sufy.com/v1',
+} as const;
+
+export type QiniuRegion = keyof typeof QINIU_LLM_BASE_URLS;
+
 export interface ModelMarketOptions {
   /** 选择模型市场服务域名，默认使用国内服务。 */
-  endpoint?: keyof typeof MODEL_MARKET_ENDPOINTS;
+  region?: QiniuRegion;
   /** 注入 fetch，主要用于测试或宿主环境适配。 */
   fetch?: typeof globalThis.fetch;
 }
-
-export type ModelMarketEndpoint = keyof typeof MODEL_MARKET_ENDPOINTS;
 
 export class ModelMarketError extends Error {
   /** HTTP 状态码，网络错误时为空。 */
@@ -36,56 +43,43 @@ export class ModelMarketError extends Error {
 export async function listModels(
   options: ModelMarketOptions = {},
 ): Promise<Model[]> {
-  const endpoint = MODEL_MARKET_ENDPOINTS[options.endpoint ?? 'cn'];
+  const url = MODEL_MARKET_URLS[options.region ?? 'cn'];
   const fetcher = options.fetch ?? globalThis.fetch;
 
-  // 发起请求
-  const response = await (async () => {
-    try {
-      const response = await fetcher(endpoint, {
-        method: 'GET',
-        headers: { accept: 'application/json' },
-      });
-      if (!response.ok)
-        throw new ModelMarketError(
-          `model marketplace request failed (${response.status})`,
-          response.status,
-        );
-      return response;
-    } catch (error) {
-      if (error instanceof ModelMarketError) throw error;
+  let response: Response;
+  try {
+    response = await fetcher(url, {
+      method: 'GET',
+      headers: { accept: 'application/json' },
+    });
+    if (!response.ok)
       throw new ModelMarketError(
-        'model marketplace request failed',
-        undefined,
-        {
-          cause: error,
-        } as ErrorOptions,
+        `model marketplace request failed (${response.status})`,
+        response.status,
       );
-    }
-  })();
+  } catch (error) {
+    if (error instanceof ModelMarketError) throw error;
+    throw new ModelMarketError('model marketplace request failed', undefined, {
+      cause: error,
+    });
+  }
 
-  // 请求格式类型校验和提取
-  const models = await (async () => {
-    try {
-      const payload = await response.json();
-      if (!isResponseEnvelope(payload)) {
-        throw new ModelMarketError(
-          'model marketplace response is malformed',
-          response.status,
-        );
-      }
-      return payload.data as Model[];
-    } catch (error) {
-      if (error instanceof ModelMarketError) throw error;
+  try {
+    const payload = await response.json();
+    if (!isResponseEnvelope(payload))
       throw new ModelMarketError(
         'model marketplace response is malformed',
         response.status,
-        { cause: error },
       );
-    }
-  })();
-
-  return models;
+    return payload.data as Model[];
+  } catch (error) {
+    if (error instanceof ModelMarketError) throw error;
+    throw new ModelMarketError(
+      'model marketplace response is malformed',
+      response.status,
+      { cause: error },
+    );
+  }
 }
 
 function isResponseEnvelope(
