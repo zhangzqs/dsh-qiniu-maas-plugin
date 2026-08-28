@@ -8,7 +8,7 @@ import type { QiniuRegion } from 'qiniu-maas-model-market';
 import type { QiniuInjected } from '../state/qiniu-state.ts';
 import type { QiniuInferenceProtocol } from '../qiniu-config.ts';
 import { ModelCenterPage } from './page/ModelCenterPage.tsx';
-import { ModelDetailDialog } from './page/components/model/ModelDetailDialog.tsx';
+import { ModelDetailDialog } from './page/components/ModelDetailDialog.tsx';
 import css from './QiniuSettingsSection.module.css';
 
 type Props = PropsRuntime<'settings.section'> & InjectFace<QiniuInjected>;

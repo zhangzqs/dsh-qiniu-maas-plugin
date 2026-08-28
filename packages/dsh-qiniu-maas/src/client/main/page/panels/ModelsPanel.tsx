@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import type { Model } from 'qiniu-maas-model-market';
-import { ModelCard } from '../components/model/ModelCard.tsx';
+import { ModelCard } from '../components/ModelCard.tsx';
 import css from './ModelsPanel.module.css';
 
 type ModelSort = 'release-newest' | 'release-oldest' | 'name-asc' | 'name-desc';
