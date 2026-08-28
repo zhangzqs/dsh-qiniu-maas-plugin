@@ -27,7 +27,7 @@
     "watch": "tsdown --watch"
   },
   "dependencies": {
-    "@qiniu/maas-sdk": "workspace:*",
+    "qiniu-maas-sdk": "workspace:*",
     "react": "^18.2.0"
   },
   "devDependencies": {

@@ -4,7 +4,7 @@
 
 **Goal:** Implement a TypeScript Qiniu MaaS management SDK and DSH plugin that exposes the public model marketplace, optional AK/SK management features, API-key selection, and enabled Qiniu models through DSH's native `llm` provider mechanism.
 
-**Architecture:** `packages/maas-sdk` is a DSH-independent management client for the OpenAPI server `https://api.qiniu.com/ai`; public marketplace requests are unauthenticated and privileged `/inapi` calls use AK/SK signing. `packages/dsh-qiniu-maas` adapts those management methods to DSH settings, credentials, `llm`, private RPC, and additive settings Slots; actual inference stays inside DSH's provider pipeline and uses the selected API Key.
+**Architecture:** `packages/qiniu-maas-sdk` is a DSH-independent management client for the OpenAPI server `https://api.qiniu.com/ai`; public marketplace requests are unauthenticated and privileged `/inapi` calls use AK/SK signing. `packages/dsh-qiniu-maas` adapts those management methods to DSH settings, credentials, `llm`, private RPC, and additive settings Slots; actual inference stays inside DSH's provider pipeline and uses the selected API Key.
 
 **Tech Stack:** TypeScript, TSX, pnpm workspace, Vitest, Playwright CLI, DSH Cordis services and Slots, Web Fetch API.
 
@@ -30,20 +30,20 @@
 - Create: `pnpm-workspace.yaml`
 - Create: `tsconfig.json`
 - Create: `vitest.config.ts`
-- Create: `packages/maas-sdk/package.json`
-- Create: `packages/maas-sdk/tsconfig.json`
-- Create: `packages/maas-sdk/src/types.ts`
-- Create: `packages/maas-sdk/src/errors.ts`
-- Create: `packages/maas-sdk/src/auth.ts`
-- Create: `packages/maas-sdk/src/client.ts`
-- Create: `packages/maas-sdk/src/index.ts`
-- Test: `packages/maas-sdk/tests/client.spec.ts`
+- Create: `packages/qiniu-maas-sdk/package.json`
+- Create: `packages/qiniu-maas-sdk/tsconfig.json`
+- Create: `packages/qiniu-maas-sdk/src/types.ts`
+- Create: `packages/qiniu-maas-sdk/src/errors.ts`
+- Create: `packages/qiniu-maas-sdk/src/auth.ts`
+- Create: `packages/qiniu-maas-sdk/src/client.ts`
+- Create: `packages/qiniu-maas-sdk/src/index.ts`
+- Test: `packages/qiniu-maas-sdk/tests/client.spec.ts`
 
 **Interfaces:**
 - Produces `MaaSClient`, `MaaSClientOptions`, `PublicModel`, `ApiKeySummary`, `UsageReport`, `MaaSError`, and explicit public/management request methods for later plugin tasks.
 
 - [ ] Write failing tests for `GET /v1/market/models` without an Authorization header, typed normalized model output, and a privileged request receiving an AK/SK-generated Authorization value.
-- [ ] Run `pnpm vitest run packages/maas-sdk/tests/client.spec.ts` and confirm failure because the SDK does not exist.
+- [ ] Run `pnpm vitest run packages/qiniu-maas-sdk/tests/client.spec.ts` and confirm failure because the SDK does not exist.
 - [ ] Define the package scripts, strict TypeScript configuration, typed DTOs, redacted `MaaSError`, and injected-fetch client surface. Keep the server root constant at `https://api.qiniu.com/ai` and expose no chat/inference method.
 - [ ] Implement the minimum public model request and AK/SK signing request needed by the tests, using the exact OpenAPI path `/v1/market/models`.
 - [ ] Run the focused test and then `pnpm -r typecheck`; confirm both pass.
@@ -52,11 +52,11 @@
 ### Task 2: Complete MaaS Management Resources
 
 **Files:**
-- Modify: `packages/maas-sdk/src/client.ts`
-- Modify: `packages/maas-sdk/src/types.ts`
-- Modify: `packages/maas-sdk/src/index.ts`
-- Modify: `packages/maas-sdk/tests/client.spec.ts`
-- Create: `packages/maas-sdk/tests/fixtures.ts`
+- Modify: `packages/qiniu-maas-sdk/src/client.ts`
+- Modify: `packages/qiniu-maas-sdk/src/types.ts`
+- Modify: `packages/qiniu-maas-sdk/src/index.ts`
+- Modify: `packages/qiniu-maas-sdk/tests/client.spec.ts`
+- Create: `packages/qiniu-maas-sdk/tests/fixtures.ts`
 
 **Interfaces:**
 - Consumes `MaaSClient` and auth types from Task 1.
@@ -81,7 +81,7 @@
 - Create: `packages/dsh-qiniu-maas/tests/provider.spec.ts`
 
 **Interfaces:**
-- Consumes `MaaSClient` from `@qiniu/maas-sdk` and DSH `llm`, `settings`, and `credentials` service contracts.
+- Consumes `MaaSClient` from `qiniu-maas-sdk` and DSH `llm`, `settings`, and `credentials` service contracts.
 - Produces a Cordis plugin that registers one Qiniu configurable provider, model discovery, settings namespace, and private RPC methods for marketplace/configuration operations.
 
 - [ ] Add failing provider tests using service fakes for empty enabled models, enabled model materialization, user context/output overrides, missing API Key, and atomic replacement after settings updates.

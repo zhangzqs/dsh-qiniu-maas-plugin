@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test'
 
 const GUI_URL = 'http://127.0.0.1:3080'
 const MODEL_ID = 'deepseek-v4-flash'
-const MARKETPLACE_URL = /^https:\/\/api\.qiniu\.com\/ai\/v1\/market\/models(?:\?.*)?$/
+const MARKETPLACE_URL = /^https:\/\/api\.qnaigc\.com\/v1\/market\/models(?:\?.*)?$/
 const API_KEYS_URL = /^https:\/\/api\.qiniu\.com\/ai\/inapi\/v3\/apikeys(?:\?.*)?$/
 const USAGE_URL = /^https:\/\/api\.qiniu\.com\/ai\/inapi\/v3\/stat\/(?:new|bill\/range)(?:\?.*)?$/
 const QINIU_API_ORIGIN = 'api.qiniu.com'
@@ -18,12 +18,27 @@ const marketplacePayload = {
       id: MODEL_ID,
       name: 'DeepSeek V4 Flash',
       description: 'Fast DeepSeek model for interactive workloads.',
+      created_time: '2026-01-01',
+      avatar: '',
+      hot_tags: [],
+      features: ['reasoning'],
+      private: false,
       model_constraints: { context_length: 128000, max_tokens: 8192 },
+      issuer: { name: 'DeepSeek', avatar: '' },
       architecture: {
         input_modalities: ['text'],
         output_modalities: ['text'],
         reasoning: { supported: true },
       },
+      pricing_rules: [],
+      rate_limit: {},
+      model_filing: { filing_no: '' },
+      supported_parameters: [],
+      support_api_protocols: ['openai'],
+      rank: 1,
+      retirement_at: '',
+      release_at: '2026-01-01',
+      suggested_model: '',
     },
   ],
 }
@@ -61,7 +76,7 @@ async function installQiniuRoutes(page: Page): Promise<void> {
   })
   await page.route(API_KEYS_URL, route => {
     expect(route.request().method()).toBe('GET')
-    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [{ name: 'acceptance-key', key: '********', enabled: true, createdAt: '2026-01-01', lastUsed: 'never', totalTokens: 0, quota: { daily: {}, monthly: {}, total: {} } }] }) })
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: true, data: [{ name: 'acceptance-key', key: '********', enabled: true, createdAt: '2026-01-01', lastUsed: 'never', totalTokens: 0, quota: { daily: { enabled: false, used: 0, limit: 0 }, monthly: { enabled: false, used: 0, limit: 0 }, total: { enables: false, used: 0, limit: 0 } } }] }) })
   })
   await page.route(USAGE_URL, route => {
     expect(route.request().method()).toBe('GET')

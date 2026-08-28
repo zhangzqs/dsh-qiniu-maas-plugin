@@ -1,4 +1,4 @@
-import type { BillReport } from '@qiniu/maas-sdk'
+import type { BillReport } from '../maas-adapter.js'
 import type { QiniuTranslate } from './locales.js'
 
 export type BillingViewState = { kind: 'loading' | 'error' | 'success' | 'ak-sk-required'; report?: BillReport; message?: string }

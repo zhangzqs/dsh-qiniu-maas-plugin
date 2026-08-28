@@ -6,7 +6,8 @@
     "declaration": true,
     "declarationDir": "lib/types",
     "sourceMap": true,
-    "noEmit": false
+    "noEmit": false,
+    "resolveJsonModule": true
   },
   "include": ["src"]
 }

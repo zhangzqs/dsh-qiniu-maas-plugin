@@ -16,7 +16,7 @@ The MaaS SDK does not implement Chat Completions, SSE, model generation, streami
 
 ## Architecture
 
-### `packages/maas-sdk`
+### `packages/qiniu-maas-sdk`
 
 A DSH-independent TypeScript management SDK. Public model-marketplace calls send no credentials. Privileged management calls use Qiniu AK/SK signing as required by the supplied OpenAPI operation. Authentication is selected per operation rather than globally.
 
@@ -149,7 +149,7 @@ The real test must never print credentials, persist Playwright state containing 
 ## Deliverables
 
 ```text
-packages/maas-sdk/
+packages/qiniu-maas-sdk/
 packages/dsh-qiniu-maas/
 tests/
 e2e/

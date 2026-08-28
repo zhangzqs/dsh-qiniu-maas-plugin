@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { LlmAdapter } from '@deepseek-ai/dsh-llm'
-import { MaaSClient } from '@qiniu/maas-sdk'
+import { ModelMarketplaceClient, QiniuMaaSClient } from 'qiniu-maas-sdk'
+import { mapApiKeys, mapBill, mapMarketModels, mapUsage } from './maas-adapter.js'
 import { QiniuAdapter, buildProviderSnapshot, createQiniuProviderState } from './provider.js'
 import { QINIU_CREDENTIAL_REFS, QINIU_SETTINGS_NS, QiniuSettingsSchema, normalizeQiniuSettings } from './settings.js'
 export interface QiniuHostConfig {
@@ -64,8 +65,8 @@ function fetchFor(ctx: ContextLike, config: QiniuHostConfig): typeof globalThis.
   return config.fetch ?? (ctx.get('fetch') as typeof globalThis.fetch | undefined) ?? globalThis.fetch
 }
 
-function managementClient(ctx: ContextLike, config: QiniuHostConfig): MaaSClient {
-  return new MaaSClient({ fetch: fetchFor(ctx, config), accessKey: undefined, secretKey: undefined })
+function marketClient(ctx: ContextLike, config: QiniuHostConfig): ModelMarketplaceClient {
+  return new ModelMarketplaceClient({ fetch: fetchFor(ctx, config) })
 }
 
 async function credential(ctx: ContextLike, ref: string): Promise<string | undefined> {
@@ -140,7 +141,7 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
   if (ctx.llm.registerModelDiscovery) {
     discoveryRegistration = ctx.llm.registerModelDiscovery(QINIU_SETTINGS_NS, async (request) => {
       if (request.provider !== QINIU_SETTINGS_NS) return []
-      const models = await managementClient(ctx, config).listModels({ signal: request.signal })
+      const models = mapMarketModels(await marketClient(ctx, config).getMarketModels(undefined, { signal: request.signal }))
       return models.map(model => ({ id: model.id, name: model.name, contextWindow: model.contextWindow, maxTokens: model.maxOutputTokens }))
     })
   }
@@ -153,11 +154,11 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
 
   const credentials = () => ctx.get('credentials') as CredentialsService | undefined
   const hasManagementCredentials = async (): Promise<boolean> => Boolean(await credential(ctx, QINIU_CREDENTIAL_REFS.accessKey) && await credential(ctx, QINIU_CREDENTIAL_REFS.secretKey))
-  const withManagement = async <T>(operation: (client: MaaSClient) => Promise<T>): Promise<T | { code: 'AK_SK_REQUIRED' }> => {
+  const withManagement = async <T>(operation: (client: QiniuMaaSClient) => Promise<T>): Promise<T | { code: 'AK_SK_REQUIRED' }> => {
     if (!await hasManagementCredentials()) return { code: 'AK_SK_REQUIRED' }
     const service = credentials()
     if (!service) return { code: 'AK_SK_REQUIRED' }
-    const client = new MaaSClient({ fetch: fetchFor(ctx, config), accessKey: (await service.resolve(QINIU_CREDENTIAL_REFS.accessKey))?.value, secretKey: (await service.resolve(QINIU_CREDENTIAL_REFS.secretKey))?.value })
+    const client = new QiniuMaaSClient({ fetch: fetchFor(ctx, config), accessKey: (await service.resolve(QINIU_CREDENTIAL_REFS.accessKey))?.value ?? '', secretKey: (await service.resolve(QINIU_CREDENTIAL_REFS.secretKey))?.value ?? '' })
     return operation(client)
   }
   const handlers: Record<string, (args?: unknown) => unknown> = {
@@ -169,11 +170,11 @@ export function apply(ctx: ContextLike, config: QiniuHostConfig = {}): void {
       try { await service.set(QINIU_CREDENTIAL_REFS.accessKey, accessKey); await service.set(QINIU_CREDENTIAL_REFS.secretKey, secretKey); return { ok: true as const } } catch { return { ok: false as const, code: 'CREDENTIAL_WRITE_FAILED' as const } }
     },
     'set-inference-api-key': async args => { const value = apiKeyArg(args); const service = credentials(); if (!value || !service?.set) return { ok: false as const, code: 'INVALID_API_KEY' as const }; try { await service.set(QINIU_CREDENTIAL_REFS.inferenceApiKey, value); return { ok: true as const } } catch { return { ok: false as const, code: 'CREDENTIAL_WRITE_FAILED' as const } } },
-    'list-models': () => managementClient(ctx, config).listModels(),
-    'model-details': args => { const id = stringArg(args, 'id'); return id ? managementClient(ctx, config).getModelDetails(id) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) },
-    'list-api-keys': () => withManagement(client => client.listApiKeys()),
-    'usage': args => { const params = usageArgs(args); return params ? withManagement(client => client.getUsage(params)) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) },
-    'get-bill': args => { const params = billArgs(args); return params ? withManagement(client => client.getBill(params)) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) },
+    'list-models': async () => mapMarketModels(await marketClient(ctx, config).getMarketModels()),
+    'model-details': async args => { const id = stringArg(args, 'id'); if (!id) return { code: 'INVALID_PAYLOAD' as const }; return (await handlers['list-models']() as Awaited<ReturnType<typeof mapMarketModels>>).find(model => model.id === id) },
+    'list-api-keys': () => withManagement(async client => mapApiKeys(await client.listApiKeys())),
+    'usage': args => { const params = usageArgs(args); return params ? withManagement(async client => mapUsage(await client.getUsage(params))) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) },
+    'get-bill': args => { const params = billArgs(args); return params ? withManagement(async client => mapBill(await client.getBillByRange(params))) : Promise.resolve({ code: 'INVALID_PAYLOAD' as const }) },
     'update-settings': async args => { const settings = record(args)?.settings; if (!settingsService || !settings) return { ok: false as const, code: 'INVALID_SETTINGS' as const }; try { const normalized = normalizeQiniuSettings(settings); await settingsService.replace(QINIU_SETTINGS_NS, normalized); return { ok: true as const } } catch { return { ok: false as const, code: 'INVALID_SETTINGS' as const } } },
     'credential-status': async () => { const service = credentials(); const describe = async (ref: string) => service ? service.describe(ref) : { configured: false, writable: false }; return { accessKey: await describe(QINIU_CREDENTIAL_REFS.accessKey), secretKey: await describe(QINIU_CREDENTIAL_REFS.secretKey), inferenceApiKey: await describe(QINIU_CREDENTIAL_REFS.inferenceApiKey) } },
   }

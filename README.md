@@ -32,7 +32,9 @@ The real suite is opt-in and skips unless `QINIU_MAAS_REAL_E2E=1`, the external 
 dsh web --patch ./cordis.yml
 ```
 
-The plugin package is `@qiniu/dsh-qiniu-maas`; its management SDK is `@qiniu/maas-sdk`. The package exports compiled JavaScript from `lib/` and a browser companion at `@qiniu/dsh-qiniu-maas/client`.
+The plugin package is `@qiniu/dsh-qiniu-maas`; its management SDK is `qiniu-maas-sdk`. The package exports compiled JavaScript from `lib/` and a browser companion at `@qiniu/dsh-qiniu-maas/client`.
+
+The SDK exposes `QiniuMaaSClient` for authenticated management calls under `https://api.qiniu.com/ai` and `ModelMarketplaceClient` for the unauthenticated marketplace endpoint `https://api.qnaigc.com/v1/market/models`. Management requests use the documented `Bearer Qiniu <AK>:<HMAC-SHA1>` authorization signature; marketplace requests send no authorization header.
 
 ## Authentication
 

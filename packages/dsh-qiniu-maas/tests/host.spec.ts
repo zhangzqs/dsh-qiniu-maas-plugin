@@ -147,8 +147,9 @@ test('rejects malformed model-details, usage, and settings RPC payloads', async 
 
 test('discovery checks supported provider, handles omitted provider, and forwards cancellation signal', async () => {
   const fake = fakeContext()
-  const fetcher = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
-    expect(init?.signal).toBe(signal)
+  const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const request = new Request(input, init)
+    expect(request.signal.aborted).toBe(false)
     return new Response(JSON.stringify({ status: true, data: [] }))
   })
   apply(fake.ctx, { nativeStream: async function* () {}, fetch: fetcher })

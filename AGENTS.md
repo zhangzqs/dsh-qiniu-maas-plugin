@@ -6,3 +6,4 @@
 - Public model-marketplace APIs are unauthenticated; privileged management APIs use AK/SK; inference uses API Key.
 - Use `dsh-market` as a layout and information-density reference without copying its code or branding.
 - Compile plugin output to JavaScript compatible with the DSH loader/runtime.
+- Prefer mature third-party libraries for HTTP transport, OpenAPI type generation, JSON Schema validation, and serialization; avoid hand-written request/response parsing when a maintained library covers it.
