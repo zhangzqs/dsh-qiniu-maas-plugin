@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { QiniuRegion } from 'qiniu-maas-model-market';
-import type { QiniuInferenceProtocol } from '../../../qiniu-config.ts';
+import type { QiniuInferenceProtocol } from '../../../../qiniu-config.ts';
 import css from './ModelSettingsPanel.module.css';
 
 interface Props {

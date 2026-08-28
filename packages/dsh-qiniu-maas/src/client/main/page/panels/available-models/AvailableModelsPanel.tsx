@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type { Model } from 'qiniu-maas-model-market';
-import { selectAvailableModels } from '../../../controller/provider-controller.ts';
-import { ModelCard } from '../../../components/model/ModelCard.tsx';
+import { selectAvailableModels } from '../../../../controller/provider-controller.ts';
+import { ModelCard } from '../../components/model/ModelCard.tsx';
 import css from './AvailableModelsPanel.module.css';
 
 interface Props {

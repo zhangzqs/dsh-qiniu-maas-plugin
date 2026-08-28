@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import type { Model } from 'qiniu-maas-model-market';
-import { ModelCard } from '../../../components/model/ModelCard.tsx';
+import { ModelCard } from '../../components/model/ModelCard.tsx';
 import css from './ModelMarketPanel.module.css';
 
 interface Props {

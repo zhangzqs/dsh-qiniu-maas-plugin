@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from 'react';
 import type { Model, QiniuRegion } from 'qiniu-maas-model-market';
 import type { QiniuInferenceProtocol } from '../../qiniu-config.ts';
-import { ModelSettingsPanel } from '../panels/settings/ModelSettingsPanel.tsx';
-import { AvailableModelsPanel } from '../panels/available-models/AvailableModelsPanel.tsx';
-import { ModelMarketPanel } from '../panels/model-market/ModelMarketPanel.tsx';
+import { ModelSettingsPanel } from './panels/settings/ModelSettingsPanel.tsx';
+import { AvailableModelsPanel } from './panels/available-models/AvailableModelsPanel.tsx';
+import { ModelMarketPanel } from './panels/model-market/ModelMarketPanel.tsx';
 import { ModelTabs, type ModelTab } from './ModelTabs.tsx';
 
 interface ModelPanelProps {
