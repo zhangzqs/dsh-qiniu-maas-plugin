@@ -9,12 +9,10 @@ const models = [
 
 describe('filterModels', () => {
   it('returns all matching models in the all view', () => {
-    expect(filterModels(models, 'all', [], 'fast')).toEqual([models[0]]);
+    expect(filterModels(models, false, [], 'fast')).toEqual([models[0]]);
   });
 
-  it('limits the available view to enabled model IDs', () => {
-    expect(filterModels(models, 'available', ['beta'], '')).toEqual([
-      models[1],
-    ]);
+  it('limits the enabled view to enabled model IDs', () => {
+    expect(filterModels(models, true, ['beta'], '')).toEqual([models[1]]);
   });
 });

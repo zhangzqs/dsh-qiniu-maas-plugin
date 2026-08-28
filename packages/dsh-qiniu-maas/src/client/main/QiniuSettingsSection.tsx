@@ -35,17 +35,17 @@ export function QiniuSettingsSection(props: Props): ReactNode {
     async (id: string): Promise<void> => {
       const model = state.market.find((item) => item.id === id);
       if (model === undefined) return;
-      const availableModelIds = new Set(state.availableModelIds);
-      const next = availableModelIds.has(model.id)
+      const enabledModelIds = new Set(state.enabledModelIds);
+      const next = enabledModelIds.has(model.id)
         ? state.market.filter(
-            (item) => availableModelIds.has(item.id) && item.id !== model.id,
+            (item) => enabledModelIds.has(item.id) && item.id !== model.id,
           )
         : state.market.filter(
-            (item) => availableModelIds.has(item.id) || item.id === model.id,
+            (item) => enabledModelIds.has(item.id) || item.id === model.id,
           );
       await saveModels(next);
     },
-    [saveModels, state.availableModelIds, state.market],
+    [saveModels, state.enabledModelIds, state.market],
   );
 
   const submitKey = async (): Promise<void> => {
@@ -98,7 +98,7 @@ export function QiniuSettingsSection(props: Props): ReactNode {
         <ModelCenterPage
           models={{
             market: state.market,
-            availableModelIds: state.availableModelIds,
+            enabledModelIds: state.enabledModelIds,
             onDetails: selectModel,
             onToggle: toggleModel,
           }}

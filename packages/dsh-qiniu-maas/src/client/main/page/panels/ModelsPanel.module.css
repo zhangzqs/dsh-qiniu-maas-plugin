@@ -5,29 +5,13 @@
   margin-bottom: 16px;
 }
 
-.filters {
+.filter {
   display: inline-flex;
-  padding: 3px;
-  border: 1px solid var(--dsw-alias-border-l2, #cfd5df);
-  border-radius: 6px;
-  background: var(--dsw-alias-bg-layer-2, #f3f4f6);
-}
-
-.filters button {
-  min-height: 30px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
+  align-items: center;
+  gap: 8px;
   color: var(--dsw-alias-label-secondary, #6b7280);
   cursor: pointer;
-}
-
-.filters button.activeFilter {
-  background: var(--dsw-alias-bg-layer-1, #fff);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 10%);
-  color: var(--dsw-alias-label-primary, #111827);
-  font-weight: 600;
+  white-space: nowrap;
 }
 
 .toolbar input {
@@ -41,8 +25,10 @@
 }
 
 .toolbar span {
+  margin-left: auto;
   color: var(--dsw-alias-label-secondary, #6b7280);
   font-size: 13px;
+  white-space: nowrap;
 }
 
 .grid {
@@ -63,8 +49,12 @@
     flex-direction: column;
   }
 
-  .filters {
+  .filter {
     align-self: flex-start;
+  }
+
+  .toolbar span {
+    margin-left: auto;
   }
 
   .toolbar input {

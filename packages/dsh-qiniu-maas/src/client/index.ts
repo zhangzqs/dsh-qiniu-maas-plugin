@@ -6,7 +6,7 @@ import { QiniuSettingsSection } from './main/QiniuSettingsSection.tsx';
 import { createQiniuController } from './controller/qiniu-controller.ts';
 import {
   inferenceProtocolOf,
-  availableModelIdsOf,
+  enabledModelIdsOf,
   modelMarketRegionOf,
   type PiAiSettings,
   type QiniuInjected,
@@ -25,7 +25,7 @@ export function apply(ctx: ClientContext): void {
     status: 'loading',
     refreshing: false,
     market: [],
-    availableModelIds: [],
+    enabledModelIds: [],
     error: null,
     apiKeyConfigured: false,
     modelMarketRegion: modelMarketRegionOf(settings),
@@ -37,7 +37,7 @@ export function apply(ctx: ClientContext): void {
     () =>
       settings.subscribe(() => {
         store.update((state) => {
-          state.availableModelIds = availableModelIdsOf(settings);
+          state.enabledModelIds = enabledModelIdsOf(settings);
         });
       }),
     'qiniu-maas: settings updates',

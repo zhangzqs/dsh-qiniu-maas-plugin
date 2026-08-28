@@ -1,54 +1,43 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import type { Model } from 'qiniu-maas-model-market';
 import { ModelCard } from '../components/model/ModelCard.tsx';
-import type { ModelFilter } from '../model-filter.ts';
 import { filterModels } from '../model-filter.ts';
 import css from './ModelsPanel.module.css';
 
 interface Props {
   market: readonly Model[];
-  availableModelIds: readonly string[];
+  enabledModelIds: readonly string[];
   onDetails: (id: string) => void;
   onToggle: (id: string) => Promise<void>;
 }
 
 export function ModelsPanel({
   market,
-  availableModelIds,
+  enabledModelIds,
   onDetails,
   onToggle,
 }: Props): ReactNode {
   const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<ModelFilter>('all');
-  const availableModelIdsSet = useMemo(
-    () => new Set(availableModelIds),
-    [availableModelIds],
+  const [onlyEnabled, setOnlyEnabled] = useState(false);
+  const enabledModelIdsSet = useMemo(
+    () => new Set(enabledModelIds),
+    [enabledModelIds],
   );
   const visible = useMemo(() => {
-    return filterModels(market, filter, availableModelIds, query);
-  }, [availableModelIds, filter, market, query]);
+    return filterModels(market, onlyEnabled, enabledModelIds, query);
+  }, [enabledModelIds, market, onlyEnabled, query]);
 
   return (
     <div>
       <div className={css.toolbar}>
-        <div className={css.filters} role="group" aria-label="模型筛选">
-          <button
-            type="button"
-            className={filter === 'all' ? css.activeFilter : undefined}
-            aria-pressed={filter === 'all'}
-            onClick={() => setFilter('all')}
-          >
-            全部模型
-          </button>
-          <button
-            type="button"
-            className={filter === 'available' ? css.activeFilter : undefined}
-            aria-pressed={filter === 'available'}
-            onClick={() => setFilter('available')}
-          >
-            可用模型
-          </button>
-        </div>
+        <label className={css.filter}>
+          <input
+            type="checkbox"
+            checked={onlyEnabled}
+            onChange={(event) => setOnlyEnabled(event.target.checked)}
+          />
+          仅显示已启用模型
+        </label>
         <input
           aria-label="搜索模型"
           placeholder="搜索模型名称或 ID"
@@ -62,7 +51,7 @@ export function ModelsPanel({
           <ModelCard
             key={model.id}
             model={model}
-            isAvailable={availableModelIdsSet.has(model.id)}
+            isEnabled={enabledModelIdsSet.has(model.id)}
             onDetails={onDetails}
             onToggle={onToggle}
           />

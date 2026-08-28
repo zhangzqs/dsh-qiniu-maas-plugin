@@ -7,7 +7,7 @@ import { ModelTabs, type ModelTab } from './ModelTabs.tsx';
 
 interface ModelPanelProps {
   market: readonly Model[];
-  availableModelIds: readonly string[];
+  enabledModelIds: readonly string[];
   onDetails: (id: string) => void;
   onToggle: (id: string) => Promise<void>;
 }

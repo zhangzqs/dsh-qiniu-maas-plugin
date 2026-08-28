@@ -35,12 +35,12 @@ function modelProfile(
 }
 
 /** 从模型列表中筛选过滤模型 */
-export function selectAvailableModels(
+export function selectEnabledModels(
   models: readonly Model[],
-  availableModelIds: readonly string[],
+  enabledModelIds: readonly string[],
 ): Model[] {
-  const availableModelIdsSet = new Set(availableModelIds);
-  return models.filter((model) => availableModelIdsSet.has(model.id));
+  const enabledModelIdsSet = new Set(enabledModelIds);
+  return models.filter((model) => enabledModelIdsSet.has(model.id));
 }
 
 /** 从dsh配置中获取可用模型 ID 列表 */

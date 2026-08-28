@@ -6,11 +6,11 @@ import {
 } from 'qiniu-maas-model-market';
 import { QINIU_API_KEY_REF } from '../qiniu-config.ts';
 import {
-  selectAvailableModels,
+  selectEnabledModels,
   settingsWithModels,
 } from './provider-controller.ts';
 import {
-  availableModelIdsOf,
+  enabledModelIdsOf,
   inferenceProtocolOf,
   modelMarketRegionOf,
   type PiAiSettings,
@@ -75,7 +75,7 @@ export function createQiniuController(
         status: 'ready',
         refreshing: false,
         market,
-        availableModelIds: availableModelIdsOf(settings),
+        enabledModelIds: enabledModelIdsOf(settings),
         error: null,
         apiKeyConfigured: credential?.configured === true,
         modelMarketRegion,
@@ -84,7 +84,7 @@ export function createQiniuController(
     } catch (error) {
       store.update((state) => {
         Object.assign(state, finishRefresh(state, error));
-        state.availableModelIds = availableModelIdsOf(settings);
+        state.enabledModelIds = enabledModelIdsOf(settings);
         state.modelMarketRegion = modelMarketRegionOf(settings);
         state.inferenceProtocol = inferenceProtocolOf(settings);
       });
@@ -94,7 +94,7 @@ export function createQiniuController(
   const saveModels = async (models: readonly Model[]): Promise<void> => {
     await settings.set('providers', settingsWithModels(settings, models));
     store.update((state) => {
-      state.availableModelIds = models.map((model) => model.id);
+      state.enabledModelIds = models.map((model) => model.id);
     });
   };
 
@@ -113,10 +113,7 @@ export function createQiniuController(
 
   const updateProviderSettings = async (): Promise<void> => {
     const current = store.getSnapshot();
-    const models = selectAvailableModels(
-      current.market,
-      current.availableModelIds,
-    );
+    const models = selectEnabledModels(current.market, current.enabledModelIds);
     await settings.set(
       'providers',
       settingsWithModels(

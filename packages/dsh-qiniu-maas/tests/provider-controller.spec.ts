@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  selectAvailableModels,
+  selectEnabledModels,
   settingsWithModels,
 } from '../src/client/controller/provider-controller.ts';
 
@@ -8,13 +8,13 @@ const settings = (providers: Record<string, unknown>) =>
   ({ getSnapshot: () => ({ value: { providers } }) }) as never;
 
 describe('provider controller', () => {
-  it('keeps available models in marketplace order', () => {
+  it('keeps enabled models in marketplace order', () => {
     const market = [
       { id: 'model-a', name: 'Model A' },
       { id: 'model-b', name: 'Model B' },
     ];
 
-    expect(selectAvailableModels(market, ['model-b'])).toEqual([market[1]]);
+    expect(selectEnabledModels(market, ['model-b'])).toEqual([market[1]]);
   });
 
   it('merges the Qiniu provider while preserving other providers', () => {

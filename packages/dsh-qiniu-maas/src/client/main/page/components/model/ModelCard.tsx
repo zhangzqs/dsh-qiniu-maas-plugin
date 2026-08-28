@@ -5,14 +5,14 @@ import css from './ModelCard.module.css';
 
 interface Props {
   model: Model;
-  isAvailable: boolean;
+  isEnabled: boolean;
   onDetails: (id: string) => void;
   onToggle: (id: string) => Promise<void>;
 }
 
 export const ModelCard = memo(function ModelCard({
   model,
-  isAvailable,
+  isEnabled,
   onDetails,
   onToggle,
 }: Props): ReactNode {
@@ -23,8 +23,8 @@ export const ModelCard = memo(function ModelCard({
         <div>
           <div className={css.title}>
             <h3>{model.name}</h3>
-            <span className={isAvailable ? css.badgeAvailable : css.badge}>
-              {isAvailable ? '已启用' : '未启用'}
+            <span className={isEnabled ? css.badgeEnabled : css.badge}>
+              {isEnabled ? '已启用' : '未启用'}
             </span>
           </div>
           <p className={css.modelId}>{model.id}</p>
@@ -41,10 +41,10 @@ export const ModelCard = memo(function ModelCard({
         </button>
         <button
           type="button"
-          className={isAvailable ? css.disable : css.enable}
+          className={isEnabled ? css.disable : css.enable}
           onClick={() => void onToggle(model.id)}
         >
-          {isAvailable ? '停用' : '启用'}
+          {isEnabled ? '停用' : '启用'}
         </button>
       </div>
     </article>

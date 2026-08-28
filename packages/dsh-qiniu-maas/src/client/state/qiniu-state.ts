@@ -19,7 +19,7 @@ export interface QiniuState {
   status: 'loading' | 'ready' | 'error';
   refreshing: boolean;
   market: readonly Model[];
-  availableModelIds: readonly string[];
+  enabledModelIds: readonly string[];
   error: string | null;
   apiKeyConfigured: boolean;
   modelMarketRegion: QiniuRegion;
@@ -55,7 +55,7 @@ export function modelMarketRegionOf(
   return settings.getSnapshot().value?.modelMarketRegion ?? 'cn';
 }
 
-export function availableModelIdsOf(
+export function enabledModelIdsOf(
   settings: SettingsScope<PiAiSettings>,
 ): string[] {
   const providers = settings.getSnapshot().value?.providers;
