@@ -1,7 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
-import { listModels } from '../src/index.ts';
+import { QINIU_LLM_BASE_URLS, listModels } from '../src/index.ts';
 
 describe('qiniu-maas-model-market', () => {
+  it('exports inference service URLs for the shared Qiniu region type', () => {
+    expect(QINIU_LLM_BASE_URLS).toEqual({
+      cn: 'https://api.qnaigc.com/v1',
+      global: 'https://openai.sufy.com/v1',
+    });
+  });
+
   it('requests the public domestic marketplace without credentials', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(
@@ -55,13 +62,13 @@ describe('qiniu-maas-model-market', () => {
     });
   });
 
-  it('supports the global marketplace endpoint and rejects failed responses', async () => {
+  it('supports the global marketplace region and rejects failed responses', async () => {
     const fetcher = vi
       .fn<typeof fetch>()
       .mockResolvedValue(new Response('{"status":false}', { status: 503 }));
 
     await expect(
-      listModels({ fetch: fetcher, endpoint: 'global' }),
+      listModels({ fetch: fetcher, region: 'global' }),
     ).rejects.toThrow('model marketplace request failed (503)');
     expect(fetcher.mock.calls[0]?.[0]).toBe(
       'https://openai.sufy.com/v1/market/models',
