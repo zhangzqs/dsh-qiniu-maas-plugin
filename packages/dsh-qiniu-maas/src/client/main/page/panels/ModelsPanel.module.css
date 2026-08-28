@@ -14,14 +14,18 @@
   white-space: nowrap;
 }
 
-.toolbar input {
+.toolbar input,
+.toolbar select {
   min-height: 38px;
-  width: min(440px, 100%);
   padding: 0 12px;
   border: 1px solid var(--dsw-alias-border-l2, #cfd5df);
   border-radius: 6px;
   background: var(--dsw-alias-bg-layer-1, #fff);
   color: var(--dsw-alias-label-primary, inherit);
+}
+
+.toolbar input {
+  width: min(440px, 100%);
 }
 
 .toolbar span {
@@ -33,7 +37,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -57,11 +61,8 @@
     margin-left: auto;
   }
 
-  .toolbar input {
+  .toolbar input,
+  .toolbar select {
     width: auto;
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
   }
 }
