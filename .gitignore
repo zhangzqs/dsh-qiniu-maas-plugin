@@ -3,6 +3,7 @@ dist/
 lib/
 coverage/
 .playwright/
+.playwright-cli/
 playwright-report/
 test-results/
 .env

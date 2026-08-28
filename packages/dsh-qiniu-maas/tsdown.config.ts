@@ -25,7 +25,10 @@ export default defineConfig({
   dts: false,
   sourcemap: true,
   clean: false,
-  external: (source: string) => clientExternals.includes(source),
+  deps: {
+    neverBundle: (source: string) => clientExternals.includes(source),
+    alwaysBundle: (source: string) => source === 'qiniu-maas-model-market',
+  },
   define: {
     'process.env.NODE_ENV': JSON.stringify('production'),
     'import.meta.env.MODE': JSON.stringify('production'),

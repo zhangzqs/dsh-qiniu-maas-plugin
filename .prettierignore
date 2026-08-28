@@ -2,3 +2,4 @@ node_modules
 **/lib
 **/example.json
 .git
+.playwright-cli
