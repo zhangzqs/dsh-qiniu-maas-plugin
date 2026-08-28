@@ -39,6 +39,10 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 12px;
+  max-height: min(560px, calc(100vh - 360px));
+  overflow-y: auto;
+  padding-right: 4px;
+  overscroll-behavior: contain;
 }
 
 .empty {

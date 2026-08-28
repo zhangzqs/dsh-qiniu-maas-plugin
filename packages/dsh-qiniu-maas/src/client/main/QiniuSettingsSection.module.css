@@ -64,8 +64,7 @@
     max-width: none;
     margin-left: 0;
     padding: 16px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
     background: var(--dsw-alias-fill-l1, #fff);
   }
 
