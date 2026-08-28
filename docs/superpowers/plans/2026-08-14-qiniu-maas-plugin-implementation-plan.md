@@ -26,6 +26,7 @@
 ### Task 1: Workspace and SDK Contract
 
 **Files:**
+
 - Create: `package.json`
 - Create: `pnpm-workspace.yaml`
 - Create: `tsconfig.json`
@@ -40,6 +41,7 @@
 - Test: `packages/maas-sdk/tests/client.spec.ts`
 
 **Interfaces:**
+
 - Produces `MaaSClient`, `MaaSClientOptions`, `PublicModel`, `ApiKeySummary`, `UsageReport`, `MaaSError`, and explicit public/management request methods for later plugin tasks.
 
 - [ ] Write failing tests for `GET /v1/market/models` without an Authorization header, typed normalized model output, and a privileged request receiving an AK/SK-generated Authorization value.
@@ -52,6 +54,7 @@
 ### Task 2: Complete MaaS Management Resources
 
 **Files:**
+
 - Modify: `packages/maas-sdk/src/client.ts`
 - Modify: `packages/maas-sdk/src/types.ts`
 - Modify: `packages/maas-sdk/src/index.ts`
@@ -59,6 +62,7 @@
 - Create: `packages/maas-sdk/tests/fixtures.ts`
 
 **Interfaces:**
+
 - Consumes `MaaSClient` and auth types from Task 1.
 - Produces `listApiKeys()`, `getUsage(params)`, `getBill(params)`, `getModelDetails(id)`, and model normalization used by the plugin.
 
@@ -72,6 +76,7 @@
 ### Task 3: DSH Host Provider and Settings
 
 **Files:**
+
 - Create: `packages/dsh-qiniu-maas/package.json`
 - Create: `packages/dsh-qiniu-maas/tsconfig.json`
 - Create: `packages/dsh-qiniu-maas/src/settings.ts`
@@ -81,6 +86,7 @@
 - Create: `packages/dsh-qiniu-maas/tests/provider.spec.ts`
 
 **Interfaces:**
+
 - Consumes `MaaSClient` from `@qiniu/maas-sdk` and DSH `llm`, `settings`, and `credentials` service contracts.
 - Produces a Cordis plugin that registers one Qiniu configurable provider, model discovery, settings namespace, and private RPC methods for marketplace/configuration operations.
 
@@ -96,6 +102,7 @@
 ### Task 4: Settings UI and Model Marketplace
 
 **Files:**
+
 - Create: `packages/dsh-qiniu-maas/src/client/SettingsPage.tsx`
 - Create: `packages/dsh-qiniu-maas/src/client/ModelMarketplace.tsx`
 - Create: `packages/dsh-qiniu-maas/src/client/ApiKeyPanel.tsx`
@@ -105,6 +112,7 @@
 - Create: `packages/dsh-qiniu-maas/tests/ui-models.spec.tsx`
 
 **Interfaces:**
+
 - Consumes Host RPC JSON from Task 3 and DSH Client `slots`, `theme`, and timer services.
 - Produces a `settings.section` contribution with marketplace, detail, available-model list, API-key management, and usage/account sections.
 
@@ -120,6 +128,7 @@
 ### Task 5: Packaging, Composition, and Documentation
 
 **Files:**
+
 - Create: `cordis.yml`
 - Create: `README.md`
 - Create: `.env.example`
@@ -127,6 +136,7 @@
 - Modify: `.gitignore`
 
 **Interfaces:**
+
 - Consumes built SDK/plugin packages from Tasks 1-4.
 - Produces documented install/build commands and a DSH composition example that mounts the plugin without embedding secrets.
 
@@ -141,12 +151,14 @@
 ### Task 6: Mock Browser E2E
 
 **Files:**
+
 - Create: `e2e/mock-qiniu-maas.spec.ts`
 - Create: `e2e/mock-server.ts`
 - Create: `playwright.config.ts`
 - Modify: `package.json`
 
 **Interfaces:**
+
 - Consumes the mounted plugin and compiled Web app from Task 5.
 - Produces a deterministic browser acceptance suite using mocked public and management endpoints.
 
@@ -160,6 +172,7 @@
 ### Task 7: Real Qiniu Playwright Acceptance
 
 **Files:**
+
 - Create: `e2e/qiniu-real.spec.ts`
 - Modify: `playwright.config.ts`
 - Modify: `package.json`
@@ -167,6 +180,7 @@
 - Create: `docs/e2e/qiniu-real-runbook.md`
 
 **Interfaces:**
+
 - Consumes the real plugin UI and the runtime-only secret file `/home/zzq/.config/dsh/qiniu-maas-e2e.json`.
 - Produces an opt-in real acceptance command that targets the OpenAPI server and selects `deepseek-v4-flash` by exact returned model ID.
 
@@ -180,6 +194,7 @@
 ### Task 8: Whole-Branch Review and Verification
 
 **Files:**
+
 - Modify only files required by review findings.
 
 - [ ] Run `pnpm test`, `pnpm typecheck`, and `pnpm build` from a clean working tree and record exit codes and counts.

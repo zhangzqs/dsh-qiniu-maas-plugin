@@ -32,13 +32,13 @@ The Client half provides a settings section with credential status, marketplace,
 
 ## Authentication Boundary
 
-| Capability | Authentication |
-| --- | --- |
-| Model marketplace | None |
-| Public model details/listing | None |
-| Account, usage, quota, and privileged management operations | AK/SK when required by the OpenAPI operation |
-| API-key listing/selection management operations | AK/SK when required by the OpenAPI operation |
-| Actual model inference | API Key through DSH's native LLM provider mechanism |
+| Capability                                                  | Authentication                                      |
+| ----------------------------------------------------------- | --------------------------------------------------- |
+| Model marketplace                                           | None                                                |
+| Public model details/listing                                | None                                                |
+| Account, usage, quota, and privileged management operations | AK/SK when required by the OpenAPI operation        |
+| API-key listing/selection management operations             | AK/SK when required by the OpenAPI operation        |
+| Actual model inference                                      | API Key through DSH's native LLM provider mechanism |
 
 AK/SK is optional. Without it, public marketplace features remain usable and privileged sections show an actionable configuration prompt. API Key is independently optional. Without it, models can be browsed and enabled, but inference remains unavailable until an API Key is configured.
 
@@ -50,15 +50,15 @@ Settings are the source of truth for routing configuration, not model-detail sna
 
 ```ts
 interface QiniuModelSelection {
-  id: string
-  enabled: boolean
-  contextWindow?: number
-  maxOutputTokens?: number
+  id: string;
+  enabled: boolean;
+  contextWindow?: number;
+  maxOutputTokens?: number;
 }
 
 interface QiniuSettings {
-  models: QiniuModelSelection[]
-  defaultModel?: string
+  models: QiniuModelSelection[];
+  defaultModel?: string;
 }
 ```
 
