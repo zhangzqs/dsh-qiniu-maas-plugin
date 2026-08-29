@@ -1,3 +1,0 @@
-- insert:
-    - id: qiniu-maas-dsh-plugin
-      name: '@qiniu/dsh-qiniu-maas'

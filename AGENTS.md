@@ -6,3 +6,4 @@
 - Public model-marketplace APIs are unauthenticated; privileged management APIs use AK/SK; inference uses API Key.
 - Use `dsh-market` as a layout and information-density reference without copying its code or branding.
 - Compile plugin output to JavaScript compatible with the DSH loader/runtime.
+- Pull Request 标题使用 Conventional Commits 类型前缀，冒号后的描述和正文使用中文。
