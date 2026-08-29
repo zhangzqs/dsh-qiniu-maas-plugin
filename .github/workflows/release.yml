@@ -82,6 +82,7 @@ jobs:
           PACKAGE_PATH="$(find release -maxdepth 1 -type f -name '*.tgz' -print)"
           tar -tzf "$PACKAGE_PATH" | grep -Fx 'package/package.json'
           tar -tzf "$PACKAGE_PATH" | grep -Fx 'package/cordis.patch.yml'
+          tar -tzf "$PACKAGE_PATH" | grep -Fx 'package/lib/index.js'
           tar -tzf "$PACKAGE_PATH" | grep -Fx 'package/lib/client.js'
 
       - name: Create GitHub Release
