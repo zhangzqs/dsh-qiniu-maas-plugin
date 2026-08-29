@@ -28,12 +28,15 @@ export function apply(ctx: ClientContext): void {
       namespace: 'llm-pi-ai',
     }),
   );
-  const qiniuSettingsValue = qiniuSettingsController.read();
-  const store = createSnapshotStore<QiniuState>({
-    enabledModelIds: qiniuSettingsValue.enabledModelIds,
-    modelMarketRegion: qiniuSettingsValue.region,
-    inferenceProtocol: qiniuSettingsValue.inferenceProtocol,
-  });
+  const store = (() => {
+    const qiniuSettingsValue = qiniuSettingsController.read();
+    return createSnapshotStore<QiniuState>({
+      enabledModelIds: qiniuSettingsValue.enabledModelIds,
+      modelMarketRegion: qiniuSettingsValue.region,
+      inferenceProtocol: qiniuSettingsValue.inferenceProtocol,
+    });
+  })();
+
   const controller = createQiniuController(
     connection,
     qiniuSettingsController,
