@@ -4,7 +4,7 @@ import type { QiniuInferenceProtocol } from '../../../../qiniu-protocol.ts';
 import { ApiKeySetting } from './components/ApiKeySetting.tsx';
 import { SettingSelect } from './components/SettingSelect.tsx';
 import css from './SettingsPanel.module.css';
-import { useQiniuT } from '../../../i18n.ts';
+import { useQiniuT } from '../../../i18n/index.ts';
 
 const PROTOCOL_OPTIONS = [
   { id: 'openai-completions', label: 'OpenAI Chat Completions' },

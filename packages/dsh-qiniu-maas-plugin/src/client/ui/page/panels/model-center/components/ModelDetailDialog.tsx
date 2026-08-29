@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import type { Model } from 'qiniu-maas-market-sdk';
 import { ModelAvatar } from './ModelAvatar.tsx';
 import css from './ModelDetailDialog.module.css';
-import { useQiniuT } from '../../../../i18n.ts';
+import { useQiniuT } from '../../../../i18n/index.ts';
 
 function formatTokenCount(value: number | undefined, unknown: string): string {
   if (value === undefined) return unknown;

@@ -3,7 +3,7 @@ import { Button, Pill } from '@deepseek-ai/dsh-client-ui-primitives';
 import type { Model } from 'qiniu-maas-market-sdk';
 import { ModelAvatar } from './ModelAvatar.tsx';
 import css from './ModelCard.module.css';
-import { useQiniuT } from '../../../../i18n.ts';
+import { useQiniuT } from '../../../../i18n/index.ts';
 
 interface Props {
   model: Model;

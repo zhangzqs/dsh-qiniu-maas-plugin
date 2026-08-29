@@ -12,7 +12,7 @@ import {
   type QiniuState,
 } from './controller/index.ts';
 import { QiniuSettingsSection, type QiniuInjected } from './ui/index.ts';
-import { qiniuMessages } from './ui/i18n.ts';
+import { qiniuMessages } from './ui/i18n/index.ts';
 
 export const inject = ['slots', 'connection', 'settingsScope', 'locale'];
 

@@ -23,7 +23,7 @@ import {
   type ModelSortOrder,
 } from './model-utils.ts';
 import css from './ModelCenterPanel.module.css';
-import { useQiniuT } from '../../../i18n.ts';
+import { useQiniuT } from '../../../i18n/index.ts';
 
 const SORT_OPTIONS = [
   ['release-newest', 'model.sortNewest'],

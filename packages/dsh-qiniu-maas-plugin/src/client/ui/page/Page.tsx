@@ -10,7 +10,7 @@ import {
 import { PageHeader } from './components/PageHeader.tsx';
 import { Tabs, type Tab } from './components/Tabs.tsx';
 import css from './Page.module.css';
-import { QiniuLocaleContext, type QiniuTranslator } from '../i18n.ts';
+import { QiniuLocaleContext, type QiniuTranslator } from '../i18n/index.ts';
 
 interface Props {
   t: QiniuTranslator;

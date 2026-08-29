@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Button, Input } from '@deepseek-ai/dsh-client-ui-primitives';
 import css from './ApiKeySetting.module.css';
-import { useQiniuT } from '../../../../i18n.ts';
+import { useQiniuT } from '../../../../i18n/index.ts';
 
 export interface Props {
   checkApiKeyConfigured: () => Promise<boolean>;

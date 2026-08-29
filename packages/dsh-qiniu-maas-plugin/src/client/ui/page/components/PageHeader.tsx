@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import css from './PageHeader.module.css';
-import { useQiniuT } from '../../i18n.ts';
+import { useQiniuT } from '../../i18n/index.ts';
 
 export function PageHeader(): ReactNode {
   const t = useQiniuT();

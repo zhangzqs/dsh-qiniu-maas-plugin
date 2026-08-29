@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { translateWithMessages } from '../src/client/ui/i18n.ts';
+import { translateWithMessages } from '../src/client/ui/i18n/index.ts';
 
 describe('qiniu locale messages', () => {
   it('translates parameterized messages in both supported locales', () => {

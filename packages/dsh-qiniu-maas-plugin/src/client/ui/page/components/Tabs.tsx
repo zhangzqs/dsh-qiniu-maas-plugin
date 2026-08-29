@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import css from './Tabs.module.css';
-import { useQiniuT } from '../../i18n.ts';
+import { useQiniuT } from '../../i18n/index.ts';
 
 export type Tab = 'model-center' | 'settings';
 

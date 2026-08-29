@@ -1,7 +1,7 @@
 import { memo, useState, type ReactNode } from 'react';
 import type { Model } from 'qiniu-maas-market-sdk';
 import css from './ModelAvatar.module.css';
-import { useQiniuT } from '../../../../i18n.ts';
+import { useQiniuT } from '../../../../i18n/index.ts';
 
 export type ModelAvatarSize = 'card' | 'dialog';
 
