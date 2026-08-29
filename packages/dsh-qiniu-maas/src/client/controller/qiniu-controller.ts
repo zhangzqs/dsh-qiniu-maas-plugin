@@ -116,9 +116,13 @@ export function createQiniuController(
   };
 
   const saveModels = async (models: readonly Model[]): Promise<void> => {
-    await settings.set('providers', settingsWithModels(settings, models));
+    const enabledModelIds = new Set(store.getSnapshot().enabledModelIds);
+    const modelsToSave = models.filter(
+      (model) => !model.suggested_model || enabledModelIds.has(model.id),
+    );
+    await settings.set('providers', settingsWithModels(settings, modelsToSave));
     store.update((state) => {
-      state.enabledModelIds = models.map((model) => model.id);
+      state.enabledModelIds = modelsToSave.map((model) => model.id);
     });
   };
 

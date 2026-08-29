@@ -16,6 +16,8 @@ export const ModelCard = memo(function ModelCard({
   onDetails,
   onToggle,
 }: Props): ReactNode {
+  const isRetired = Boolean(model.suggested_model);
+  const canEnable = isEnabled || !isRetired;
   return (
     <article className={css.card}>
       <div className={css.main}>
@@ -33,6 +35,11 @@ export const ModelCard = memo(function ModelCard({
             </span>
           </div>
           <p className={css.modelId}>{model.id}</p>
+          {isRetired && (
+            <p className={css.retiredWarning}>
+              已退役，建议迁移到 {model.suggested_model}
+            </p>
+          )}
           <p className={css.description}>{model.description || '暂无描述'}</p>
         </div>
       </div>
@@ -47,9 +54,10 @@ export const ModelCard = memo(function ModelCard({
         <button
           type="button"
           className={isEnabled ? css.disable : css.enable}
+          disabled={!canEnable}
           onClick={() => void onToggle(model.id)}
         >
-          {isEnabled ? '停用' : '启用'}
+          {isEnabled ? '停用' : isRetired ? '已退役' : '启用'}
         </button>
       </div>
     </article>

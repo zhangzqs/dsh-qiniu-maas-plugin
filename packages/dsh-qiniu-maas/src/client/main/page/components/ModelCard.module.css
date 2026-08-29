@@ -67,7 +67,8 @@
 }
 
 .modelId,
-.description {
+.description,
+.retiredWarning {
   color: var(--dsw-alias-label-secondary, #6b7280);
 }
 
@@ -78,6 +79,13 @@
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.retiredWarning {
+  margin: 6px 0 0;
+  color: var(--dsw-alias-state-warning-primary, #b54708);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .description {
@@ -111,6 +119,13 @@
 .enable,
 .disable {
   color: var(--dsw-alias-label-primary-foreground, #fff);
+}
+
+.enable:disabled {
+  border: 1px solid var(--dsw-alias-border-l2, #d9dde5);
+  background: var(--dsw-alias-bg-layer-2, #eef1f5);
+  color: var(--dsw-alias-label-tertiary, #94a3b8);
+  cursor: not-allowed;
 }
 
 .enable {
