@@ -8,7 +8,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
 import type { QiniuRegion } from 'qiniu-maas-model-market';
 import type { QiniuInjected } from '../state/qiniu-state.ts';
 import type { QiniuInferenceProtocol } from '../qiniu-config.ts';
-import { ModelCenterPage } from './page/ModelCenterPage.tsx';
+import { Page } from './page/Page.tsx';
 import { ModelDetailDialog } from './page/components/ModelDetailDialog.tsx';
 import css from './QiniuSettingsSection.module.css';
 
@@ -26,26 +26,26 @@ export function QiniuSettingsSection(props: Props): ReactNode {
   const state = useSnapshot((snapshot) => snapshot);
   const [selectedId, setSelectedId] = useState<string>();
   const [apiKey, setApiKeyDraft] = useState('');
-  const selected = state.market.find((model) => model.id === selectedId);
+  const selected = state.models.find((model) => model.id === selectedId);
   const selectModel = useCallback((id: string): void => {
     setSelectedId(id);
   }, []);
 
   const toggleModel = useCallback(
     async (id: string): Promise<void> => {
-      const model = state.market.find((item) => item.id === id);
+      const model = state.models.find((item) => item.id === id);
       if (model === undefined) return;
       const enabledModelIds = new Set(state.enabledModelIds);
       const next = enabledModelIds.has(model.id)
-        ? state.market.filter(
+        ? state.models.filter(
             (item) => enabledModelIds.has(item.id) && item.id !== model.id,
           )
-        : state.market.filter(
+        : state.models.filter(
             (item) => enabledModelIds.has(item.id) || item.id === model.id,
           );
       await saveModels(next);
     },
-    [saveModels, state.enabledModelIds, state.market],
+    [saveModels, state.enabledModelIds, state.models],
   );
 
   return (
@@ -82,9 +82,9 @@ export function QiniuSettingsSection(props: Props): ReactNode {
         </div>
       )}
       {state.status === 'ready' && (
-        <ModelCenterPage
+        <Page
           models={{
-            models: state.market,
+            models: state.models,
             enabledModelIds: state.enabledModelIds,
             onRefresh: refresh,
             onDetails: selectModel,

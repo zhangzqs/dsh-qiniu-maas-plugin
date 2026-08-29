@@ -1,22 +1,22 @@
 import type { ReactNode } from 'react';
-import css from './ModelTabs.module.css';
+import css from './Tabs.module.css';
 
-export type ModelTab = 'models' | 'settings';
+export type Tab = 'model-center' | 'settings';
 
-const MODEL_TABS: readonly [ModelTab, string][] = [
-  ['models', '模型中心'],
+const TABS: readonly [Tab, string][] = [
+  ['model-center', '模型中心'],
   ['settings', '设置'],
 ];
 
 interface Props {
-  tab: ModelTab;
-  onChange: (tab: ModelTab) => void;
+  tab: Tab;
+  onChange: (tab: Tab) => void;
 }
 
-export function ModelTabs({ tab, onChange }: Props): ReactNode {
+export function Tabs({ tab, onChange }: Props): ReactNode {
   return (
     <nav className={css.tabs} role="tablist" aria-label="Qiniu MaaS 设置">
-      {MODEL_TABS.map(([id, label]) => (
+      {TABS.map(([id, label]) => (
         <button
           key={id}
           type="button"

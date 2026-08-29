@@ -9,7 +9,7 @@ import {
 import type { Model } from 'qiniu-maas-model-market';
 import { ModelCard } from '../components/ModelCard.tsx';
 import { filterModels, sortModels, type ModelSort } from './model-utils.ts';
-import css from './ModelsPanel.module.css';
+import css from './ModelCenterPanel.module.css';
 
 const SORT_ITEMS = [
   { id: 'release-newest', label: '发布时间：最新' },
@@ -31,7 +31,7 @@ interface Props {
   onToggle: (id: string) => Promise<void>;
 }
 
-export function ModelsPanel({
+export function ModelCenterPanel({
   models,
   enabledModelIds,
   onRefresh,

@@ -7,7 +7,7 @@ import {
 } from '@deepseek-ai/dsh-client-ui-primitives';
 import type { QiniuRegion } from 'qiniu-maas-model-market';
 import type { QiniuInferenceProtocol } from '../../../qiniu-config.ts';
-import css from './ModelSettingsPanel.module.css';
+import css from './SettingsPanel.module.css';
 
 interface SettingSelectProps {
   label: string;
@@ -133,7 +133,7 @@ interface Props {
   onInferenceProtocolChange: (protocol: QiniuInferenceProtocol) => void;
 }
 
-export function ModelSettingsPanel({
+export function SettingsPanel({
   apiKeyConfigured,
   modelMarketRegion,
   inferenceProtocol,

@@ -25,14 +25,14 @@ import type { QiniuInferenceProtocol } from '../qiniu-config.ts';
 
 interface RefreshState {
   status: 'loading' | 'ready' | 'error';
-  market: readonly Model[];
+  models: readonly Model[];
   error?: string | null;
 }
 
 function beginRefresh(state: RefreshState): RefreshState {
   return {
     ...state,
-    status: state.market.length === 0 ? 'loading' : 'ready',
+    status: state.models.length === 0 ? 'loading' : 'ready',
     error: undefined,
   };
 }
@@ -40,7 +40,7 @@ function beginRefresh(state: RefreshState): RefreshState {
 function finishRefresh(state: RefreshState, error: unknown): RefreshState {
   return {
     ...state,
-    status: state.market.length === 0 ? 'error' : 'ready',
+    status: state.models.length === 0 ? 'error' : 'ready',
     error: error instanceof Error ? error.message : String(error),
   };
 }
@@ -56,10 +56,10 @@ export function createQiniuController(
       state.modelMarketRegion = region;
     });
     try {
-      const market = await listModels({ region });
+      const models = await listModels({ region });
       store.update((state) => {
         state.status = 'ready';
-        state.market = market;
+        state.models = models;
         state.enabledModelIds = enabledModelIdsOf(settings);
         state.modelMarketRegion = region;
       });
@@ -78,7 +78,7 @@ export function createQiniuController(
     });
     try {
       const modelMarketRegion = modelMarketRegionOf(settings);
-      const [market, credentialResponse] = await Promise.all([
+      const [models, credentialResponse] = await Promise.all([
         listModels({ region: modelMarketRegion }).then((models) =>
           [...models].sort(
             (left, right) => (right.rank ?? 0) - (left.rank ?? 0),
@@ -91,7 +91,7 @@ export function createQiniuController(
         : undefined;
       store.set({
         status: 'ready',
-        market,
+        models,
         enabledModelIds: enabledModelIdsOf(settings),
         error: null,
         apiKeyConfigured: credential?.configured === true,
@@ -134,7 +134,7 @@ export function createQiniuController(
 
   const updateProviderSettings = async (): Promise<void> => {
     const current = store.getSnapshot();
-    const models = selectEnabledModels(current.market, current.enabledModelIds);
+    const models = selectEnabledModels(current.models, current.enabledModelIds);
     await settings.set(
       'providers',
       settingsWithModels(

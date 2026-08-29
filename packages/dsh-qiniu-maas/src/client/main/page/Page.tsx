@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from 'react';
 import type { Model, QiniuRegion } from 'qiniu-maas-model-market';
 import type { QiniuInferenceProtocol } from '../../qiniu-config.ts';
-import { ModelSettingsPanel } from './panels/ModelSettingsPanel.tsx';
-import { ModelsPanel } from './panels/ModelsPanel.tsx';
-import { ModelTabs, type ModelTab } from './ModelTabs.tsx';
+import { ModelCenterPanel } from './panels/ModelCenterPanel.tsx';
+import { SettingsPanel } from './panels/SettingsPanel.tsx';
+import { Tabs, type Tab } from './Tabs.tsx';
 
-interface ModelPanelProps {
+export interface ModelCenterPanelProps {
   models: readonly Model[];
   enabledModelIds: readonly string[];
   onRefresh: () => Promise<void>;
@@ -13,7 +13,7 @@ interface ModelPanelProps {
   onToggle: (id: string) => Promise<void>;
 }
 
-interface SettingsPanelProps {
+export interface SettingsPanelProps {
   apiKeyConfigured: boolean;
   modelMarketRegion: QiniuRegion;
   inferenceProtocol: QiniuInferenceProtocol;
@@ -25,17 +25,17 @@ interface SettingsPanelProps {
 }
 
 interface Props {
-  models: ModelPanelProps;
+  models: ModelCenterPanelProps;
   settings: SettingsPanelProps;
 }
 
-export function ModelCenterPage({ models, settings }: Props): ReactNode {
-  const [tab, setTab] = useState<ModelTab>('models');
+export function Page({ models, settings }: Props): ReactNode {
+  const [tab, setTab] = useState<Tab>('model-center');
   return (
     <>
-      <ModelTabs tab={tab} onChange={setTab} />
-      {tab === 'models' && <ModelsPanel {...models} />}
-      {tab === 'settings' && <ModelSettingsPanel {...settings} />}
+      <Tabs tab={tab} onChange={setTab} />
+      {tab === 'model-center' && <ModelCenterPanel {...models} />}
+      {tab === 'settings' && <SettingsPanel {...settings} />}
     </>
   );
 }
