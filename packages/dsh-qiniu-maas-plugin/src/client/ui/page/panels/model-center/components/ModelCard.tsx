@@ -58,7 +58,7 @@ export const ModelCard = memo(function ModelCard({
           className={css.quiet}
           onClick={() => onViewDetails(model.id)}
         >
-          {t('model.info')}
+          {t('model.viewDetails')}
         </Button>
         <Button
           variant={isEnabled ? 'outline' : 'primary'}

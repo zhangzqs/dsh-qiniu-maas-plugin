@@ -1,35 +1,26 @@
-import type { QiniuLocaleKey } from '../../../../i18n/namespace.ts';
-type Messages = Pick<
-  Record<QiniuLocaleKey, string>,
-  | 'model.enable'
+import type { QiniuLocaleMessages } from '../../../../i18n/namespace.ts';
+
+export const modelCardMessages = {
+  'model.disable': { zh: '停用', en: 'Disable' },
+  'model.disabled': { zh: '未启用', en: 'Disabled' },
+  'model.enable': { zh: '启用', en: 'Enable' },
+  'model.enabled': { zh: '已启用', en: 'Enabled' },
+  'model.viewDetails': { zh: '查看详情', en: 'View details' },
+  'model.noDescription': { zh: '暂无描述', en: 'No description available' },
+  'model.retired': { zh: '已退役', en: 'Retired' },
+  'model.retiredMigration': {
+    zh: '已退役，建议迁移到 {model}',
+    en: 'Retired. Migrate to {model}.',
+  },
+  'model.saving': { zh: '保存中...', en: 'Saving...' },
+} satisfies QiniuLocaleMessages<
   | 'model.disable'
-  | 'model.retired'
-  | 'model.saving'
-  | 'model.noDescription'
-  | 'model.enabled'
   | 'model.disabled'
+  | 'model.enable'
+  | 'model.enabled'
+  | 'model.noDescription'
+  | 'model.retired'
   | 'model.retiredMigration'
-  | 'model.info'
+  | 'model.saving'
+  | 'model.viewDetails'
 >;
-export const modelCardZh = {
-  'model.enable': '启用',
-  'model.disable': '停用',
-  'model.retired': '已退役',
-  'model.saving': '保存中...',
-  'model.noDescription': '暂无描述',
-  'model.enabled': '已启用',
-  'model.disabled': '未启用',
-  'model.retiredMigration': '已退役，建议迁移到 {model}',
-  'model.info': '查看详情',
-} satisfies Messages;
-export const modelCardEn = {
-  'model.enable': 'Enable',
-  'model.disable': 'Disable',
-  'model.retired': 'Retired',
-  'model.saving': 'Saving...',
-  'model.noDescription': 'No description available',
-  'model.enabled': 'Enabled',
-  'model.disabled': 'Disabled',
-  'model.retiredMigration': 'Retired. Migrate to {model}.',
-  'model.info': 'View details',
-} satisfies Messages;
