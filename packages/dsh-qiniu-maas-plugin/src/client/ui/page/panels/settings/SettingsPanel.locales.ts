@@ -1,4 +1,4 @@
-import type { QiniuLocaleMessages } from '../../../i18n/namespace.ts';
+import type { QiniuLocaleMessages } from '../../../i18n/index.ts';
 
 export const settingsMessages = {
   'common.icon': { zh: '{name} 图标', en: '{name} icon' },

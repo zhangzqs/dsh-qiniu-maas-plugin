@@ -1,4 +1,4 @@
-import type { QiniuLocaleMessages } from '../../../i18n/namespace.ts';
+import type { QiniuLocaleMessages } from '../../../i18n/index.ts';
 
 export const modelCenterMessages = {
   'model.count': { zh: '{count} 个模型', en: '{count} models' },

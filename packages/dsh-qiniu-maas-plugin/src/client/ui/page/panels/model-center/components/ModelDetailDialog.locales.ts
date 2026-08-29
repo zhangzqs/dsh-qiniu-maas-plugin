@@ -1,4 +1,4 @@
-import type { QiniuLocaleMessages } from '../../../../i18n/namespace.ts';
+import type { QiniuLocaleMessages } from '../../../../i18n/index.ts';
 
 export const modelDetailMessages = {
   'model.capabilities': { zh: '支持能力', en: 'Capabilities' },

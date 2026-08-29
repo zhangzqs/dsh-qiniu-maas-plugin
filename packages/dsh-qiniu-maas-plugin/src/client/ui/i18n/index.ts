@@ -10,7 +10,8 @@ import { modelCenterMessages } from '../page/panels/model-center/ModelCenterPane
 import { modelCardMessages } from '../page/panels/model-center/components/ModelCard.locales.ts';
 import { modelDetailMessages } from '../page/panels/model-center/components/ModelDetailDialog.locales.ts';
 import { settingsMessages } from '../page/panels/settings/SettingsPanel.locales.ts';
-import type { QiniuLocaleMessage, QiniuLocaleMessages } from './namespace.ts';
+export type QiniuLocaleMessage = Record<LocaleId, string>;
+export type QiniuLocaleMessages = Record<string, QiniuLocaleMessage>;
 
 // 所有组件的翻译消息最终会注册到这里
 const allMessages = {

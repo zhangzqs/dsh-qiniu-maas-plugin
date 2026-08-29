@@ -1,4 +1,4 @@
-import type { QiniuLocaleMessages } from '../../../../i18n/namespace.ts';
+import type { QiniuLocaleMessages } from '../../../../i18n/index.ts';
 
 export const modelCardMessages = {
   'model.disable': { zh: '停用', en: 'Disable' },

@@ -1,4 +1,4 @@
-import type { QiniuLocaleMessages } from '../../i18n/namespace.ts';
+import type { QiniuLocaleMessages } from '../../i18n/index.ts';
 
 export const tabsMessages = {
   'tabs.modelCenter': { zh: '模型中心', en: 'Model Center' },
