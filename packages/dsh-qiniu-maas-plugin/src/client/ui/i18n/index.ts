@@ -10,6 +10,8 @@ import { modelCenterMessages } from '../page/panels/model-center/ModelCenterPane
 import { modelCardMessages } from '../page/panels/model-center/components/ModelCard.locales.ts';
 import { modelDetailMessages } from '../page/panels/model-center/components/ModelDetailDialog.locales.ts';
 import { settingsMessages } from '../page/panels/settings/SettingsPanel.locales.ts';
+import { apiKeySettingMessages } from '../page/panels/settings/components/ApiKeySetting.locales.ts';
+import { modelAvatarMessages } from '../page/panels/model-center/components/ModelAvatar.locales.ts';
 export type QiniuLocaleMessage = Record<LocaleId, string>;
 export type QiniuLocaleMessages = Record<string, QiniuLocaleMessage>;
 
@@ -20,13 +22,14 @@ const allMessages = {
   ...modelCenterMessages,
   ...modelCardMessages,
   ...modelDetailMessages,
+  ...modelAvatarMessages,
   ...settingsMessages,
+  ...apiKeySettingMessages,
 } satisfies QiniuLocaleMessages;
 
-export type QiniuLocaleKey = keyof typeof allMessages;
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
-    'qiniu-maas': QiniuLocaleKey;
+    'qiniu-maas': keyof typeof allMessages;
   }
 }
 export type QiniuTranslator = TranslateNS<'qiniu-maas'>;
