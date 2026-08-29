@@ -29,13 +29,36 @@ npx -p @deepseek-ai/dsh dsh plugin --profile web add \
 ## 配置
 
 1. 打开 DSH 的设置页面，进入“七牛 MaaS”设置区域。
-2. 输入七牛 AI 大模型服务 API Key 并保存。
+2. 设置七牛 AI 大模型服务 API Key：可以在页面输入并保存，也可以通过环境变量注入。
 3. 选择模型市场和推理使用的服务区域：国内或全球。
 4. 选择与服务配置匹配的推理协议。
 5. 进入“模型中心”，刷新模型列表并启用需要的模型。
 6. 返回会话界面，在模型选择器中选择已启用的模型。
 
-API Key 由 DSH credentials 保存，插件不会展示已保存的完整密钥。服务和模型相关信息可以在[七牛 AI 大模型控制台](https://portal.qiniu.com/ai-inference/model)查看。
+### 通过环境变量配置 API Key
+
+插件使用 `QINIU_MAAS_API_KEY` 作为 DSH credentials 引用名。将它设置在运行 Harness 的进程环境中即可：
+
+```sh
+export QINIU_MAAS_API_KEY='你的七牛 API Key'
+```
+
+如果 Harness 由 systemd 管理，可以使用单独的环境文件：
+
+```ini
+# /etc/deepseek-harness/qiniu-maas.env
+QINIU_MAAS_API_KEY=你的七牛 API Key
+```
+
+然后在 service 的 `[Service]` 段加入：
+
+```ini
+EnvironmentFile=/etc/deepseek-harness/qiniu-maas.env
+```
+
+建议将环境文件权限设为 `600`。环境变量来源会覆盖 DSH 中保存的同名凭证，并且是只读来源；如果需要在设置页面更换 API Key，应先移除环境变量配置。
+
+API Key 由 DSH credentials 管理，插件不会展示已保存的完整密钥。服务和模型相关信息可以在[七牛 AI 大模型控制台](https://portal.qiniu.com/ai-inference/model)查看。
 
 模型中心中的“启用/停用”是本地 DSH 配置，不代表远程控制台中的模型开通或停用。含有 `suggested_model` 的模型视为已退役，不能新启用，应按照页面提示迁移到建议模型。
 
@@ -72,7 +95,7 @@ packages/
 └── qiniu-maas-market-sdk/  七牛模型市场 API 的轻量请求与类型 SDK
 ```
 
-SDK 只负责公开模型市场接口、模型类型和区域服务地址，不依赖 DSH，不保存凭证，也不负责模型推理。插件负责 DSH 集成、设置持久化、API Key 保存和会话模型列表同步。
+SDK 只负责公开模型市场接口、模型类型和区域服务地址，不依赖 DSH，不保存凭证，也不负责模型推理。插件负责 DSH 集成、设置持久化、API Key 配置接入和会话模型列表同步。
 
 ## 发布
 
@@ -90,7 +113,7 @@ GitHub Actions 会自动执行格式检查、Lint、测试、类型检查和构�
 
 ## 安全边界
 
-- API Key 只能通过 DSH credentials 保存，不写入普通 settings、日志、URL 或构建产物。
+- API Key 通过 DSH credentials 管理，可以在设置页面保存或通过环境变量注入，不写入普通 settings、日志、URL 或构建产物。
 - 插件不实现 AK/SK、管理鉴权、API Key 列表或远程模型启停。
 - 不要把真实 API Key、测试凭证或 Authorization header 提交到仓库。
 
