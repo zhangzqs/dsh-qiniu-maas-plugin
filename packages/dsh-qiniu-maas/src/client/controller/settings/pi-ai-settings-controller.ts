@@ -1,5 +1,7 @@
+import type { Config as PiAiConfig } from '@deepseek-ai/dsh-llm-pi-ai';
 import type { SettingsScope } from '@deepseek-ai/dsh-client-runtime/client';
-import type { PiAiSettings } from './qiniu-state.ts';
+
+export type PiAiSettings = Pick<PiAiConfig, 'providers'>;
 
 export interface PiAiSettingsController {
   read(): PiAiSettings;

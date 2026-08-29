@@ -4,14 +4,14 @@ import { createSnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
 import { QiniuSettingsSection } from './ui/QiniuSettingsSection.tsx';
 import { createQiniuController } from './controller/qiniu-controller.ts';
-import { createPiAiSettingsController } from './controller/pi-ai-settings-controller.ts';
-import { createQiniuSettingsController } from './controller/qiniu-settings-controller.ts';
+import { createPiAiSettingsController } from './controller/settings/pi-ai-settings-controller.ts';
+import { createQiniuSettingsController } from './controller/settings/qiniu-settings-controller.ts';
 import {
-  type PiAiSettings,
   type QiniuInjected,
-  type QiniuSettings,
   type QiniuState,
 } from './controller/qiniu-state.ts';
+import type { PiAiSettings } from './controller/settings/pi-ai-settings-controller.ts';
+import type { QiniuSettings } from './controller/settings/qiniu-settings-controller.ts';
 
 export const inject = ['slots', 'connection', 'settingsScope'];
 

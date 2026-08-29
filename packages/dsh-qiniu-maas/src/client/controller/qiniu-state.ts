@@ -1,15 +1,6 @@
-import type { Config as PiAiConfig } from '@deepseek-ai/dsh-llm-pi-ai';
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
 import type { Model, QiniuRegion } from 'qiniu-maas-model-market';
 import type { QiniuInferenceProtocol } from '../qiniu-config.ts';
-
-export type PiAiSettings = Pick<PiAiConfig, 'providers'>;
-
-export interface QiniuSettings {
-  enabledModelIds?: readonly string[];
-  region?: QiniuRegion;
-  inferenceProtocol?: QiniuInferenceProtocol;
-}
 
 export interface QiniuState {
   enabledModelIds: readonly string[];

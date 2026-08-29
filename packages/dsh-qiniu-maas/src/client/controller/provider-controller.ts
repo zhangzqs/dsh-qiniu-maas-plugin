@@ -11,7 +11,7 @@ import {
   QINIU_API_KEY_REF,
   type QiniuInferenceProtocol,
 } from '../qiniu-config.ts';
-import type { PiAiSettings } from './qiniu-state.ts';
+import type { PiAiSettings } from './settings/pi-ai-settings-controller.ts';
 
 const QINIU_PROVIDER = 'qiniu-maas';
 type PiAiProviders = NonNullable<PiAiSettings['providers']>;

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createPiAiSettingsController } from '../src/client/controller/pi-ai-settings-controller.ts';
-import { createQiniuSettingsController } from '../src/client/controller/qiniu-settings-controller.ts';
+import { createPiAiSettingsController } from '../src/client/controller/settings/pi-ai-settings-controller.ts';
+import { createQiniuSettingsController } from '../src/client/controller/settings/qiniu-settings-controller.ts';
 
 function settingsScope(initialValue: Record<string, unknown>) {
   let value = initialValue;

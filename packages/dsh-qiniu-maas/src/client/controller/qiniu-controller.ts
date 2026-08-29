@@ -10,8 +10,8 @@ import {
   settingsWithEnabledModels,
   settingsWithInferenceEndpoint,
 } from './provider-controller.ts';
-import type { PiAiSettingsController } from './pi-ai-settings-controller.ts';
-import type { QiniuSettingsController } from './qiniu-settings-controller.ts';
+import type { PiAiSettingsController } from './settings/pi-ai-settings-controller.ts';
+import type { QiniuSettingsController } from './settings/qiniu-settings-controller.ts';
 import { type QiniuController, type QiniuState } from './qiniu-state.ts';
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
 import type { QiniuInferenceProtocol } from '../qiniu-config.ts';
