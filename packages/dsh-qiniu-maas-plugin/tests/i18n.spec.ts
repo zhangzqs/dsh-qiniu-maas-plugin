@@ -1,15 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { translateWithMessages } from '../src/client/ui/i18n/index.ts';
+import { qiniuMessages } from '../src/client/ui/i18n/index.ts';
 import { tabsMessages } from '../src/client/ui/page/components/Tabs.locales.ts';
 
 describe('qiniu locale messages', () => {
-  it('translates parameterized messages in both supported locales', () => {
-    expect(translateWithMessages('zh', 'model.count', { count: 3 })).toBe(
-      '3 个模型',
-    );
-    expect(translateWithMessages('en', 'model.count', { count: 3 })).toBe(
-      '3 models',
-    );
+  it('builds dictionaries for every supported locale', () => {
+    expect(qiniuMessages.zh['model.count']).toBe('{count} 个模型');
+    expect(qiniuMessages.en['model.count']).toBe('{count} models');
   });
 
   it('keeps each key paired with every supported locale', () => {

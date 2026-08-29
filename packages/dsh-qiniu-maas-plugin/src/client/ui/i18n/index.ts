@@ -55,14 +55,3 @@ export const qiniuMessages = (() => {
   }
   return dictionaries;
 })();
-
-export function translateWithMessages(
-  locale: LocaleId,
-  key: keyof typeof qiniuMessages.zh,
-  params?: Record<string, unknown>,
-): string {
-  return qiniuMessages[locale][key].replace(
-    /\{(\w+)\}/g,
-    (_match, name: string) => String(params?.[name] ?? `{${name}}`),
-  );
-}
