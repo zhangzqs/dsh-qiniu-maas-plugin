@@ -1,0 +1,55 @@
+import type { ReactNode } from 'react';
+import type {
+  InjectFace,
+  PropsRuntime,
+} from '@deepseek-ai/dsh-client-ui-slots';
+import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
+import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
+import type { QiniuRegion } from 'qiniu-maas-market-sdk';
+import type { QiniuActions, QiniuState } from '../controller/qiniu-state.ts';
+import type { QiniuInferenceProtocol } from '../qiniu-protocol.ts';
+import { Page } from './page/Page.tsx';
+
+export interface QiniuInjected extends QiniuActions {
+  hooks: {
+    snapshot: SnapshotStore<QiniuState>;
+  };
+}
+
+type Props = PropsRuntime<'settings.section'> & InjectFace<QiniuInjected>;
+
+export function QiniuSettingsSection(props: Props): ReactNode {
+  const {
+    checkApiKeyConfigured,
+    fetchMarketModels,
+    setEnabledModels,
+    setApiKey,
+    setModelMarketRegion,
+    setInferenceProtocol,
+    useSnapshot,
+  } = props;
+  const state = useSnapshot((snapshot) => snapshot);
+
+  return (
+    <Page
+      models={{
+        enabledModelIds: state.enabledModelIds,
+        modelMarketRegion: state.modelMarketRegion,
+        fetchMarketModels,
+        setEnabledModels,
+      }}
+      settings={{
+        checkApiKeyConfigured,
+        setApiKey,
+        modelMarketRegion: state.modelMarketRegion,
+        inferenceProtocol: state.inferenceProtocol,
+        onModelMarketRegionChange: (region: QiniuRegion) => {
+          void setModelMarketRegion(region);
+        },
+        onInferenceProtocolChange: (protocol: QiniuInferenceProtocol) => {
+          void setInferenceProtocol(protocol);
+        },
+      }}
+    />
+  );
+}
