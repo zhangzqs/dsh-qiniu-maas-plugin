@@ -1,4 +1,5 @@
 import { memo, type ReactNode } from 'react';
+import { Button, Pill } from '@deepseek-ai/dsh-client-ui-primitives';
 import type { Model } from 'qiniu-maas-model-market';
 import { ModelAvatar } from './ModelAvatar.tsx';
 import css from './ModelCard.module.css';
@@ -26,13 +27,13 @@ export const ModelCard = memo(function ModelCard({
           <div className={css.title}>
             <h3>{model.name}</h3>
             {model.hot_tags.slice(0, 3).map((tag) => (
-              <span key={tag} className={css.hotTag}>
+              <Pill key={tag} className={css.hotTag}>
                 {tag}
-              </span>
+              </Pill>
             ))}
-            <span className={isEnabled ? css.badgeEnabled : css.badge}>
+            <Pill className={isEnabled ? css.badgeEnabled : css.badge}>
               {isEnabled ? '已启用' : '未启用'}
-            </span>
+            </Pill>
           </div>
           <p className={css.modelId}>{model.id}</p>
           {isRetired && (
@@ -44,21 +45,25 @@ export const ModelCard = memo(function ModelCard({
         </div>
       </div>
       <div className={css.actions}>
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           type="button"
           className={css.quiet}
           onClick={() => onDetails(model.id)}
         >
           查看详情
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={isEnabled ? 'outline' : 'primary'}
+          size="sm"
           type="button"
           className={isEnabled ? css.disable : css.enable}
           disabled={!canEnable}
           onClick={() => void onToggle(model.id)}
         >
           {isEnabled ? '停用' : isRetired ? '已退役' : '启用'}
-        </button>
+        </Button>
       </div>
     </article>
   );

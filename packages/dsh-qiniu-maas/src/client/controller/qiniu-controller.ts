@@ -26,7 +26,6 @@ import type { QiniuInferenceProtocol } from '../qiniu-config.ts';
 interface RefreshState {
   status: 'loading' | 'ready' | 'error';
   market: readonly Model[];
-  refreshing: boolean;
   error?: string | null;
 }
 
@@ -34,7 +33,6 @@ function beginRefresh(state: RefreshState): RefreshState {
   return {
     ...state,
     status: state.market.length === 0 ? 'loading' : 'ready',
-    refreshing: true,
     error: undefined,
   };
 }
@@ -43,7 +41,6 @@ function finishRefresh(state: RefreshState, error: unknown): RefreshState {
   return {
     ...state,
     status: state.market.length === 0 ? 'error' : 'ready',
-    refreshing: false,
     error: error instanceof Error ? error.message : String(error),
   };
 }
@@ -55,7 +52,6 @@ export function createQiniuController(
 ): QiniuController {
   const refreshModels = async (region: QiniuRegion): Promise<void> => {
     store.update((state) => {
-      state.refreshing = true;
       state.error = null;
       state.modelMarketRegion = region;
     });
@@ -63,14 +59,12 @@ export function createQiniuController(
       const market = await listModels({ region });
       store.update((state) => {
         state.status = 'ready';
-        state.refreshing = false;
         state.market = market;
         state.enabledModelIds = enabledModelIdsOf(settings);
         state.modelMarketRegion = region;
       });
     } catch (error) {
       store.update((state) => {
-        state.refreshing = false;
         state.error = error instanceof Error ? error.message : String(error);
         state.modelMarketRegion = region;
       });
@@ -97,7 +91,6 @@ export function createQiniuController(
         : undefined;
       store.set({
         status: 'ready',
-        refreshing: false,
         market,
         enabledModelIds: enabledModelIdsOf(settings),
         error: null,

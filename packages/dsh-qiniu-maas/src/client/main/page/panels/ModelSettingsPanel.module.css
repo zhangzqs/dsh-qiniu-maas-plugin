@@ -8,6 +8,11 @@
   margin: 0;
 }
 
+.apiKeySetting {
+  display: grid;
+  gap: 12px;
+}
+
 .label {
   display: grid;
   gap: 6px;
@@ -15,14 +20,9 @@
   font-size: 13px;
 }
 
-.label select {
-  min-height: 38px;
+.selectButton {
   width: min(440px, 100%);
-  padding: 0 12px;
-  border: 1px solid var(--dsw-alias-border-l2, #cfd5df);
-  border-radius: 6px;
-  background: var(--dsw-alias-bg-layer-1, #fff);
-  color: var(--dsw-alias-label-primary, inherit);
+  justify-content: space-between;
 }
 
 .block p {
@@ -30,29 +30,31 @@
   color: var(--dsw-alias-label-secondary, #6b7280);
 }
 
-.block input {
-  min-height: 38px;
-  width: min(440px, 100%);
-  padding: 0 12px;
-  border: 1px solid var(--dsw-alias-border-l2, #cfd5df);
-  border-radius: 6px;
-  background: var(--dsw-alias-bg-layer-1, #fff);
-  color: var(--dsw-alias-label-primary, inherit);
+.apiKeyRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.block button {
-  justify-self: start;
-  padding: 8px 12px;
-  border: 0;
-  border-radius: 6px;
-  background: var(--dsw-alias-button-primary-fill, #0d6efd);
-  color: var(--dsw-alias-label-primary-foreground, #fff);
-  cursor: pointer;
+.apiKey {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
 }
 
-.block button:disabled {
-  cursor: default;
-  opacity: 0.6;
+.apiKeyRow button {
+  flex-shrink: 0;
+}
+
+@media (max-width: 420px) {
+  .apiKeyRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .apiKeyRow button {
+    align-self: flex-start;
+  }
 }
 
 .status {

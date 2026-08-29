@@ -1,100 +1,148 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import {
+  Button,
+  IconChevronDownOutline14,
+  IconRefreshOutline16,
+  Input,
+  Menu,
+} from '@deepseek-ai/dsh-client-ui-primitives';
 import type { Model } from 'qiniu-maas-model-market';
 import { ModelCard } from '../components/ModelCard.tsx';
+import { filterModels, sortModels, type ModelSort } from './model-utils.ts';
 import css from './ModelsPanel.module.css';
 
-type ModelSort = 'release-newest' | 'release-oldest' | 'name-asc' | 'name-desc';
+const SORT_ITEMS = [
+  { id: 'release-newest', label: '发布时间：最新' },
+  { id: 'release-oldest', label: '发布时间：最早' },
+  { id: 'name-asc', label: '名称：A-Z' },
+  { id: 'name-desc', label: '名称：Z-A' },
+] as const;
+
+const FILTER_ITEMS = [
+  { id: 'enabled', label: '仅显示已启用模型' },
+  { id: 'retired', label: '显示已退役模型' },
+] as const;
 
 interface Props {
-  market: readonly Model[];
+  models: readonly Model[];
   enabledModelIds: readonly string[];
+  onRefresh: () => Promise<void>;
   onDetails: (id: string) => void;
   onToggle: (id: string) => Promise<void>;
 }
 
-export function filterModels(
-  models: readonly Model[],
-  onlyEnabled: boolean,
-  enabledModelIds: readonly string[],
-  query: string,
-): Model[] {
-  const enabledModelIdsSet = new Set(enabledModelIds);
-  const needle = query.trim().toLowerCase();
-
-  return models.filter((model) => {
-    const isEnabled = !onlyEnabled || enabledModelIdsSet.has(model.id);
-    const matchesQuery =
-      needle.length === 0 ||
-      `${model.id} ${model.name} ${model.description}`
-        .toLowerCase()
-        .includes(needle);
-    return isEnabled && matchesQuery;
-  });
-}
-
-export function sortModels(models: readonly Model[], sort: ModelSort): Model[] {
-  return [...models].sort((left, right) => {
-    switch (sort) {
-      case 'release-newest':
-        return right.release_at.localeCompare(left.release_at);
-      case 'release-oldest':
-        return left.release_at.localeCompare(right.release_at);
-      case 'name-asc':
-        return left.name.localeCompare(right.name);
-      case 'name-desc':
-        return right.name.localeCompare(left.name);
-      default:
-        return right.release_at.localeCompare(left.release_at);
-    }
-  });
-}
-
 export function ModelsPanel({
-  market,
+  models,
   enabledModelIds,
+  onRefresh,
   onDetails,
   onToggle,
 }: Props): ReactNode {
   const [query, setQuery] = useState('');
   const [onlyEnabled, setOnlyEnabled] = useState(false);
+  const [showRetired, setShowRetired] = useState(false);
   const [sort, setSort] = useState<ModelSort>('release-newest');
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const enabledModelIdsSet = useMemo(
     () => new Set(enabledModelIds),
     [enabledModelIds],
   );
   const visible = useMemo(() => {
-    const filtered = filterModels(market, onlyEnabled, enabledModelIds, query);
+    const filtered = filterModels(
+      models,
+      onlyEnabled,
+      enabledModelIds,
+      query,
+      showRetired,
+    );
     return sortModels(filtered, sort);
-  }, [enabledModelIds, market, onlyEnabled, query, sort]);
+  }, [enabledModelIds, models, onlyEnabled, query, showRetired, sort]);
+
+  const handleRefresh = async (): Promise<void> => {
+    setRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
     <div>
       <div className={css.toolbar}>
-        <label className={css.filter}>
-          <input
-            type="checkbox"
-            checked={onlyEnabled}
-            onChange={(event) => setOnlyEnabled(event.target.checked)}
-          />
-          仅显示已启用模型
-        </label>
-        <select
-          aria-label="模型排序"
-          value={sort}
-          onChange={(event) => setSort(event.target.value as ModelSort)}
-        >
-          <option value="release-newest">发布时间：最新</option>
-          <option value="release-oldest">发布时间：最早</option>
-          <option value="name-asc">名称：A-Z</option>
-          <option value="name-desc">名称：Z-A</option>
-        </select>
-        <input
+        <Menu
+          open={sortMenuOpen}
+          anchor={
+            <Button
+              variant="outline"
+              className={css.sortButton}
+              aria-label="模型排序"
+              onClick={() => setSortMenuOpen((open) => !open)}
+            >
+              {SORT_ITEMS.find((item) => item.id === sort)?.label}
+              <IconChevronDownOutline14 />
+            </Button>
+          }
+          items={SORT_ITEMS}
+          selectedId={sort}
+          onSelect={(id) => {
+            setSort(id as ModelSort);
+            setSortMenuOpen(false);
+          }}
+          onClose={() => setSortMenuOpen(false)}
+          align="start"
+          dense
+        />
+        <Menu
+          open={filterMenuOpen}
+          anchor={
+            <Button
+              variant="outline"
+              className={css.filterButton}
+              aria-label="模型筛选"
+              onClick={() => setFilterMenuOpen((open) => !open)}
+            >
+              筛选
+              {onlyEnabled || showRetired
+                ? ` · ${Number(onlyEnabled) + Number(showRetired)}`
+                : ''}
+              <IconChevronDownOutline14 />
+            </Button>
+          }
+          items={FILTER_ITEMS}
+          selectedIds={[
+            ...(onlyEnabled ? ['enabled'] : []),
+            ...(showRetired ? ['retired'] : []),
+          ]}
+          onSelect={(id) => {
+            if (id === 'enabled') setOnlyEnabled((enabled) => !enabled);
+            if (id === 'retired') setShowRetired((retired) => !retired);
+          }}
+          onClose={() => setFilterMenuOpen(false)}
+          align="start"
+          dense
+        />
+        <Input
+          className={css.search}
           aria-label="搜索模型"
           placeholder="搜索模型名称或 ID"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
-        <span>{visible.length} 个模型</span>
+        <span className={css.count}>{visible.length} 个模型</span>
+        <Button
+          variant="toolbar"
+          size="sm"
+          icon={<IconRefreshOutline16 />}
+          type="button"
+          className={`${css.refreshButton} ${refreshing ? css.refreshing : ''}`}
+          aria-label="刷新模型"
+          title="刷新模型"
+          onClick={() => void handleRefresh()}
+          disabled={refreshing}
+        />
       </div>
       <div className={css.grid}>
         {visible.map((model) => (

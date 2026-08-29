@@ -6,20 +6,20 @@ import { ModelsPanel } from './panels/ModelsPanel.tsx';
 import { ModelTabs, type ModelTab } from './ModelTabs.tsx';
 
 interface ModelPanelProps {
-  market: readonly Model[];
+  models: readonly Model[];
   enabledModelIds: readonly string[];
+  onRefresh: () => Promise<void>;
   onDetails: (id: string) => void;
   onToggle: (id: string) => Promise<void>;
 }
 
 interface SettingsPanelProps {
-  configured: boolean;
+  apiKeyConfigured: boolean;
   modelMarketRegion: QiniuRegion;
   inferenceProtocol: QiniuInferenceProtocol;
-  value: string;
-  saving: boolean;
-  onChange: (value: string) => void;
-  onSubmit: () => void;
+  apiKey: string;
+  onApiKeyChange: (value: string) => void;
+  onApiKeySubmit: () => Promise<void>;
   onModelMarketRegionChange: (region: QiniuRegion) => void;
   onInferenceProtocolChange: (protocol: QiniuInferenceProtocol) => void;
 }

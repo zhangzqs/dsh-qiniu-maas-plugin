@@ -3,7 +3,7 @@ import type { Model } from 'qiniu-maas-model-market';
 import {
   filterModels,
   sortModels,
-} from '../src/client/main/page/panels/ModelsPanel.tsx';
+} from '../src/client/main/page/panels/model-utils.ts';
 
 const models = [
   {
@@ -18,6 +18,13 @@ const models = [
     description: 'Reasoning model',
     release_at: '2026-02-01',
   },
+  {
+    id: 'retired',
+    name: 'Retired',
+    description: 'Legacy model',
+    release_at: '2025-01-01',
+    suggested_model: 'beta',
+  },
 ] as Model[];
 
 describe('filterModels', () => {
@@ -29,15 +36,22 @@ describe('filterModels', () => {
     expect(filterModels(models, true, ['beta'], '')).toEqual([models[1]]);
   });
 
+  it('hides retired models unless explicitly requested', () => {
+    expect(filterModels(models, false, [], '')).toEqual([models[0], models[1]]);
+    expect(filterModels(models, false, [], '', true)).toEqual(models);
+  });
+
   it('sorts models by the selected ordering', () => {
     expect(
       sortModels(models, 'release-newest').map((model) => model.id),
-    ).toEqual(['beta', 'alpha']);
+    ).toEqual(['beta', 'alpha', 'retired']);
     expect(sortModels(models, 'name-asc').map((model) => model.id)).toEqual([
       'alpha',
       'beta',
+      'retired',
     ]);
     expect(sortModels(models, 'name-desc').map((model) => model.id)).toEqual([
+      'retired',
       'beta',
       'alpha',
     ]);

@@ -23,7 +23,6 @@ export function apply(ctx: ClientContext): void {
   });
   const store = createSnapshotStore<QiniuState>({
     status: 'loading',
-    refreshing: false,
     market: [],
     enabledModelIds: [],
     error: null,

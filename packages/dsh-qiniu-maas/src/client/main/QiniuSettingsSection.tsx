@@ -3,6 +3,7 @@ import type {
   InjectFace,
   PropsRuntime,
 } from '@deepseek-ai/dsh-client-ui-slots';
+import { Button } from '@deepseek-ai/dsh-client-ui-primitives';
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
 import type { QiniuRegion } from 'qiniu-maas-model-market';
 import type { QiniuInjected } from '../state/qiniu-state.ts';
@@ -25,7 +26,6 @@ export function QiniuSettingsSection(props: Props): ReactNode {
   const state = useSnapshot((snapshot) => snapshot);
   const [selectedId, setSelectedId] = useState<string>();
   const [apiKey, setApiKeyDraft] = useState('');
-  const [saving, setSaving] = useState(false);
   const selected = state.market.find((model) => model.id === selectedId);
   const selectModel = useCallback((id: string): void => {
     setSelectedId(id);
@@ -48,79 +48,57 @@ export function QiniuSettingsSection(props: Props): ReactNode {
     [saveModels, state.enabledModelIds, state.market],
   );
 
-  const submitKey = async (): Promise<void> => {
-    setSaving(true);
-    try {
-      await setApiKey(apiKey);
-      setApiKeyDraft('');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
     <section className={css.page}>
       <header className={css.header}>
         <div>
           <p className={css.kicker}>QINIU MAAS</p>
           <h2>七牛 MaaS</h2>
-          <p className={css.subtitle}>管理七牛 MaaS 模型服务。</p>
-        </div>
-        <div className={css.headerActions}>
+          <p className={css.subtitle}>管理七牛 AI 大模型推理服务。</p>
           <a
             className={css.portalLink}
             href="https://portal.qiniu.com/ai-inference/model"
             target="_blank"
             rel="noreferrer"
           >
-            Portal 控制台
+            前往七牛 AI 大模型控制台
           </a>
-          <button
-            type="button"
-            className={css.iconButton}
-            aria-label="刷新模型"
-            onClick={() => {
-              void refresh();
-            }}
-          >
-            ↻
-          </button>
         </div>
       </header>
-      {state.refreshing && state.status === 'ready' && (
-        <p className={css.state}>正在更新模型...</p>
-      )}
       {state.status === 'loading' && <p className={css.state}>模型加载中...</p>}
       {state.status === 'error' && (
         <div className={`${css.state} ${css.error}`}>
           <p>模型加载失败：{state.error}</p>
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             type="button"
             onClick={() => {
               void refresh();
             }}
           >
             重试
-          </button>
+          </Button>
         </div>
       )}
       {state.status === 'ready' && (
         <ModelCenterPage
           models={{
-            market: state.market,
+            models: state.market,
             enabledModelIds: state.enabledModelIds,
+            onRefresh: refresh,
             onDetails: selectModel,
             onToggle: toggleModel,
           }}
           settings={{
-            configured: state.apiKeyConfigured,
+            apiKeyConfigured: state.apiKeyConfigured,
             modelMarketRegion: state.modelMarketRegion,
             inferenceProtocol: state.inferenceProtocol,
-            value: apiKey,
-            saving,
-            onChange: setApiKeyDraft,
-            onSubmit: () => {
-              void submitKey();
+            apiKey,
+            onApiKeyChange: setApiKeyDraft,
+            onApiKeySubmit: async () => {
+              await setApiKey(apiKey);
+              setApiKeyDraft('');
             },
             onModelMarketRegionChange: (region: QiniuRegion) => {
               void setModelMarketRegion(region);

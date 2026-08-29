@@ -104,21 +104,10 @@
   justify-content: flex-end;
 }
 
-.actions button {
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
 .quiet {
   border: 0;
   background: transparent;
   color: var(--dsw-alias-label-secondary, #6b7280);
-}
-
-.enable,
-.disable {
-  color: var(--dsw-alias-label-primary-foreground, #fff);
 }
 
 .enable:disabled {
@@ -126,11 +115,6 @@
   background: var(--dsw-alias-bg-layer-2, #eef1f5);
   color: var(--dsw-alias-label-tertiary, #94a3b8);
   cursor: not-allowed;
-}
-
-.enable {
-  border: 0;
-  background: var(--dsw-alias-button-primary-fill, #0d6efd);
 }
 
 .disable {

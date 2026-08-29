@@ -17,7 +17,6 @@ export interface PiAiSettings {
 
 export interface QiniuState {
   status: 'loading' | 'ready' | 'error';
-  refreshing: boolean;
   market: readonly Model[];
   enabledModelIds: readonly string[];
   error: string | null;
