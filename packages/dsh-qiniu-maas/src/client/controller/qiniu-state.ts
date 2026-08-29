@@ -1,4 +1,3 @@
-import type { IApiClient } from '@deepseek-ai/dsh-client-connection/client';
 import type { Config as PiAiConfig } from '@deepseek-ai/dsh-llm-pi-ai';
 import type {
   SettingsScope,
@@ -21,30 +20,22 @@ export interface QiniuState {
   inferenceProtocol: QiniuInferenceProtocol;
 }
 
-export interface QiniuInjected {
-  api: Pick<IApiClient, 'credentials'>;
-  settings: SettingsScope<QiniuSettings>;
-  hooks: {
-    snapshot: SnapshotStore<QiniuState>;
-  };
+export interface QiniuActions {
   checkApiKeyConfigured: () => Promise<boolean>;
-  fetchModels: (region: QiniuRegion) => Promise<readonly Model[]>;
-  saveModels: (models: readonly Model[]) => Promise<void>;
+  fetchMarketModels: (region: QiniuRegion) => Promise<readonly Model[]>;
+  setEnabledModels: (models: readonly Model[]) => Promise<void>;
   setApiKey: (value: string) => Promise<void>;
-  apiKeyRef: string;
   setModelMarketRegion: (region: QiniuRegion) => Promise<void>;
   setInferenceProtocol: (protocol: QiniuInferenceProtocol) => Promise<void>;
 }
 
-export type QiniuController = Pick<
-  QiniuInjected,
-  | 'checkApiKeyConfigured'
-  | 'fetchModels'
-  | 'saveModels'
-  | 'setApiKey'
-  | 'setModelMarketRegion'
-  | 'setInferenceProtocol'
->;
+export interface QiniuInjected extends QiniuActions {
+  hooks: {
+    snapshot: SnapshotStore<QiniuState>;
+  };
+}
+
+export type QiniuController = QiniuActions;
 
 export function regionOf(settings: SettingsScope<QiniuSettings>): QiniuRegion {
   return settings.getSnapshot().value?.region ?? 'cn';

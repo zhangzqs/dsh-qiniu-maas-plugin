@@ -4,63 +4,63 @@ import css from './ApiKeySetting.module.css';
 
 export interface Props {
   checkApiKeyConfigured: () => Promise<boolean>;
-  saveApiKey: (value: string) => Promise<void>;
+  setApiKey: (value: string) => Promise<void>;
 }
 
 function apiKeyStatusLabel(
-  checking: boolean,
+  isChecking: boolean,
   statusError: string | undefined,
-  configured: boolean | undefined,
+  isConfigured: boolean | undefined,
 ): string {
-  if (checking) return '检查配置中...';
+  if (isChecking) return '检查配置中...';
   if (statusError) return `检查失败：${statusError}`;
-  return configured ? '已配置' : '未配置';
+  return isConfigured ? '已配置' : '未配置';
 }
 
 export function ApiKeySetting({
   checkApiKeyConfigured,
-  saveApiKey,
+  setApiKey,
 }: Props): ReactNode {
   const [value, setValue] = useState('');
-  const [configured, setConfigured] = useState<boolean>();
+  const [isConfigured, setIsConfigured] = useState<boolean>();
   const [statusError, setStatusError] = useState<string>();
-  const [checking, setChecking] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    let active = true;
-    setChecking(true);
+    let isActive = true;
+    setIsChecking(true);
     void checkApiKeyConfigured()
       .then((nextConfigured) => {
-        if (!active) return;
-        setConfigured(nextConfigured);
+        if (!isActive) return;
+        setIsConfigured(nextConfigured);
         setStatusError(undefined);
       })
       .catch((reason: unknown) => {
-        if (!active) return;
+        if (!isActive) return;
         setStatusError(
           reason instanceof Error ? reason.message : String(reason),
         );
       })
       .finally(() => {
-        if (active) setChecking(false);
+        if (isActive) setIsChecking(false);
       });
     return () => {
-      active = false;
+      isActive = false;
     };
   }, [checkApiKeyConfigured]);
 
-  const submit = async (): Promise<void> => {
-    setSaving(true);
+  const handleSubmit = async (): Promise<void> => {
+    setIsSaving(true);
     try {
-      await saveApiKey(value);
-      setConfigured(true);
+      await setApiKey(value);
+      setIsConfigured(true);
       setValue('');
       setStatusError(undefined);
     } catch (reason) {
       setStatusError(reason instanceof Error ? reason.message : String(reason));
     } finally {
-      setSaving(false);
+      setIsSaving(false);
     }
   };
 
@@ -76,21 +76,21 @@ export function ApiKeySetting({
           value={value}
           onChange={(event) => setValue(event.target.value)}
           placeholder={
-            configured ? '已配置，如需更换请重新输入' : '输入 API Key'
+            isConfigured ? '已配置，如需更换请重新输入' : '输入 API Key'
           }
         />
         <Button
           variant="primary"
           size="sm"
           type="button"
-          disabled={saving || value.trim().length === 0}
-          onClick={() => void submit()}
+          disabled={isSaving || value.trim().length === 0}
+          onClick={() => void handleSubmit()}
         >
-          {saving ? '保存中...' : '保存 API Key'}
+          {isSaving ? '保存中...' : '保存 API Key'}
         </Button>
       </div>
       <span className={css.status}>
-        {apiKeyStatusLabel(checking, statusError, configured)}
+        {apiKeyStatusLabel(isChecking, statusError, isConfigured)}
       </span>
     </section>
   );

@@ -5,7 +5,7 @@ import type {
 } from '@deepseek-ai/dsh-client-ui-slots';
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
 import type { QiniuRegion } from 'qiniu-maas-model-market';
-import type { QiniuInjected } from '../state/qiniu-state.ts';
+import type { QiniuInjected } from '../controller/qiniu-state.ts';
 import type { QiniuInferenceProtocol } from '../qiniu-config.ts';
 import { Page } from './page/Page.tsx';
 
@@ -14,8 +14,8 @@ type Props = PropsRuntime<'settings.section'> & InjectFace<QiniuInjected>;
 export function QiniuSettingsSection(props: Props): ReactNode {
   const {
     checkApiKeyConfigured,
-    fetchModels,
-    saveModels,
+    fetchMarketModels,
+    setEnabledModels,
     setApiKey,
     setModelMarketRegion,
     setInferenceProtocol,
@@ -28,12 +28,12 @@ export function QiniuSettingsSection(props: Props): ReactNode {
       models={{
         enabledModelIds: state.enabledModelIds,
         modelMarketRegion: state.modelMarketRegion,
-        fetchModels,
-        onSaveModels: saveModels,
+        fetchMarketModels,
+        setEnabledModels,
       }}
       settings={{
         checkApiKeyConfigured,
-        saveApiKey: setApiKey,
+        setApiKey,
         modelMarketRegion: state.modelMarketRegion,
         inferenceProtocol: state.inferenceProtocol,
         onModelMarketRegionChange: (region: QiniuRegion) => {

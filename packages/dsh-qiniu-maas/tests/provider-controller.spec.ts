@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   selectEnabledModels,
-  settingsWithEndpoint,
-  settingsWithModels,
+  settingsWithEnabledModels,
+  settingsWithInferenceEndpoint,
 } from '../src/client/controller/provider-controller.ts';
-import { enabledModelIdsOf } from '../src/client/state/qiniu-state.ts';
+import { enabledModelIdsOf } from '../src/client/controller/qiniu-state.ts';
 
 const settings = (providers: Record<string, unknown>) =>
   ({ getSnapshot: () => ({ value: { providers } }) }) as never;
@@ -31,7 +31,7 @@ describe('provider controller', () => {
 
   it('merges the Qiniu provider while preserving other providers', () => {
     expect(
-      settingsWithModels(
+      settingsWithEnabledModels(
         settings({ openai: { apiKeyEnv: 'OPENAI_API_KEY' } }),
         [
           {
@@ -66,7 +66,7 @@ describe('provider controller', () => {
 
   it('applies the selected inference region and protocol', () => {
     expect(
-      settingsWithModels(
+      settingsWithEnabledModels(
         settings({}),
         [{ id: 'model-a', name: 'Model A' }],
         'global',
@@ -89,7 +89,11 @@ describe('provider controller', () => {
     };
 
     expect(
-      settingsWithEndpoint(settings(providers), 'global', 'anthropic-messages'),
+      settingsWithInferenceEndpoint(
+        settings(providers),
+        'global',
+        'anthropic-messages',
+      ),
     ).toEqual({
       'qiniu-maas': {
         displayName: 'Qiniu MaaS',

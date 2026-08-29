@@ -4,7 +4,7 @@ import {
   filterModels,
   toggleModel,
   sortModels,
-} from '../src/client/main/page/panels/model-center/model-utils.ts';
+} from '../src/client/ui/page/panels/model-center/model-utils.ts';
 
 const models = [
   {

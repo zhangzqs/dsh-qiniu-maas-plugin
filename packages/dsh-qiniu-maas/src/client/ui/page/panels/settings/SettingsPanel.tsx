@@ -18,7 +18,7 @@ const PROTOCOL_OPTIONS = [
 
 export interface Props {
   checkApiKeyConfigured: () => Promise<boolean>;
-  saveApiKey: (value: string) => Promise<void>;
+  setApiKey: (value: string) => Promise<void>;
   modelMarketRegion: QiniuRegion;
   inferenceProtocol: QiniuInferenceProtocol;
   onModelMarketRegionChange: (region: QiniuRegion) => void;
@@ -27,7 +27,7 @@ export interface Props {
 
 export function SettingsPanel({
   checkApiKeyConfigured,
-  saveApiKey,
+  setApiKey,
   modelMarketRegion,
   inferenceProtocol,
   onModelMarketRegionChange,
@@ -51,7 +51,7 @@ export function SettingsPanel({
       />
       <ApiKeySetting
         checkApiKeyConfigured={checkApiKeyConfigured}
-        saveApiKey={saveApiKey}
+        setApiKey={setApiKey}
       />
     </div>
   );

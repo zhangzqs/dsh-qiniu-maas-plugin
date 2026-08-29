@@ -2,7 +2,7 @@ import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
-import { QiniuSettingsSection } from './main/QiniuSettingsSection.tsx';
+import { QiniuSettingsSection } from './ui/QiniuSettingsSection.tsx';
 import { createQiniuController } from './controller/qiniu-controller.ts';
 import {
   inferenceProtocolOf,
@@ -12,8 +12,7 @@ import {
   type QiniuInjected,
   type QiniuSettings,
   type QiniuState,
-} from './state/qiniu-state.ts';
-import { QINIU_API_KEY_REF } from './qiniu-config.ts';
+} from './controller/qiniu-state.ts';
 
 export const inject = ['slots', 'connection', 'settingsScope'];
 
@@ -56,11 +55,8 @@ export function apply(ctx: ClientContext): void {
         order: 20,
         label: 'Qiniu MaaS',
         inject: (): QiniuInjected => ({
-          api: connection.api,
-          settings: qiniuSettings,
           hooks: { snapshot: store },
           ...controller,
-          apiKeyRef: QINIU_API_KEY_REF,
         }),
       },
       QiniuSettingsSection,

@@ -17,13 +17,13 @@ interface Props {
 }
 
 export function Page({ models, settings }: Props): ReactNode {
-  const [tab, setTab] = useState<Tab>('model-center');
+  const [activeTab, setActiveTab] = useState<Tab>('model-center');
   return (
     <section className={css.page}>
       <PageHeader />
-      <Tabs tab={tab} onChange={setTab} />
-      {tab === 'model-center' && <ModelCenterPanel {...models} />}
-      {tab === 'settings' && <SettingsPanel {...settings} />}
+      <Tabs activeTab={activeTab} onTabChange={setActiveTab} />
+      {activeTab === 'model-center' && <ModelCenterPanel {...models} />}
+      {activeTab === 'settings' && <SettingsPanel {...settings} />}
     </section>
   );
 }

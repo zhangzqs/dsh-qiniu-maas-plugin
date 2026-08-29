@@ -1,6 +1,6 @@
 import type { Model } from 'qiniu-maas-model-market';
 
-export type ModelSort =
+export type ModelSortOrder =
   | 'release-newest'
   | 'release-oldest'
   | 'name-asc'
@@ -8,17 +8,17 @@ export type ModelSort =
 
 export function filterModels(
   models: readonly Model[],
-  onlyEnabled: boolean,
+  showEnabledOnly: boolean,
   enabledModelIds: readonly string[],
   query: string,
-  showRetired = false,
+  includeRetired = false,
 ): Model[] {
   const enabledModelIdsSet = new Set(enabledModelIds);
   const needle = query.trim().toLowerCase();
 
   return models.filter((model) => {
-    const isEnabled = !onlyEnabled || enabledModelIdsSet.has(model.id);
-    const isVisible = showRetired || !model.suggested_model;
+    const isEnabled = !showEnabledOnly || enabledModelIdsSet.has(model.id);
+    const isVisible = includeRetired || !model.suggested_model;
     const matchesQuery =
       needle.length === 0 ||
       `${model.id} ${model.name} ${model.description}`
@@ -45,9 +45,12 @@ export function toggleModel(
   return models.filter((model) => enabledModelIdsSet.has(model.id));
 }
 
-export function sortModels(models: readonly Model[], sort: ModelSort): Model[] {
+export function sortModels(
+  models: readonly Model[],
+  sortOrder: ModelSortOrder,
+): Model[] {
   return [...models].sort((left, right) => {
-    switch (sort) {
+    switch (sortOrder) {
       case 'release-newest':
         return right.release_at.localeCompare(left.release_at);
       case 'release-oldest':

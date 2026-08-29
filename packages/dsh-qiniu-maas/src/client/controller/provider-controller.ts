@@ -10,12 +10,13 @@ import type {
 } from '@deepseek-ai/dsh-llm-pi-ai';
 import {
   QINIU_API_KEY_REF,
-  QINIU_PROVIDER,
   type QiniuInferenceProtocol,
 } from '../qiniu-config.ts';
-import { type PiAiSettings } from '../state/qiniu-state.ts';
+import { type PiAiSettings } from './qiniu-state.ts';
 
-function modelProfile(
+const QINIU_PROVIDER = 'qiniu-maas';
+
+function toPiAiModelProfile(
   model: Pick<Model, 'id' | 'name' | 'architecture' | 'model_constraints'>,
 ): PiAiModelProfile {
   const name = model.name ?? model.id;
@@ -40,7 +41,7 @@ export function selectEnabledModels(
 }
 
 /** 从dsh配置中获取可用模型 ID 列表 */
-export function settingsWithModels(
+export function settingsWithEnabledModels(
   settings: SettingsScope<PiAiSettings>,
   models: readonly Model[],
   region: QiniuRegion = 'cn',
@@ -57,12 +58,12 @@ export function settingsWithModels(
     apiKeyEnv: QINIU_API_KEY_REF,
     api: protocol,
     baseURL: QINIU_LLM_BASE_URLS[region],
-    models: models.map(modelProfile),
+    models: models.map(toPiAiModelProfile),
   };
   return { ...providers, [QINIU_PROVIDER]: profile };
 }
 
-export function settingsWithEndpoint(
+export function settingsWithInferenceEndpoint(
   settings: SettingsScope<PiAiSettings>,
   region: QiniuRegion,
   protocol: QiniuInferenceProtocol,

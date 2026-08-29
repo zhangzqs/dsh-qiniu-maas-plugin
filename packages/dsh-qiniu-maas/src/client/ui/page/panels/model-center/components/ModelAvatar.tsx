@@ -13,9 +13,9 @@ export const ModelAvatar = memo(function ModelAvatar({
   model,
   size = 'card',
 }: Props): ReactNode {
-  const [failed, setFailed] = useState(false);
+  const [hasFailed, setHasFailed] = useState(false);
   const className = size === 'dialog' ? css.dialog : css.card;
-  if (model.avatar === undefined || failed) {
+  if (model.avatar === undefined || hasFailed) {
     return (
       <span
         className={`${className} ${css.fallback}`}
@@ -32,7 +32,7 @@ export const ModelAvatar = memo(function ModelAvatar({
       className={className}
       loading={size === 'card' ? 'lazy' : undefined}
       decoding="async"
-      onError={() => setFailed(true)}
+      onError={() => setHasFailed(true)}
     />
   );
 });

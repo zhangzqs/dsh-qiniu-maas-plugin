@@ -7,17 +7,17 @@ import css from './ModelCard.module.css';
 interface Props {
   model: Model;
   isEnabled: boolean;
-  saving: boolean;
-  onDetails: (id: string) => void;
-  onToggle: (id: string) => Promise<void>;
+  updating: boolean;
+  onViewDetails: (id: string) => void;
+  onToggleEnabled: (id: string) => Promise<void>;
 }
 
 function toggleLabel(
   isEnabled: boolean,
   isRetired: boolean,
-  saving: boolean,
+  updating: boolean,
 ): string {
-  if (saving) return '保存中...';
+  if (updating) return '保存中...';
   if (isEnabled) return '停用';
   if (isRetired) return '已退役';
   return '启用';
@@ -26,9 +26,9 @@ function toggleLabel(
 export const ModelCard = memo(function ModelCard({
   model,
   isEnabled,
-  saving,
-  onDetails,
-  onToggle,
+  updating,
+  onViewDetails,
+  onToggleEnabled,
 }: Props): ReactNode {
   const isRetired = Boolean(model.suggested_model);
   const canEnable = isEnabled || !isRetired;
@@ -63,7 +63,7 @@ export const ModelCard = memo(function ModelCard({
           size="sm"
           type="button"
           className={css.quiet}
-          onClick={() => onDetails(model.id)}
+          onClick={() => onViewDetails(model.id)}
         >
           查看详情
         </Button>
@@ -72,10 +72,10 @@ export const ModelCard = memo(function ModelCard({
           size="sm"
           type="button"
           className={isEnabled ? css.disable : css.enable}
-          disabled={saving || !canEnable}
-          onClick={() => void onToggle(model.id)}
+          disabled={updating || !canEnable}
+          onClick={() => void onToggleEnabled(model.id)}
         >
-          {toggleLabel(isEnabled, isRetired, saving)}
+          {toggleLabel(isEnabled, isRetired, updating)}
         </Button>
       </div>
     </article>

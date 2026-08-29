@@ -7,8 +7,8 @@ import {
 import { QINIU_API_KEY_REF } from '../qiniu-config.ts';
 import {
   selectEnabledModels,
-  settingsWithEndpoint,
-  settingsWithModels,
+  settingsWithEnabledModels,
+  settingsWithInferenceEndpoint,
 } from './provider-controller.ts';
 import {
   inferenceProtocolOf,
@@ -17,7 +17,7 @@ import {
   type QiniuController,
   type QiniuSettings,
   type QiniuState,
-} from '../state/qiniu-state.ts';
+} from './qiniu-state.ts';
 import type {
   SettingsScope,
   SnapshotStore,
@@ -30,16 +30,16 @@ export function createQiniuController(
   piAiSettings: SettingsScope<PiAiSettings>,
   store: SnapshotStore<QiniuState>,
 ): QiniuController {
-  let cachedModels: readonly Model[] = [];
+  let cachedMarketModels: readonly Model[] = [];
 
-  const fetchModels = async (
+  const fetchMarketModels = async (
     region: QiniuRegion,
   ): Promise<readonly Model[]> => {
     const models = await listModels({ region });
-    cachedModels = [...models].sort(
+    cachedMarketModels = [...models].sort(
       (left, right) => (right.rank ?? 0) - (left.rank ?? 0),
     );
-    return cachedModels;
+    return cachedMarketModels;
   };
 
   const checkApiKeyConfigured = async (): Promise<boolean> => {
@@ -54,22 +54,22 @@ export function createQiniuController(
     );
   };
 
-  const saveModels = async (models: readonly Model[]): Promise<void> => {
+  const setEnabledModels = async (models: readonly Model[]): Promise<void> => {
     const enabledModelIds = new Set(store.getSnapshot().enabledModelIds);
-    const modelsToSave = models.filter(
+    const enabledModels = models.filter(
       (model) => !model.suggested_model || enabledModelIds.has(model.id),
     );
     await qiniuSettings.set(
       'enabledModelIds',
-      modelsToSave.map((model) => model.id),
+      enabledModels.map((model) => model.id),
     );
     await piAiSettings.set(
       'providers',
-      settingsWithModels(piAiSettings, modelsToSave),
+      settingsWithEnabledModels(piAiSettings, enabledModels),
     );
-    cachedModels = modelsToSave;
+    cachedMarketModels = enabledModels;
     store.update((state) => {
-      state.enabledModelIds = modelsToSave.map((model) => model.id);
+      state.enabledModelIds = enabledModels.map((model) => model.id);
     });
   };
 
@@ -84,22 +84,22 @@ export function createQiniuController(
   };
 
   const updateProviderSettings = async (): Promise<void> => {
-    const current = store.getSnapshot();
-    const models =
-      cachedModels.length > 0
-        ? selectEnabledModels(cachedModels, current.enabledModelIds)
+    const state = store.getSnapshot();
+    const enabledModels =
+      cachedMarketModels.length > 0
+        ? selectEnabledModels(cachedMarketModels, state.enabledModelIds)
         : undefined;
     await piAiSettings.set(
       'providers',
-      models === undefined
-        ? settingsWithEndpoint(
+      enabledModels === undefined
+        ? settingsWithInferenceEndpoint(
             piAiSettings,
             regionOf(qiniuSettings),
             inferenceProtocolOf(qiniuSettings),
           )
-        : settingsWithModels(
+        : settingsWithEnabledModels(
             piAiSettings,
-            models,
+            enabledModels,
             regionOf(qiniuSettings),
             inferenceProtocolOf(qiniuSettings),
           ),
@@ -126,8 +126,8 @@ export function createQiniuController(
 
   return {
     checkApiKeyConfigured,
-    fetchModels,
-    saveModels,
+    fetchMarketModels,
+    setEnabledModels,
     setApiKey,
     setModelMarketRegion,
     setInferenceProtocol,

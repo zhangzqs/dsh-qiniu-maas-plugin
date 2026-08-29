@@ -19,20 +19,20 @@ export function SettingSelect({
   options,
   onChange,
 }: Props): ReactNode {
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const selected = options.find((option) => option.id === value);
 
   return (
     <label className={css.label}>
       <span>{label}</span>
       <Menu
-        open={open}
+        open={isOpen}
         anchor={
           <Button
             variant="outline"
             className={css.selectButton}
             aria-label={label}
-            onClick={() => setOpen((isOpen) => !isOpen)}
+            onClick={() => setIsOpen((currentlyOpen) => !currentlyOpen)}
           >
             {selected?.label}
             <IconChevronDownOutline14 />
@@ -42,9 +42,9 @@ export function SettingSelect({
         selectedId={value}
         onSelect={(id) => {
           onChange(id);
-          setOpen(false);
+          setIsOpen(false);
         }}
-        onClose={() => setOpen(false)}
+        onClose={() => setIsOpen(false)}
         align="start"
         dense
       />
