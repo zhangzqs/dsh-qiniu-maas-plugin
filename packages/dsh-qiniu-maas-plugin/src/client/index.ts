@@ -17,9 +17,10 @@ import { qiniuMessages } from './ui/i18n/index.ts';
 export const inject = ['slots', 'connection', 'settingsScope', 'locale'];
 
 export function apply(ctx: ClientContext): void {
-  const locale = ctx.get('locale') as LocaleRuntime;
-  const disposeLocale = locale.register('qiniu-maas', qiniuMessages);
-  ctx.effect(() => disposeLocale, 'qiniu-maas: locale dictionary');
+  ctx.effect(() => {
+    const locale = ctx.get('locale') as LocaleRuntime;
+    return locale.register('qiniu-maas', qiniuMessages);
+  }, 'qiniu-maas: locale dictionary');
   const connection = ctx.get('connection') as ConnectionHandle;
 
   const qiniuSettingsController = createQiniuSettingsController(

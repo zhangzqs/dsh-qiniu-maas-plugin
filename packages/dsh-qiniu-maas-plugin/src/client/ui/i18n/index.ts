@@ -11,8 +11,8 @@ import { modelCardMessages } from '../page/panels/model-center/components/ModelC
 import { modelDetailMessages } from '../page/panels/model-center/components/ModelDetailDialog.locales.ts';
 import { settingsMessages } from '../page/panels/settings/SettingsPanel.locales.ts';
 import type { QiniuLocaleMessage, QiniuLocaleMessages } from './namespace.ts';
-export * from './namespace.ts';
 
+// 所有组件的翻译消息最终会注册到这里
 const allMessages = {
   ...pageHeaderMessages,
   ...tabsMessages,
@@ -29,21 +29,23 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
   }
 }
 export type QiniuTranslator = TranslateNS<'qiniu-maas'>;
+
 export const QiniuLocaleContext = createContext<QiniuTranslator | null>(null);
+
 export function useQiniuT(): QiniuTranslator {
   const t = useContext(QiniuLocaleContext);
-  if (t === null) throw new Error('Qiniu locale context is not available');
+  if (t === null) {
+    throw new Error('Qiniu locale context is not available');
+  }
   return t;
 }
 
-export function toLocaleDicts(
-  messages: QiniuLocaleMessages,
-): Record<LocaleId, LocaleDictOf<'qiniu-maas'>> {
+export const qiniuMessages = (() => {
   const dictionaries = { zh: {}, en: {} } as Record<
     LocaleId,
     LocaleDictOf<'qiniu-maas'>
   >;
-  for (const [key, value] of Object.entries(messages) as [
+  for (const [key, value] of Object.entries(allMessages) as [
     string,
     QiniuLocaleMessage,
   ][]) {
@@ -51,9 +53,7 @@ export function toLocaleDicts(
     dictionaries.en[key as keyof typeof dictionaries.en] = value.en;
   }
   return dictionaries;
-}
-
-export const qiniuMessages = toLocaleDicts(allMessages);
+})();
 
 export function translateWithMessages(
   locale: LocaleId,
