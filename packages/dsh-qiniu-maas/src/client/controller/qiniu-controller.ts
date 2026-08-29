@@ -53,6 +53,30 @@ export function createQiniuController(
   settings: SettingsScope<PiAiSettings>,
   store: SnapshotStore<QiniuState>,
 ): QiniuController {
+  const refreshModels = async (region: QiniuRegion): Promise<void> => {
+    store.update((state) => {
+      state.refreshing = true;
+      state.error = null;
+      state.modelMarketRegion = region;
+    });
+    try {
+      const market = await listModels({ region });
+      store.update((state) => {
+        state.status = 'ready';
+        state.refreshing = false;
+        state.market = market;
+        state.enabledModelIds = enabledModelIdsOf(settings);
+        state.modelMarketRegion = region;
+      });
+    } catch (error) {
+      store.update((state) => {
+        state.refreshing = false;
+        state.error = error instanceof Error ? error.message : String(error);
+        state.modelMarketRegion = region;
+      });
+    }
+  };
+
   const refresh = async (): Promise<void> => {
     store.update((state) => {
       Object.assign(state, beginRefresh(state));
@@ -128,7 +152,7 @@ export function createQiniuController(
   const setModelMarketRegion = async (region: QiniuRegion): Promise<void> => {
     await settings.set('modelMarketRegion', region);
     await updateProviderSettings();
-    await refresh();
+    await refreshModels(region);
   };
 
   const setInferenceProtocol = async (

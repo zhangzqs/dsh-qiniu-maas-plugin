@@ -63,7 +63,7 @@ export function QiniuSettingsSection(props: Props): ReactNode {
       <header className={css.header}>
         <div>
           <p className={css.kicker}>QINIU MAAS</p>
-          <h2>模型中心</h2>
+          <h2>七牛 MaaS</h2>
           <p className={css.subtitle}>浏览模型，启用后即可在会话中选择。</p>
         </div>
         <button
