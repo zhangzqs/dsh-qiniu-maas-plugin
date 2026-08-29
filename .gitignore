@@ -13,3 +13,4 @@ test-results/
 *.key
 *.secret
 secrets/
+docs/superpowers/
