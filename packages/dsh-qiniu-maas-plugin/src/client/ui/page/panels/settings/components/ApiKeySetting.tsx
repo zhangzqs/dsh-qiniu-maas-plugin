@@ -1,26 +1,18 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Button, Input } from '@deepseek-ai/dsh-client-ui-primitives';
 import css from './ApiKeySetting.module.css';
+import { useQiniuT } from '../../../../i18n.ts';
 
 export interface Props {
   checkApiKeyConfigured: () => Promise<boolean>;
   setApiKey: (value: string) => Promise<void>;
 }
 
-function apiKeyStatusLabel(
-  isChecking: boolean,
-  statusError: string | undefined,
-  isConfigured: boolean | undefined,
-): string {
-  if (isChecking) return '检查配置中...';
-  if (statusError) return `检查失败：${statusError}`;
-  return isConfigured ? '已配置' : '未配置';
-}
-
 export function ApiKeySetting({
   checkApiKeyConfigured,
   setApiKey,
 }: Props): ReactNode {
+  const t = useQiniuT();
   const [value, setValue] = useState('');
   const [isConfigured, setIsConfigured] = useState<boolean>();
   const [statusError, setStatusError] = useState<string>();
@@ -66,17 +58,19 @@ export function ApiKeySetting({
 
   return (
     <section className={css.setting}>
-      <h3>推理 API Key</h3>
-      <p className={css.description}>设置后，已启用模型可以在会话中调用。</p>
+      <h3>{t('settings.apiKey')}</h3>
+      <p className={css.description}>{t('settings.apiKeyDescription')}</p>
       <div className={css.row}>
         <Input
           className={css.input}
-          aria-label="推理 API Key"
+          aria-label={t('settings.apiKey')}
           type="password"
           value={value}
           onChange={(event) => setValue(event.target.value)}
           placeholder={
-            isConfigured ? '已配置，如需更换请重新输入' : '输入 API Key'
+            isConfigured
+              ? t('settings.apiKeyConfigured')
+              : t('settings.apiKeyPlaceholder')
           }
         />
         <Button
@@ -86,11 +80,17 @@ export function ApiKeySetting({
           disabled={isSaving || value.trim().length === 0}
           onClick={() => void handleSubmit()}
         >
-          {isSaving ? '保存中...' : '保存 API Key'}
+          {isSaving ? t('model.saving') : t('settings.saveApiKey')}
         </Button>
       </div>
       <span className={css.status}>
-        {apiKeyStatusLabel(isChecking, statusError, isConfigured)}
+        {isChecking
+          ? t('settings.apiKeyChecking')
+          : statusError
+            ? t('settings.apiKeyCheckFailed', { error: statusError })
+            : isConfigured
+              ? t('settings.apiKeyConfigured')
+              : t('settings.apiKeyNotConfigured')}
       </span>
     </section>
   );

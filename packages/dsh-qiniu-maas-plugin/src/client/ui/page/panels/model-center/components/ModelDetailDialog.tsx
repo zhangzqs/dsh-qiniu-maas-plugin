@@ -3,9 +3,10 @@ import type { ReactNode } from 'react';
 import type { Model } from 'qiniu-maas-market-sdk';
 import { ModelAvatar } from './ModelAvatar.tsx';
 import css from './ModelDetailDialog.module.css';
+import { useQiniuT } from '../../../../i18n.ts';
 
-function formatTokenCount(value: number | undefined): string {
-  if (value === undefined) return '未知';
+function formatTokenCount(value: number | undefined, unknown: string): string {
+  if (value === undefined) return unknown;
   if (value < 1_000) return value.toLocaleString();
 
   const divisor = value < 1_000_000 ? 1_000 : 1_000_000;
@@ -20,80 +21,91 @@ interface Props {
 }
 
 export function ModelDetailDialog({ model, onClose }: Props): ReactNode {
+  const t = useQiniuT();
   return (
     <Modal
       open
       title={model.name}
       description={model.id}
-      closeLabel="关闭详情"
+      closeLabel={t('model.closeDetails')}
       onClose={onClose}
       className={css.modal}
       contentClassName={css.content}
     >
       <ModelAvatar model={model} size="dialog" />
       <p className={css.kicker}>MODEL DETAILS</p>
-      <p className={css.description}>{model.description || '暂无描述'}</p>
+      <p className={css.description}>
+        {model.description || t('model.noDescription')}
+      </p>
       <section className={css.section}>
-        <h3>模型信息</h3>
+        <h3>{t('model.info')}</h3>
         <div className={css.details}>
-          <span>发行方</span>
-          <strong>{model.issuer?.name || '未知'}</strong>
-          <span>发布时间</span>
-          <strong>{model.release_at || '未知'}</strong>
-          <span>输入</span>
+          <span>{t('model.issuer')}</span>
+          <strong>{model.issuer?.name || t('model.unknown')}</strong>
+          <span>{t('model.releaseAt')}</span>
+          <strong>{model.release_at || t('model.unknown')}</strong>
+          <span>{t('model.input')}</span>
           <strong>
-            {model.architecture?.input_modalities.join(', ') || '未知'}
+            {model.architecture?.input_modalities.join(', ') ||
+              t('model.unknown')}
           </strong>
-          <span>输出</span>
+          <span>{t('model.output')}</span>
           <strong>
-            {model.architecture?.output_modalities.join(', ') || '未知'}
+            {model.architecture?.output_modalities.join(', ') ||
+              t('model.unknown')}
           </strong>
         </div>
       </section>
       <section className={css.section}>
-        <h3>模型限制</h3>
+        <h3>{t('model.limits')}</h3>
         <div className={css.details}>
-          <span>上下文</span>
+          <span>{t('model.context')}</span>
           <strong>
-            {formatTokenCount(model.model_constraints?.context_length)}
+            {formatTokenCount(
+              model.model_constraints?.context_length,
+              t('model.unknown'),
+            )}
           </strong>
-          <span>最大输出</span>
+          <span>{t('model.maxOutput')}</span>
           <strong>
             {formatTokenCount(
               model.model_constraints?.max_completion_tokens ??
                 model.model_constraints?.max_tokens,
+              t('model.unknown'),
             )}
           </strong>
         </div>
       </section>
       <section className={css.section}>
-        <h3>支持能力</h3>
+        <h3>{t('model.capabilities')}</h3>
         <div className={css.tags}>
           {model.features.map((feature) => (
             <Pill key={feature}>{feature}</Pill>
           ))}
-          {model.architecture?.reasoning?.supported && <Pill>推理</Pill>}
+          {model.architecture?.reasoning?.supported && (
+            <Pill>{t('model.reasoning')}</Pill>
+          )}
           {model.architecture?.function_calling?.supported && (
-            <Pill>函数调用</Pill>
+            <Pill>{t('model.functionCalling')}</Pill>
           )}
           {model.architecture?.schema_output?.supported && (
-            <Pill>结构化输出</Pill>
+            <Pill>{t('model.structuredOutput')}</Pill>
           )}
         </div>
       </section>
       <section className={css.section}>
-        <h3>支持协议</h3>
+        <h3>{t('model.protocols')}</h3>
         <p className={css.inlineValue}>
-          {model.support_api_protocols.join(', ') || '未知'}
+          {model.support_api_protocols.join(', ') || t('model.unknown')}
         </p>
       </section>
       {(model.model_doc_url || model.integration_doc_url) && (
         <section className={css.section}>
-          <h3>相关文档</h3>
+          <h3>{t('model.documents')}</h3>
           <div className={css.links}>
             {model.model_doc_url && (
               <a href={model.model_doc_url} target="_blank" rel="noreferrer">
-                模型文档
+                {t('model.modelDocumentation')}
               </a>
             )}
             {model.integration_doc_url && (
@@ -102,7 +114,7 @@ export function ModelDetailDialog({ model, onClose }: Props): ReactNode {
                 target="_blank"
                 rel="noreferrer"
               >
-                接入文档
+                {t('model.integrationDocumentation')}
               </a>
             )}
           </div>

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type {
   InjectFace,
+  PropsLocale,
   PropsRuntime,
 } from '@deepseek-ai/dsh-client-ui-slots';
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
@@ -16,7 +17,9 @@ export interface QiniuInjected extends QiniuActions {
   };
 }
 
-type Props = PropsRuntime<'settings.section'> & InjectFace<QiniuInjected>;
+type Props = PropsRuntime<'settings.section'> &
+  InjectFace<QiniuInjected> &
+  PropsLocale<'qiniu-maas'>;
 
 export function QiniuSettingsSection(props: Props): ReactNode {
   const {
@@ -27,11 +30,13 @@ export function QiniuSettingsSection(props: Props): ReactNode {
     setModelMarketRegion,
     setInferenceProtocol,
     useSnapshot,
+    t,
   } = props;
   const state = useSnapshot((snapshot) => snapshot);
 
   return (
     <Page
+      t={t}
       models={{
         enabledModelIds: state.enabledModelIds,
         modelMarketRegion: state.modelMarketRegion,

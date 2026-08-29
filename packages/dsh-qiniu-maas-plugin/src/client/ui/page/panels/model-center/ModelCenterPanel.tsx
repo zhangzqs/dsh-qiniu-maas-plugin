@@ -23,17 +23,13 @@ import {
   type ModelSortOrder,
 } from './model-utils.ts';
 import css from './ModelCenterPanel.module.css';
+import { useQiniuT } from '../../../i18n.ts';
 
 const SORT_OPTIONS = [
-  { id: 'release-newest', label: '发布时间：最新' },
-  { id: 'release-oldest', label: '发布时间：最早' },
-  { id: 'name-asc', label: '名称：A-Z' },
-  { id: 'name-desc', label: '名称：Z-A' },
-] as const;
-
-const FILTER_OPTIONS = [
-  { id: 'enabled', label: '仅显示已启用模型' },
-  { id: 'retired', label: '显示已退役模型' },
+  ['release-newest', 'model.sortNewest'],
+  ['release-oldest', 'model.sortOldest'],
+  ['name-asc', 'model.nameAsc'],
+  ['name-desc', 'model.nameDesc'],
 ] as const;
 
 export interface Props {
@@ -49,6 +45,12 @@ export function ModelCenterPanel({
   fetchMarketModels,
   setEnabledModels,
 }: Props): ReactNode {
+  const t = useQiniuT();
+  const sortOptions = SORT_OPTIONS.map(([id, key]) => ({ id, label: t(key) }));
+  const filterOptions = [
+    { id: 'enabled', label: t('model.enabledOnly') },
+    { id: 'retired', label: t('model.showRetired') },
+  ];
   const [models, setLoadedModels] = useState<readonly Model[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -145,14 +147,14 @@ export function ModelCenterPanel({
             <Button
               variant="outline"
               className={css.sortButton}
-              aria-label="模型排序"
+              aria-label={t('model.sort')}
               onClick={() => setIsSortMenuOpen((open) => !open)}
             >
-              {SORT_OPTIONS.find((item) => item.id === sortOrder)?.label}
+              {sortOptions.find((item) => item.id === sortOrder)?.label}
               <IconChevronDownOutline14 />
             </Button>
           }
-          items={SORT_OPTIONS}
+          items={sortOptions}
           selectedId={sortOrder}
           onSelect={(id) => {
             setSortOrder(id as ModelSortOrder);
@@ -168,17 +170,17 @@ export function ModelCenterPanel({
             <Button
               variant="outline"
               className={css.filterButton}
-              aria-label="模型筛选"
+              aria-label={t('model.filter')}
               onClick={() => setIsFilterMenuOpen((open) => !open)}
             >
-              筛选
+              {t('model.filter')}
               {showEnabledOnly || showRetired
                 ? ` · ${Number(showEnabledOnly) + Number(showRetired)}`
                 : ''}
               <IconChevronDownOutline14 />
             </Button>
           }
-          items={FILTER_OPTIONS}
+          items={filterOptions}
           selectedIds={[
             ...(showEnabledOnly ? ['enabled'] : []),
             ...(showRetired ? ['retired'] : []),
@@ -193,31 +195,35 @@ export function ModelCenterPanel({
         />
         <Input
           className={css.search}
-          aria-label="搜索模型"
-          placeholder="搜索模型名称或 ID"
+          aria-label={t('model.search')}
+          placeholder={t('model.searchPlaceholder')}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
-        <span className={css.count}>{visibleModels.length} 个模型</span>
+        <span className={css.count}>
+          {t('model.count', { count: visibleModels.length })}
+        </span>
         <Button
           variant="toolbar"
           size="sm"
           icon={<IconRefreshOutline16 />}
           type="button"
           className={`${css.refreshButton} ${isRefreshing ? css.refreshing : ''}`}
-          aria-label="刷新模型"
-          title="刷新模型"
+          aria-label={t('model.refresh')}
+          title={t('model.refresh')}
           onClick={() => void loadMarketModels(true)}
           disabled={isLoading || isRefreshing}
         />
       </div>
       {actionError !== null && (
-        <p className={css.actionError}>模型设置保存失败：{actionError}</p>
+        <p className={css.actionError}>
+          {t('model.saveFailed', { error: actionError })}
+        </p>
       )}
-      {isLoading && <p className={css.listState}>模型加载中...</p>}
+      {isLoading && <p className={css.listState}>{t('model.loading')}</p>}
       {!isLoading && error !== null && (
         <div className={`${css.listState} ${css.error}`}>
-          <p>模型加载失败：{error}</p>
+          <p>{t('model.loadFailed', { error })}</p>
           <Button
             variant="outline"
             size="sm"
@@ -225,7 +231,7 @@ export function ModelCenterPanel({
             onClick={() => void loadMarketModels(true)}
             disabled={isRefreshing}
           >
-            重试
+            {t('model.retry')}
           </Button>
         </div>
       )}
@@ -244,7 +250,7 @@ export function ModelCenterPanel({
             ))}
           </div>
           {visibleModels.length === 0 && (
-            <p className={css.empty}>没有匹配的模型。</p>
+            <p className={css.empty}>{t('model.empty')}</p>
           )}
         </>
       )}
