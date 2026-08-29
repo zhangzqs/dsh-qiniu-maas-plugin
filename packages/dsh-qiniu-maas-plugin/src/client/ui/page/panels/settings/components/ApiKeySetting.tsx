@@ -58,19 +58,19 @@ export function ApiKeySetting({
 
   return (
     <section className={css.setting}>
-      <h3>{t('settings.apiKey')}</h3>
-      <p className={css.description}>{t('settings.apiKeyDescription')}</p>
+      <h3>{t('settings.apiKey.title')}</h3>
+      <p className={css.description}>{t('settings.apiKey.description')}</p>
       <div className={css.row}>
         <Input
           className={css.input}
-          aria-label={t('settings.apiKey')}
+          aria-label={t('settings.apiKey.title')}
           type="password"
           value={value}
           onChange={(event) => setValue(event.target.value)}
           placeholder={
             isConfigured
-              ? t('settings.apiKeyConfigured')
-              : t('settings.apiKeyPlaceholder')
+              ? t('settings.apiKey.configured')
+              : t('settings.apiKey.placeholder')
           }
         />
         <Button
@@ -80,17 +80,17 @@ export function ApiKeySetting({
           disabled={isSaving || value.trim().length === 0}
           onClick={() => void handleSubmit()}
         >
-          {isSaving ? t('model.saving') : t('settings.saveApiKey')}
+          {isSaving ? t('common.loading.saving') : t('settings.apiKey.save')}
         </Button>
       </div>
       <span className={css.status}>
         {isChecking
-          ? t('settings.apiKeyChecking')
+          ? t('settings.apiKey.checking')
           : statusError
-            ? t('settings.apiKeyCheckFailed', { error: statusError })
+            ? t('settings.apiKey.checkFailed', { error: statusError })
             : isConfigured
-              ? t('settings.apiKeyConfigured')
-              : t('settings.apiKeyNotConfigured')}
+              ? t('settings.apiKey.configured')
+              : t('settings.apiKey.notConfigured')}
       </span>
     </section>
   );

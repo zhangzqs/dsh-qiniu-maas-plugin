@@ -14,7 +14,7 @@ interface Props {
 export function Tabs({ activeTab, onTabChange }: Props): ReactNode {
   const t = useQiniuT();
   return (
-    <nav className={css.tabs} role="tablist" aria-label={t('tabs.aria')}>
+    <nav className={css.tabs} role="tablist" aria-label={t('page.tabs.aria')}>
       {TAB_ITEMS.map((id) => (
         <button
           key={id}
@@ -24,7 +24,11 @@ export function Tabs({ activeTab, onTabChange }: Props): ReactNode {
           className={activeTab === id ? css.active : undefined}
           onClick={() => onTabChange(id)}
         >
-          {t(id === 'model-center' ? 'tabs.modelCenter' : 'tabs.settings')}
+          {t(
+            id === 'model-center'
+              ? 'page.tabs.modelCenter'
+              : 'page.tabs.settings',
+          )}
         </button>
       ))}
     </nav>

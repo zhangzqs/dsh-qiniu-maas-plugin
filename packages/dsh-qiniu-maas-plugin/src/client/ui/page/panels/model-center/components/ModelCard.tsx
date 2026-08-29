@@ -36,17 +36,19 @@ export const ModelCard = memo(function ModelCard({
               </Pill>
             ))}
             <Pill className={isEnabled ? css.badgeEnabled : css.badge}>
-              {isEnabled ? t('model.enabled') : t('model.disabled')}
+              {isEnabled ? t('model.card.enabled') : t('model.card.disabled')}
             </Pill>
           </div>
           <p className={css.modelId}>{model.id}</p>
           {isRetired && (
             <p className={css.retiredWarning}>
-              {t('model.retiredMigration', { model: model.suggested_model })}
+              {t('model.card.retiredMigration', {
+                model: model.suggested_model,
+              })}
             </p>
           )}
           <p className={css.description}>
-            {model.description || t('model.noDescription')}
+            {model.description || t('model.card.noDescription')}
           </p>
         </div>
       </div>
@@ -58,7 +60,7 @@ export const ModelCard = memo(function ModelCard({
           className={css.quiet}
           onClick={() => onViewDetails(model.id)}
         >
-          {t('model.viewDetails')}
+          {t('model.card.viewDetails')}
         </Button>
         <Button
           variant={isEnabled ? 'outline' : 'primary'}
@@ -69,12 +71,12 @@ export const ModelCard = memo(function ModelCard({
           onClick={() => void onToggleEnabled(model.id)}
         >
           {updating
-            ? t('model.saving')
+            ? t('common.loading.saving')
             : isEnabled
-              ? t('model.disable')
+              ? t('model.card.disable')
               : isRetired
-                ? t('model.retired')
-                : t('model.enable')}
+                ? t('model.card.retired')
+                : t('model.card.enable')}
         </Button>
       </div>
     </article>

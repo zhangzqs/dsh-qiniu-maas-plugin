@@ -21,7 +21,7 @@ export const ModelAvatar = memo(function ModelAvatar({
     return (
       <span
         className={`${className} ${css.fallback}`}
-        aria-label={t('common.icon', { name: model.name })}
+        aria-label={t('model.avatar.icon', { name: model.name })}
       >
         {model.name.slice(0, 1).toUpperCase()}
       </span>
@@ -30,7 +30,7 @@ export const ModelAvatar = memo(function ModelAvatar({
   return (
     <img
       src={model.avatar}
-      alt={t('common.icon', { name: model.name })}
+      alt={t('model.avatar.icon', { name: model.name })}
       className={className}
       loading={size === 'card' ? 'lazy' : undefined}
       decoding="async"

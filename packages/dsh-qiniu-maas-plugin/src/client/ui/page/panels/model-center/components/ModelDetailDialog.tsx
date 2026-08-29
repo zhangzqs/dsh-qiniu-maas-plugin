@@ -27,85 +27,85 @@ export function ModelDetailDialog({ model, onClose }: Props): ReactNode {
       open
       title={model.name}
       description={model.id}
-      closeLabel={t('model.closeDetails')}
+      closeLabel={t('model.detail.close')}
       onClose={onClose}
       className={css.modal}
       contentClassName={css.content}
     >
       <ModelAvatar model={model} size="dialog" />
-      <p className={css.kicker}>MODEL DETAILS</p>
+      <p className={css.kicker}>{t('model.detail.kicker')}</p>
       <p className={css.description}>
-        {model.description || t('model.noDescription')}
+        {model.description || t('model.card.noDescription')}
       </p>
       <section className={css.section}>
-        <h3>{t('model.info')}</h3>
+        <h3>{t('model.detail.info')}</h3>
         <div className={css.details}>
-          <span>{t('model.issuer')}</span>
-          <strong>{model.issuer?.name || t('model.unknown')}</strong>
-          <span>{t('model.releaseAt')}</span>
-          <strong>{model.release_at || t('model.unknown')}</strong>
-          <span>{t('model.input')}</span>
+          <span>{t('model.detail.issuer')}</span>
+          <strong>{model.issuer?.name || t('model.detail.unknown')}</strong>
+          <span>{t('model.detail.releaseAt')}</span>
+          <strong>{model.release_at || t('model.detail.unknown')}</strong>
+          <span>{t('model.detail.input')}</span>
           <strong>
             {model.architecture?.input_modalities.join(', ') ||
-              t('model.unknown')}
+              t('model.detail.unknown')}
           </strong>
-          <span>{t('model.output')}</span>
+          <span>{t('model.detail.output')}</span>
           <strong>
             {model.architecture?.output_modalities.join(', ') ||
-              t('model.unknown')}
+              t('model.detail.unknown')}
           </strong>
         </div>
       </section>
       <section className={css.section}>
-        <h3>{t('model.limits')}</h3>
+        <h3>{t('model.detail.limits')}</h3>
         <div className={css.details}>
-          <span>{t('model.context')}</span>
+          <span>{t('model.detail.context')}</span>
           <strong>
             {formatTokenCount(
               model.model_constraints?.context_length,
-              t('model.unknown'),
+              t('model.detail.unknown'),
             )}
           </strong>
-          <span>{t('model.maxOutput')}</span>
+          <span>{t('model.detail.maxOutput')}</span>
           <strong>
             {formatTokenCount(
               model.model_constraints?.max_completion_tokens ??
                 model.model_constraints?.max_tokens,
-              t('model.unknown'),
+              t('model.detail.unknown'),
             )}
           </strong>
         </div>
       </section>
       <section className={css.section}>
-        <h3>{t('model.capabilities')}</h3>
+        <h3>{t('model.detail.capabilities')}</h3>
         <div className={css.tags}>
           {model.features.map((feature) => (
             <Pill key={feature}>{feature}</Pill>
           ))}
           {model.architecture?.reasoning?.supported && (
-            <Pill>{t('model.reasoning')}</Pill>
+            <Pill>{t('model.detail.reasoning')}</Pill>
           )}
           {model.architecture?.function_calling?.supported && (
-            <Pill>{t('model.functionCalling')}</Pill>
+            <Pill>{t('model.detail.functionCalling')}</Pill>
           )}
           {model.architecture?.schema_output?.supported && (
-            <Pill>{t('model.structuredOutput')}</Pill>
+            <Pill>{t('model.detail.structuredOutput')}</Pill>
           )}
         </div>
       </section>
       <section className={css.section}>
-        <h3>{t('model.protocols')}</h3>
+        <h3>{t('model.detail.protocols')}</h3>
         <p className={css.inlineValue}>
-          {model.support_api_protocols.join(', ') || t('model.unknown')}
+          {model.support_api_protocols.join(', ') || t('model.detail.unknown')}
         </p>
       </section>
       {(model.model_doc_url || model.integration_doc_url) && (
         <section className={css.section}>
-          <h3>{t('model.documents')}</h3>
+          <h3>{t('model.detail.documents')}</h3>
           <div className={css.links}>
             {model.model_doc_url && (
               <a href={model.model_doc_url} target="_blank" rel="noreferrer">
-                {t('model.modelDocumentation')}
+                {t('model.detail.modelDocumentation')}
               </a>
             )}
             {model.integration_doc_url && (
@@ -114,7 +114,7 @@ export function ModelDetailDialog({ model, onClose }: Props): ReactNode {
                 target="_blank"
                 rel="noreferrer"
               >
-                {t('model.integrationDocumentation')}
+                {t('model.detail.integrationDocumentation')}
               </a>
             )}
           </div>

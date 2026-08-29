@@ -31,19 +31,19 @@ export function SettingsPanel({
 }: Props): ReactNode {
   const t = useQiniuT();
   const regionOptions = [
-    { id: 'cn', label: t('settings.regionCn') },
-    { id: 'global', label: t('settings.regionGlobal') },
+    { id: 'cn', label: t('settings.panel.region.cn') },
+    { id: 'global', label: t('settings.panel.region.global') },
   ] as const;
   return (
     <div className={css.block}>
       <SettingSelect
-        label={t('settings.region')}
+        label={t('settings.panel.region')}
         value={modelMarketRegion}
         options={regionOptions}
         onChange={(value) => onModelMarketRegionChange(value as QiniuRegion)}
       />
       <SettingSelect
-        label={t('settings.protocol')}
+        label={t('settings.panel.protocol')}
         value={inferenceProtocol}
         options={PROTOCOL_OPTIONS}
         onChange={(value) =>

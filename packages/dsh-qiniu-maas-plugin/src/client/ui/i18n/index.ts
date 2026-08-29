@@ -6,6 +6,7 @@ import type {
 import { createContext, useContext } from 'react';
 import { pageHeaderMessages } from '../page/components/PageHeader.locales.ts';
 import { tabsMessages } from '../page/components/Tabs.locales.ts';
+import { commonMessages } from '../page/Common.locales.ts';
 import { modelCenterMessages } from '../page/panels/model-center/ModelCenterPanel.locales.ts';
 import { modelCardMessages } from '../page/panels/model-center/components/ModelCard.locales.ts';
 import { modelDetailMessages } from '../page/panels/model-center/components/ModelDetailDialog.locales.ts';
@@ -19,6 +20,7 @@ export type QiniuLocaleMessages = Record<string, QiniuLocaleMessage>;
 const allMessages = {
   ...pageHeaderMessages,
   ...tabsMessages,
+  ...commonMessages,
   ...modelCenterMessages,
   ...modelCardMessages,
   ...modelDetailMessages,
