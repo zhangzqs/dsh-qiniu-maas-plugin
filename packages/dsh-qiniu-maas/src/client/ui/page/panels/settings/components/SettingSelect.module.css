@@ -1,0 +1,11 @@
+.label {
+  display: grid;
+  gap: 6px;
+  color: var(--dsw-alias-label-secondary, #6b7280);
+  font-size: 13px;
+}
+
+.selectButton {
+  width: min(440px, 100%);
+  justify-content: space-between;
+}

@@ -1,0 +1,131 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  background: var(--dsw-alias-bg-layer-1, #fff);
+  border: 1px solid var(--dsw-alias-border-l2, #d9dde5);
+  border-radius: 7px;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 150px;
+}
+
+.main {
+  display: flex;
+  gap: 12px;
+  min-height: 84px;
+}
+
+.main > div {
+  min-width: 0;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.title h3 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge,
+.badgeEnabled,
+.hotTag {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.hotTag {
+  background: #b42318;
+  color: #fff;
+}
+
+.badge {
+  background: var(--dsw-alias-bg-layer-2, #eef1f5);
+  color: var(--dsw-alias-label-secondary, #64748b);
+}
+
+.badgeEnabled {
+  background: color-mix(
+    in srgb,
+    var(--dsw-alias-state-success-primary, #167344) 18%,
+    var(--dsw-alias-bg-layer-1, #fff)
+  );
+  color: var(--dsw-alias-state-success-primary, #167344);
+}
+
+.modelId,
+.description,
+.retiredWarning {
+  color: var(--dsw-alias-label-secondary, #6b7280);
+}
+
+.modelId {
+  margin: 5px 0;
+  overflow: hidden;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retiredWarning {
+  margin: 6px 0 0;
+  color: var(--dsw-alias-state-warning-primary, #b54708);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.description {
+  display: -webkit-box;
+  margin: 8px 0 0;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.quiet {
+  border: 0;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary, #6b7280);
+}
+
+.enable:disabled {
+  border: 1px solid var(--dsw-alias-border-l2, #d9dde5);
+  background: var(--dsw-alias-bg-layer-2, #eef1f5);
+  color: var(--dsw-alias-label-tertiary, #94a3b8);
+  cursor: not-allowed;
+}
+
+.disable {
+  border: 1px solid var(--dsw-alias-state-error-primary, #b42318);
+  background: transparent;
+  color: var(--dsw-alias-state-error-primary, #b42318);
+}
+
+.disable:hover {
+  background: var(
+    --dsw-alias-interactive-bg-hover-danger,
+    rgba(236, 19, 19, 0.05)
+  );
+}

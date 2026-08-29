@@ -1,0 +1,27 @@
+.tabs {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--dsw-alias-border-l2, #d9dde5);
+}
+
+.tabs button {
+  padding: 14px 2px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--dsw-alias-label-secondary, #6b7280);
+  cursor: pointer;
+}
+
+.tabs button.active {
+  border-bottom-color: var(--dsw-alias-button-primary-fill, #0d6efd);
+  color: var(--dsw-alias-label-primary, #111827);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .tabs {
+    gap: 16px;
+  }
+}
