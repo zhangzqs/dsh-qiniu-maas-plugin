@@ -1,4 +1,3 @@
-import type { SettingsScope } from '@deepseek-ai/dsh-client-runtime/client';
 import {
   QINIU_LLM_BASE_URLS,
   type Model,
@@ -12,9 +11,10 @@ import {
   QINIU_API_KEY_REF,
   type QiniuInferenceProtocol,
 } from '../qiniu-config.ts';
-import { type PiAiSettings } from './qiniu-state.ts';
+import type { PiAiSettings } from './qiniu-state.ts';
 
 const QINIU_PROVIDER = 'qiniu-maas';
+type PiAiProviders = NonNullable<PiAiSettings['providers']>;
 
 function toPiAiModelProfile(
   model: Pick<Model, 'id' | 'name' | 'architecture' | 'model_constraints'>,
@@ -40,16 +40,16 @@ export function selectEnabledModels(
   return models.filter((model) => enabledModelIdsSet.has(model.id));
 }
 
-/** 从dsh配置中获取可用模型 ID 列表 */
+/** 根据已启用模型生成七牛 provider 配置 */
 export function settingsWithEnabledModels(
-  settings: SettingsScope<PiAiSettings>,
+  providers: PiAiSettings['providers'],
   models: readonly Model[],
   region: QiniuRegion = 'cn',
   protocol: QiniuInferenceProtocol = 'openai-completions',
-): Record<string, unknown> {
-  const providers = settings.getSnapshot().value?.providers ?? {};
+): PiAiProviders {
+  const currentProviders = providers ?? {};
   if (models.length === 0) {
-    const otherProviders = { ...providers };
+    const otherProviders = { ...currentProviders };
     delete otherProviders[QINIU_PROVIDER];
     return otherProviders;
   }
@@ -60,22 +60,22 @@ export function settingsWithEnabledModels(
     baseURL: QINIU_LLM_BASE_URLS[region],
     models: models.map(toPiAiModelProfile),
   };
-  return { ...providers, [QINIU_PROVIDER]: profile };
+  return { ...currentProviders, [QINIU_PROVIDER]: profile };
 }
 
 export function settingsWithInferenceEndpoint(
-  settings: SettingsScope<PiAiSettings>,
+  providers: PiAiSettings['providers'],
   region: QiniuRegion,
   protocol: QiniuInferenceProtocol,
-): Record<string, unknown> {
-  const providers = settings.getSnapshot().value?.providers ?? {};
-  const profile = providers[QINIU_PROVIDER];
+): PiAiProviders {
+  const currentProviders = providers ?? {};
+  const profile = currentProviders[QINIU_PROVIDER];
   if (!profile || typeof profile !== 'object' || Array.isArray(profile)) {
-    return providers;
+    return currentProviders;
   }
 
   return {
-    ...providers,
+    ...currentProviders,
     [QINIU_PROVIDER]: {
       ...profile,
       api: protocol,

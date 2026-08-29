@@ -4,10 +4,9 @@ import { createSnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
 import { QiniuSettingsSection } from './ui/QiniuSettingsSection.tsx';
 import { createQiniuController } from './controller/qiniu-controller.ts';
+import { createPiAiSettingsController } from './controller/pi-ai-settings-controller.ts';
+import { createQiniuSettingsController } from './controller/qiniu-settings-controller.ts';
 import {
-  inferenceProtocolOf,
-  enabledModelIdsOf,
-  regionOf,
   type PiAiSettings,
   type QiniuInjected,
   type QiniuSettings,
@@ -18,31 +17,38 @@ export const inject = ['slots', 'connection', 'settingsScope'];
 
 export function apply(ctx: ClientContext): void {
   const connection = ctx.get('connection') as ConnectionHandle;
-  const qiniuSettings = ctx.settingsScope.bind<QiniuSettings>({
-    namespace: 'qiniu-maas',
-  });
-  const piAiSettings = ctx.settingsScope.bind<PiAiSettings>({
-    namespace: 'llm-pi-ai',
-  });
+
+  const qiniuSettingsController = createQiniuSettingsController(
+    ctx.settingsScope.bind<QiniuSettings>({
+      namespace: 'qiniu-maas',
+    }),
+  );
+  const piAiSettingsController = createPiAiSettingsController(
+    ctx.settingsScope.bind<PiAiSettings>({
+      namespace: 'llm-pi-ai',
+    }),
+  );
+  const qiniuSettingsValue = qiniuSettingsController.read();
   const store = createSnapshotStore<QiniuState>({
-    enabledModelIds: [],
-    modelMarketRegion: regionOf(qiniuSettings),
-    inferenceProtocol: inferenceProtocolOf(qiniuSettings),
+    enabledModelIds: qiniuSettingsValue.enabledModelIds,
+    modelMarketRegion: qiniuSettingsValue.region,
+    inferenceProtocol: qiniuSettingsValue.inferenceProtocol,
   });
   const controller = createQiniuController(
     connection,
-    qiniuSettings,
-    piAiSettings,
+    qiniuSettingsController,
+    piAiSettingsController,
     store,
   );
 
   ctx.effect(
     () =>
-      qiniuSettings.subscribe(() => {
+      qiniuSettingsController.subscribe(() => {
+        const settings = qiniuSettingsController.read();
         store.update((state) => {
-          state.enabledModelIds = enabledModelIdsOf(qiniuSettings);
-          state.modelMarketRegion = regionOf(qiniuSettings);
-          state.inferenceProtocol = inferenceProtocolOf(qiniuSettings);
+          state.enabledModelIds = settings.enabledModelIds;
+          state.modelMarketRegion = settings.region;
+          state.inferenceProtocol = settings.inferenceProtocol;
         });
       }),
     'qiniu-maas: settings updates',

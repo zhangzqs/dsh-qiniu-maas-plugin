@@ -1,8 +1,5 @@
 import type { Config as PiAiConfig } from '@deepseek-ai/dsh-llm-pi-ai';
-import type {
-  SettingsScope,
-  SnapshotStore,
-} from '@deepseek-ai/dsh-client-runtime/client';
+import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
 import type { Model, QiniuRegion } from 'qiniu-maas-model-market';
 import type { QiniuInferenceProtocol } from '../qiniu-config.ts';
 
@@ -36,26 +33,3 @@ export interface QiniuInjected extends QiniuActions {
 }
 
 export type QiniuController = QiniuActions;
-
-export function regionOf(settings: SettingsScope<QiniuSettings>): QiniuRegion {
-  return settings.getSnapshot().value?.region ?? 'cn';
-}
-
-export function enabledModelIdsOf(
-  settings: SettingsScope<QiniuSettings>,
-): string[] {
-  const modelIds = settings.getSnapshot().value?.enabledModelIds;
-  return Array.isArray(modelIds)
-    ? modelIds.filter(
-        (modelId): modelId is string => typeof modelId === 'string',
-      )
-    : [];
-}
-
-export function inferenceProtocolOf(
-  settings: SettingsScope<QiniuSettings>,
-): QiniuInferenceProtocol {
-  return (
-    settings.getSnapshot().value?.inferenceProtocol ?? 'openai-completions'
-  );
-}

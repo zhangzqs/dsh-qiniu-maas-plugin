@@ -10,24 +10,16 @@ import {
   settingsWithEnabledModels,
   settingsWithInferenceEndpoint,
 } from './provider-controller.ts';
-import {
-  inferenceProtocolOf,
-  regionOf,
-  type PiAiSettings,
-  type QiniuController,
-  type QiniuSettings,
-  type QiniuState,
-} from './qiniu-state.ts';
-import type {
-  SettingsScope,
-  SnapshotStore,
-} from '@deepseek-ai/dsh-client-runtime/client';
+import type { PiAiSettingsController } from './pi-ai-settings-controller.ts';
+import type { QiniuSettingsController } from './qiniu-settings-controller.ts';
+import { type QiniuController, type QiniuState } from './qiniu-state.ts';
+import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
 import type { QiniuInferenceProtocol } from '../qiniu-config.ts';
 
 export function createQiniuController(
   connection: ConnectionHandle,
-  qiniuSettings: SettingsScope<QiniuSettings>,
-  piAiSettings: SettingsScope<PiAiSettings>,
+  qiniuSettings: QiniuSettingsController,
+  piAiSettings: PiAiSettingsController,
   store: SnapshotStore<QiniuState>,
 ): QiniuController {
   let cachedMarketModels: readonly Model[] = [];
@@ -55,17 +47,21 @@ export function createQiniuController(
   };
 
   const setEnabledModels = async (models: readonly Model[]): Promise<void> => {
-    const enabledModelIds = new Set(store.getSnapshot().enabledModelIds);
+    const settings = qiniuSettings.read();
+    const enabledModelIds = new Set(settings.enabledModelIds);
     const enabledModels = models.filter(
       (model) => !model.suggested_model || enabledModelIds.has(model.id),
     );
-    await qiniuSettings.set(
-      'enabledModelIds',
+    await qiniuSettings.setEnabledModelIds(
       enabledModels.map((model) => model.id),
     );
-    await piAiSettings.set(
-      'providers',
-      settingsWithEnabledModels(piAiSettings, enabledModels),
+    await piAiSettings.setProviders(
+      settingsWithEnabledModels(
+        piAiSettings.read().providers,
+        enabledModels,
+        settings.region,
+        settings.inferenceProtocol,
+      ),
     );
     cachedMarketModels = enabledModels;
     store.update((state) => {
@@ -89,25 +85,26 @@ export function createQiniuController(
       cachedMarketModels.length > 0
         ? selectEnabledModels(cachedMarketModels, state.enabledModelIds)
         : undefined;
-    await piAiSettings.set(
-      'providers',
+    const qiniuSettingsValue = qiniuSettings.read();
+    const providers = piAiSettings.read().providers;
+    await piAiSettings.setProviders(
       enabledModels === undefined
         ? settingsWithInferenceEndpoint(
-            piAiSettings,
-            regionOf(qiniuSettings),
-            inferenceProtocolOf(qiniuSettings),
+            providers,
+            qiniuSettingsValue.region,
+            qiniuSettingsValue.inferenceProtocol,
           )
         : settingsWithEnabledModels(
-            piAiSettings,
+            providers,
             enabledModels,
-            regionOf(qiniuSettings),
-            inferenceProtocolOf(qiniuSettings),
+            qiniuSettingsValue.region,
+            qiniuSettingsValue.inferenceProtocol,
           ),
     );
   };
 
   const setModelMarketRegion = async (region: QiniuRegion): Promise<void> => {
-    await qiniuSettings.set('region', region);
+    await qiniuSettings.setRegion(region);
     await updateProviderSettings();
     store.update((state) => {
       state.modelMarketRegion = region;
@@ -117,7 +114,7 @@ export function createQiniuController(
   const setInferenceProtocol = async (
     protocol: QiniuInferenceProtocol,
   ): Promise<void> => {
-    await qiniuSettings.set('inferenceProtocol', protocol);
+    await qiniuSettings.setInferenceProtocol(protocol);
     await updateProviderSettings();
     store.update((state) => {
       state.inferenceProtocol = protocol;
