@@ -41,11 +41,11 @@ jobs:
       - name: Run ESLint
         run: pnpm lint
 
+      - name: Build packages
+        run: pnpm build
+
       - name: Run tests
         run: pnpm test
 
       - name: Type-check packages
         run: pnpm typecheck
-
-      - name: Build plugin
-        run: pnpm --filter @qiniu/dsh-qiniu-maas build
