@@ -24,6 +24,7 @@
 .title {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -37,12 +38,18 @@
 }
 
 .badge,
-.badgeEnabled {
+.badgeEnabled,
+.hotTag {
   flex: 0 0 auto;
   padding: 3px 7px;
   border-radius: 999px;
   font-size: 11px;
   white-space: nowrap;
+}
+
+.hotTag {
+  background: #b42318;
+  color: #fff;
 }
 
 .badge {

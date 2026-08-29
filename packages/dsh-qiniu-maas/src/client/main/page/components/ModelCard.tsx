@@ -23,6 +23,11 @@ export const ModelCard = memo(function ModelCard({
         <div>
           <div className={css.title}>
             <h3>{model.name}</h3>
+            {model.hot_tags.slice(0, 3).map((tag) => (
+              <span key={tag} className={css.hotTag}>
+                {tag}
+              </span>
+            ))}
             <span className={isEnabled ? css.badgeEnabled : css.badge}>
               {isEnabled ? '已启用' : '未启用'}
             </span>
