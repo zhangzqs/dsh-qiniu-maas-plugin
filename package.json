@@ -1,5 +1,5 @@
 {
-  "name": "qiniu-maas-plugin",
+  "name": "dsh-qiniu-maas-plugin",
   "private": true,
   "packageManager": "pnpm@10.32.1",
   "scripts": {
