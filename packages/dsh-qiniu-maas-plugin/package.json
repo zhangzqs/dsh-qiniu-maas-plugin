@@ -62,9 +62,6 @@
     "tsdown": "^0.22.14",
     "tsx": "^4.22.0"
   },
-  "dependencies": {
-    "qiniu-maas-market-sdk": "workspace:*"
-  },
   "files": [
     "lib",
     "cordis.patch.yml",

@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate release tag
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          TAG_VERSION="${TAG_NAME#v}"
+          PLUGIN_VERSION="$(node -p "require('./packages/dsh-qiniu-maas-plugin/package.json').version")"
+          if [ "$TAG_VERSION" != "$PLUGIN_VERSION" ]; then
+            echo "Tag version $TAG_VERSION does not match plugin version $PLUGIN_VERSION"
+            exit 1
+          fi
+
+      - name: Clean build output
+        run: |
+          rm -rf packages/dsh-qiniu-maas-plugin/lib
+          rm -rf packages/qiniu-maas-market-sdk/lib
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Type-check packages
+        run: pnpm typecheck
+
+      - name: Pack plugin
+        working-directory: packages/dsh-qiniu-maas-plugin
+        run: |
+          mkdir -p ../../release
+          pnpm pack --pack-destination ../../release
+
+      - name: Verify plugin package
+        run: |
+          PACKAGE_COUNT="$(find release -maxdepth 1 -type f -name '*.tgz' | wc -l)"
+          if [ "$PACKAGE_COUNT" -ne 1 ]; then
+            echo "Expected exactly one plugin package, found $PACKAGE_COUNT"
+            exit 1
+          fi
+
+          PACKAGE_PATH="$(find release -maxdepth 1 -type f -name '*.tgz' -print)"
+          tar -tzf "$PACKAGE_PATH" | grep -Fx 'package/package.json'
+          tar -tzf "$PACKAGE_PATH" | grep -Fx 'package/cordis.patch.yml'
+          tar -tzf "$PACKAGE_PATH" | grep -Fx 'package/lib/client.js'
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/*.tgz \
+            --verify-tag \
+            --generate-notes \
+            --title "七牛 MaaS DSH 插件 $GITHUB_REF_NAME"
