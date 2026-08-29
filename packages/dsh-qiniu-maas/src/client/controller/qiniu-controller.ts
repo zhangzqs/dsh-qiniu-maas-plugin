@@ -4,7 +4,7 @@ import {
   type Model,
   type QiniuRegion,
 } from 'qiniu-maas-model-market';
-import { QINIU_API_KEY_REF } from '../qiniu-config.ts';
+import { QINIU_API_KEY_REF } from './qiniu-constants.ts';
 import {
   selectEnabledModels,
   settingsWithEnabledModels,
@@ -14,7 +14,7 @@ import type { PiAiSettingsController } from './settings/pi-ai-settings-controlle
 import type { QiniuSettingsController } from './settings/qiniu-settings-controller.ts';
 import { type QiniuActions, type QiniuState } from './qiniu-state.ts';
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
-import type { QiniuInferenceProtocol } from '../qiniu-config.ts';
+import type { QiniuInferenceProtocol } from '../qiniu-protocol.ts';
 
 export type QiniuController = QiniuActions;
 

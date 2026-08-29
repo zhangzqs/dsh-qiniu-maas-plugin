@@ -1,0 +1,1 @@
+export const QINIU_API_KEY_REF = 'QINIU_MAAS_API_KEY';

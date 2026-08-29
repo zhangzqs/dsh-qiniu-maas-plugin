@@ -7,7 +7,7 @@ import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
 import type { QiniuRegion } from 'qiniu-maas-model-market';
 import type { QiniuActions, QiniuState } from '../controller/qiniu-state.ts';
-import type { QiniuInferenceProtocol } from '../qiniu-config.ts';
+import type { QiniuInferenceProtocol } from '../qiniu-protocol.ts';
 import { Page } from './page/Page.tsx';
 
 export interface QiniuInjected extends QiniuActions {
