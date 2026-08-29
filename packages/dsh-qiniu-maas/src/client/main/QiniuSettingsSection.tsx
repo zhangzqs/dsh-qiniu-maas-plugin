@@ -64,18 +64,28 @@ export function QiniuSettingsSection(props: Props): ReactNode {
         <div>
           <p className={css.kicker}>QINIU MAAS</p>
           <h2>七牛 MaaS</h2>
-          <p className={css.subtitle}>浏览模型，启用后即可在会话中选择。</p>
+          <p className={css.subtitle}>管理七牛 MaaS 模型服务。</p>
         </div>
-        <button
-          type="button"
-          className={css.iconButton}
-          aria-label="刷新模型"
-          onClick={() => {
-            void refresh();
-          }}
-        >
-          ↻
-        </button>
+        <div className={css.headerActions}>
+          <a
+            className={css.portalLink}
+            href="https://portal.qiniu.com/ai-inference/model"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Portal 控制台
+          </a>
+          <button
+            type="button"
+            className={css.iconButton}
+            aria-label="刷新模型"
+            onClick={() => {
+              void refresh();
+            }}
+          >
+            ↻
+          </button>
+        </div>
       </header>
       {state.refreshing && state.status === 'ready' && (
         <p className={css.state}>正在更新模型...</p>
