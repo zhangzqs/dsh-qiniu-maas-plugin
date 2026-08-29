@@ -4,6 +4,8 @@ import type { Model } from 'qiniu-maas-market-sdk';
 import { ModelAvatar } from './ModelAvatar.tsx';
 import css from './ModelDetailDialog.module.css';
 import { useQiniuT } from '../../../../i18n/index.ts';
+import { modelCardKeys } from './ModelCard.locales.ts';
+import { modelDetailKeys } from './ModelDetailDialog.locales.ts';
 
 function formatTokenCount(value: number | undefined, unknown: string): string {
   if (value === undefined) return unknown;
@@ -27,85 +29,85 @@ export function ModelDetailDialog({ model, onClose }: Props): ReactNode {
       open
       title={model.name}
       description={model.id}
-      closeLabel={t('model.detail.close')}
+      closeLabel={t(modelDetailKeys.close)}
       onClose={onClose}
       className={css.modal}
       contentClassName={css.content}
     >
       <ModelAvatar model={model} size="dialog" />
-      <p className={css.kicker}>{t('model.detail.kicker')}</p>
+      <p className={css.kicker}>{t(modelDetailKeys.kicker)}</p>
       <p className={css.description}>
-        {model.description || t('model.card.noDescription')}
+        {model.description || t(modelCardKeys.noDescription)}
       </p>
       <section className={css.section}>
-        <h3>{t('model.detail.info')}</h3>
+        <h3>{t(modelDetailKeys.info)}</h3>
         <div className={css.details}>
-          <span>{t('model.detail.issuer')}</span>
-          <strong>{model.issuer?.name || t('model.detail.unknown')}</strong>
-          <span>{t('model.detail.releaseAt')}</span>
-          <strong>{model.release_at || t('model.detail.unknown')}</strong>
-          <span>{t('model.detail.input')}</span>
+          <span>{t(modelDetailKeys.issuer)}</span>
+          <strong>{model.issuer?.name || t(modelDetailKeys.unknown)}</strong>
+          <span>{t(modelDetailKeys.releaseAt)}</span>
+          <strong>{model.release_at || t(modelDetailKeys.unknown)}</strong>
+          <span>{t(modelDetailKeys.input)}</span>
           <strong>
             {model.architecture?.input_modalities.join(', ') ||
-              t('model.detail.unknown')}
+              t(modelDetailKeys.unknown)}
           </strong>
-          <span>{t('model.detail.output')}</span>
+          <span>{t(modelDetailKeys.output)}</span>
           <strong>
             {model.architecture?.output_modalities.join(', ') ||
-              t('model.detail.unknown')}
+              t(modelDetailKeys.unknown)}
           </strong>
         </div>
       </section>
       <section className={css.section}>
-        <h3>{t('model.detail.limits')}</h3>
+        <h3>{t(modelDetailKeys.limits)}</h3>
         <div className={css.details}>
-          <span>{t('model.detail.context')}</span>
+          <span>{t(modelDetailKeys.context)}</span>
           <strong>
             {formatTokenCount(
               model.model_constraints?.context_length,
-              t('model.detail.unknown'),
+              t(modelDetailKeys.unknown),
             )}
           </strong>
-          <span>{t('model.detail.maxOutput')}</span>
+          <span>{t(modelDetailKeys.maxOutput)}</span>
           <strong>
             {formatTokenCount(
               model.model_constraints?.max_completion_tokens ??
                 model.model_constraints?.max_tokens,
-              t('model.detail.unknown'),
+              t(modelDetailKeys.unknown),
             )}
           </strong>
         </div>
       </section>
       <section className={css.section}>
-        <h3>{t('model.detail.capabilities')}</h3>
+        <h3>{t(modelDetailKeys.capabilities)}</h3>
         <div className={css.tags}>
           {model.features.map((feature) => (
             <Pill key={feature}>{feature}</Pill>
           ))}
           {model.architecture?.reasoning?.supported && (
-            <Pill>{t('model.detail.reasoning')}</Pill>
+            <Pill>{t(modelDetailKeys.reasoning)}</Pill>
           )}
           {model.architecture?.function_calling?.supported && (
-            <Pill>{t('model.detail.functionCalling')}</Pill>
+            <Pill>{t(modelDetailKeys.functionCalling)}</Pill>
           )}
           {model.architecture?.schema_output?.supported && (
-            <Pill>{t('model.detail.structuredOutput')}</Pill>
+            <Pill>{t(modelDetailKeys.structuredOutput)}</Pill>
           )}
         </div>
       </section>
       <section className={css.section}>
-        <h3>{t('model.detail.protocols')}</h3>
+        <h3>{t(modelDetailKeys.protocols)}</h3>
         <p className={css.inlineValue}>
-          {model.support_api_protocols.join(', ') || t('model.detail.unknown')}
+          {model.support_api_protocols.join(', ') || t(modelDetailKeys.unknown)}
         </p>
       </section>
       {(model.model_doc_url || model.integration_doc_url) && (
         <section className={css.section}>
-          <h3>{t('model.detail.documents')}</h3>
+          <h3>{t(modelDetailKeys.documents)}</h3>
           <div className={css.links}>
             {model.model_doc_url && (
               <a href={model.model_doc_url} target="_blank" rel="noreferrer">
-                {t('model.detail.modelDocumentation')}
+                {t(modelDetailKeys.modelDocumentation)}
               </a>
             )}
             {model.integration_doc_url && (
@@ -114,7 +116,7 @@ export function ModelDetailDialog({ model, onClose }: Props): ReactNode {
                 target="_blank"
                 rel="noreferrer"
               >
-                {t('model.detail.integrationDocumentation')}
+                {t(modelDetailKeys.integrationDocumentation)}
               </a>
             )}
           </div>

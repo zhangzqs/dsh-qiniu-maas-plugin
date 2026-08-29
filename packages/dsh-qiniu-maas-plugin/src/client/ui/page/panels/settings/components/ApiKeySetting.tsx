@@ -2,6 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Button, Input } from '@deepseek-ai/dsh-client-ui-primitives';
 import css from './ApiKeySetting.module.css';
 import { useQiniuT } from '../../../../i18n/index.ts';
+import { commonKeys } from '../../../Common.locales.ts';
+import { apiKeySettingKeys } from './ApiKeySetting.locales.ts';
 
 export interface Props {
   checkApiKeyConfigured: () => Promise<boolean>;
@@ -58,19 +60,19 @@ export function ApiKeySetting({
 
   return (
     <section className={css.setting}>
-      <h3>{t('settings.apiKey.title')}</h3>
-      <p className={css.description}>{t('settings.apiKey.description')}</p>
+      <h3>{t(apiKeySettingKeys.title)}</h3>
+      <p className={css.description}>{t(apiKeySettingKeys.description)}</p>
       <div className={css.row}>
         <Input
           className={css.input}
-          aria-label={t('settings.apiKey.title')}
+          aria-label={t(apiKeySettingKeys.title)}
           type="password"
           value={value}
           onChange={(event) => setValue(event.target.value)}
           placeholder={
             isConfigured
-              ? t('settings.apiKey.configured')
-              : t('settings.apiKey.placeholder')
+              ? t(apiKeySettingKeys.configured)
+              : t(apiKeySettingKeys.placeholder)
           }
         />
         <Button
@@ -80,17 +82,17 @@ export function ApiKeySetting({
           disabled={isSaving || value.trim().length === 0}
           onClick={() => void handleSubmit()}
         >
-          {isSaving ? t('common.loading.saving') : t('settings.apiKey.save')}
+          {isSaving ? t(commonKeys.saving) : t(apiKeySettingKeys.save)}
         </Button>
       </div>
       <span className={css.status}>
         {isChecking
-          ? t('settings.apiKey.checking')
+          ? t(apiKeySettingKeys.checking)
           : statusError
-            ? t('settings.apiKey.checkFailed', { error: statusError })
+            ? t(apiKeySettingKeys.checkFailed, { error: statusError })
             : isConfigured
-              ? t('settings.apiKey.configured')
-              : t('settings.apiKey.notConfigured')}
+              ? t(apiKeySettingKeys.configured)
+              : t(apiKeySettingKeys.notConfigured)}
       </span>
     </section>
   );

@@ -3,7 +3,9 @@ import { Button, Pill } from '@deepseek-ai/dsh-client-ui-primitives';
 import type { Model } from 'qiniu-maas-market-sdk';
 import { ModelAvatar } from './ModelAvatar.tsx';
 import css from './ModelCard.module.css';
+import { modelCardKeys } from './ModelCard.locales.ts';
 import { useQiniuT } from '../../../../i18n/index.ts';
+import { commonKeys } from '../../../Common.locales.ts';
 
 interface Props {
   model: Model;
@@ -36,19 +38,19 @@ export const ModelCard = memo(function ModelCard({
               </Pill>
             ))}
             <Pill className={isEnabled ? css.badgeEnabled : css.badge}>
-              {isEnabled ? t('model.card.enabled') : t('model.card.disabled')}
+              {isEnabled ? t(modelCardKeys.enabled) : t(modelCardKeys.disabled)}
             </Pill>
           </div>
           <p className={css.modelId}>{model.id}</p>
           {isRetired && (
             <p className={css.retiredWarning}>
-              {t('model.card.retiredMigration', {
+              {t(modelCardKeys.retiredMigration, {
                 model: model.suggested_model,
               })}
             </p>
           )}
           <p className={css.description}>
-            {model.description || t('model.card.noDescription')}
+            {model.description || t(modelCardKeys.noDescription)}
           </p>
         </div>
       </div>
@@ -60,7 +62,7 @@ export const ModelCard = memo(function ModelCard({
           className={css.quiet}
           onClick={() => onViewDetails(model.id)}
         >
-          {t('model.card.viewDetails')}
+          {t(modelCardKeys.viewDetails)}
         </Button>
         <Button
           variant={isEnabled ? 'outline' : 'primary'}
@@ -71,12 +73,12 @@ export const ModelCard = memo(function ModelCard({
           onClick={() => void onToggleEnabled(model.id)}
         >
           {updating
-            ? t('common.loading.saving')
+            ? t(commonKeys.saving)
             : isEnabled
-              ? t('model.card.disable')
+              ? t(modelCardKeys.disable)
               : isRetired
-                ? t('model.card.retired')
-                : t('model.card.enable')}
+                ? t(modelCardKeys.retired)
+                : t(modelCardKeys.enable)}
         </Button>
       </div>
     </article>

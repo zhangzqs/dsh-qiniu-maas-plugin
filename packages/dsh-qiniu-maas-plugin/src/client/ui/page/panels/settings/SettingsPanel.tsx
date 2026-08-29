@@ -5,6 +5,7 @@ import { ApiKeySetting } from './components/ApiKeySetting.tsx';
 import { SettingSelect } from './components/SettingSelect.tsx';
 import css from './SettingsPanel.module.css';
 import { useQiniuT } from '../../../i18n/index.ts';
+import { settingsKeys } from './SettingsPanel.locales.ts';
 
 const PROTOCOL_OPTIONS = [
   { id: 'openai-completions', label: 'OpenAI Chat Completions' },
@@ -31,19 +32,19 @@ export function SettingsPanel({
 }: Props): ReactNode {
   const t = useQiniuT();
   const regionOptions = [
-    { id: 'cn', label: t('settings.panel.region.cn') },
-    { id: 'global', label: t('settings.panel.region.global') },
+    { id: 'cn', label: t(settingsKeys.regionCn) },
+    { id: 'global', label: t(settingsKeys.regionGlobal) },
   ] as const;
   return (
     <div className={css.block}>
       <SettingSelect
-        label={t('settings.panel.region')}
+        label={t(settingsKeys.region)}
         value={modelMarketRegion}
         options={regionOptions}
         onChange={(value) => onModelMarketRegionChange(value as QiniuRegion)}
       />
       <SettingSelect
-        label={t('settings.panel.protocol')}
+        label={t(settingsKeys.protocol)}
         value={inferenceProtocol}
         options={PROTOCOL_OPTIONS}
         onChange={(value) =>

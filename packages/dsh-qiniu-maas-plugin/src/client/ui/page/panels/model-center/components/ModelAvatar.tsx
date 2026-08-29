@@ -1,6 +1,7 @@
 import { memo, useState, type ReactNode } from 'react';
 import type { Model } from 'qiniu-maas-market-sdk';
 import css from './ModelAvatar.module.css';
+import { modelAvatarKeys } from './ModelAvatar.locales.ts';
 import { useQiniuT } from '../../../../i18n/index.ts';
 
 export type ModelAvatarSize = 'card' | 'dialog';
@@ -21,7 +22,7 @@ export const ModelAvatar = memo(function ModelAvatar({
     return (
       <span
         className={`${className} ${css.fallback}`}
-        aria-label={t('model.avatar.icon', { name: model.name })}
+        aria-label={t(modelAvatarKeys.icon, { name: model.name })}
       >
         {model.name.slice(0, 1).toUpperCase()}
       </span>
@@ -30,7 +31,7 @@ export const ModelAvatar = memo(function ModelAvatar({
   return (
     <img
       src={model.avatar}
-      alt={t('model.avatar.icon', { name: model.name })}
+      alt={t(modelAvatarKeys.icon, { name: model.name })}
       className={className}
       loading={size === 'card' ? 'lazy' : undefined}
       decoding="async"

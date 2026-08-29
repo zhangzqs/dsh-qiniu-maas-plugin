@@ -24,12 +24,13 @@ import {
 } from './model-utils.ts';
 import css from './ModelCenterPanel.module.css';
 import { useQiniuT } from '../../../i18n/index.ts';
+import { modelCenterKeys } from './ModelCenterPanel.locales.ts';
 
 const SORT_OPTIONS = [
-  ['release-newest', 'model.center.sortNewest'],
-  ['release-oldest', 'model.center.sortOldest'],
-  ['name-asc', 'model.center.nameAsc'],
-  ['name-desc', 'model.center.nameDesc'],
+  ['release-newest', modelCenterKeys.sortNewest],
+  ['release-oldest', modelCenterKeys.sortOldest],
+  ['name-asc', modelCenterKeys.nameAsc],
+  ['name-desc', modelCenterKeys.nameDesc],
 ] as const;
 
 export interface Props {
@@ -48,8 +49,8 @@ export function ModelCenterPanel({
   const t = useQiniuT();
   const sortOptions = SORT_OPTIONS.map(([id, key]) => ({ id, label: t(key) }));
   const filterOptions = [
-    { id: 'enabled', label: t('model.center.enabledOnly') },
-    { id: 'retired', label: t('model.center.showRetired') },
+    { id: 'enabled', label: t(modelCenterKeys.enabledOnly) },
+    { id: 'retired', label: t(modelCenterKeys.showRetired) },
   ];
   const [models, setLoadedModels] = useState<readonly Model[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -147,7 +148,7 @@ export function ModelCenterPanel({
             <Button
               variant="outline"
               className={css.sortButton}
-              aria-label={t('model.center.sort')}
+              aria-label={t(modelCenterKeys.sort)}
               onClick={() => setIsSortMenuOpen((open) => !open)}
             >
               {sortOptions.find((item) => item.id === sortOrder)?.label}
@@ -170,10 +171,10 @@ export function ModelCenterPanel({
             <Button
               variant="outline"
               className={css.filterButton}
-              aria-label={t('model.center.filter')}
+              aria-label={t(modelCenterKeys.filter)}
               onClick={() => setIsFilterMenuOpen((open) => !open)}
             >
-              {t('model.center.filter')}
+              {t(modelCenterKeys.filter)}
               {showEnabledOnly || showRetired
                 ? ` · ${Number(showEnabledOnly) + Number(showRetired)}`
                 : ''}
@@ -195,13 +196,13 @@ export function ModelCenterPanel({
         />
         <Input
           className={css.search}
-          aria-label={t('model.center.search')}
-          placeholder={t('model.center.searchPlaceholder')}
+          aria-label={t(modelCenterKeys.search)}
+          placeholder={t(modelCenterKeys.searchPlaceholder)}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
         <span className={css.count}>
-          {t('model.center.count', { count: visibleModels.length })}
+          {t(modelCenterKeys.count, { count: visibleModels.length })}
         </span>
         <Button
           variant="toolbar"
@@ -209,23 +210,23 @@ export function ModelCenterPanel({
           icon={<IconRefreshOutline16 />}
           type="button"
           className={`${css.refreshButton} ${isRefreshing ? css.refreshing : ''}`}
-          aria-label={t('model.center.refresh')}
-          title={t('model.center.refresh')}
+          aria-label={t(modelCenterKeys.refresh)}
+          title={t(modelCenterKeys.refresh)}
           onClick={() => void loadMarketModels(true)}
           disabled={isLoading || isRefreshing}
         />
       </div>
       {actionError !== null && (
         <p className={css.actionError}>
-          {t('model.center.saveFailed', { error: actionError })}
+          {t(modelCenterKeys.saveFailed, { error: actionError })}
         </p>
       )}
       {isLoading && (
-        <p className={css.listState}>{t('model.center.loading')}</p>
+        <p className={css.listState}>{t(modelCenterKeys.loading)}</p>
       )}
       {!isLoading && error !== null && (
         <div className={`${css.listState} ${css.error}`}>
-          <p>{t('model.center.loadFailed', { error })}</p>
+          <p>{t(modelCenterKeys.loadFailed, { error })}</p>
           <Button
             variant="outline"
             size="sm"
@@ -233,7 +234,7 @@ export function ModelCenterPanel({
             onClick={() => void loadMarketModels(true)}
             disabled={isRefreshing}
           >
-            {t('model.center.retry')}
+            {t(modelCenterKeys.retry)}
           </Button>
         </div>
       )}
@@ -252,7 +253,7 @@ export function ModelCenterPanel({
             ))}
           </div>
           {visibleModels.length === 0 && (
-            <p className={css.empty}>{t('model.center.empty')}</p>
+            <p className={css.empty}>{t(modelCenterKeys.empty)}</p>
           )}
         </>
       )}

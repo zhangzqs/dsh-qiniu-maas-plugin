@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import css from './Tabs.module.css';
 import { useQiniuT } from '../../i18n/index.ts';
+import { tabsKeys } from './Tabs.locales.ts';
 
 export type Tab = 'model-center' | 'settings';
 
@@ -14,7 +15,7 @@ interface Props {
 export function Tabs({ activeTab, onTabChange }: Props): ReactNode {
   const t = useQiniuT();
   return (
-    <nav className={css.tabs} role="tablist" aria-label={t('page.tabs.aria')}>
+    <nav className={css.tabs} role="tablist" aria-label={t(tabsKeys.aria)}>
       {TAB_ITEMS.map((id) => (
         <button
           key={id}
@@ -24,11 +25,7 @@ export function Tabs({ activeTab, onTabChange }: Props): ReactNode {
           className={activeTab === id ? css.active : undefined}
           onClick={() => onTabChange(id)}
         >
-          {t(
-            id === 'model-center'
-              ? 'page.tabs.modelCenter'
-              : 'page.tabs.settings',
-          )}
+          {t(id === 'model-center' ? tabsKeys.modelCenter : tabsKeys.settings)}
         </button>
       ))}
     </nav>

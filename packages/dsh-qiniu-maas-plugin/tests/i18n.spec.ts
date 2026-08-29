@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { qiniuMessages } from '../src/client/ui/i18n/index.ts';
-import { tabsMessages } from '../src/client/ui/page/components/Tabs.locales.ts';
+import {
+  tabsKeys,
+  tabsMessages,
+} from '../src/client/ui/page/components/Tabs.locales.ts';
 
 describe('qiniu locale messages', () => {
   it('builds dictionaries for every supported locale', () => {
@@ -9,7 +12,7 @@ describe('qiniu locale messages', () => {
   });
 
   it('keeps each key paired with every supported locale', () => {
-    expect(tabsMessages['page.tabs.modelCenter']).toEqual({
+    expect(tabsMessages[tabsKeys.modelCenter]).toEqual({
       zh: '模型中心',
       en: 'Model Center',
     });
