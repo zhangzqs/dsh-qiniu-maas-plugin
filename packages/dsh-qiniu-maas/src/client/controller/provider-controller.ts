@@ -13,11 +13,7 @@ import {
   QINIU_PROVIDER,
   type QiniuInferenceProtocol,
 } from '../qiniu-config.ts';
-import {
-  inferenceProtocolOf,
-  modelMarketRegionOf,
-  type PiAiSettings,
-} from '../state/qiniu-state.ts';
+import { type PiAiSettings } from '../state/qiniu-state.ts';
 
 function modelProfile(
   model: Pick<Model, 'id' | 'name' | 'architecture' | 'model_constraints'>,
@@ -47,8 +43,8 @@ export function selectEnabledModels(
 export function settingsWithModels(
   settings: SettingsScope<PiAiSettings>,
   models: readonly Model[],
-  region: QiniuRegion = modelMarketRegionOf(settings),
-  protocol: QiniuInferenceProtocol = inferenceProtocolOf(settings),
+  region: QiniuRegion = 'cn',
+  protocol: QiniuInferenceProtocol = 'openai-completions',
 ): Record<string, unknown> {
   const providers = settings.getSnapshot().value?.providers ?? {};
   if (models.length === 0) {
@@ -64,4 +60,25 @@ export function settingsWithModels(
     models: models.map(modelProfile),
   };
   return { ...providers, [QINIU_PROVIDER]: profile };
+}
+
+export function settingsWithEndpoint(
+  settings: SettingsScope<PiAiSettings>,
+  region: QiniuRegion,
+  protocol: QiniuInferenceProtocol,
+): Record<string, unknown> {
+  const providers = settings.getSnapshot().value?.providers ?? {};
+  const profile = providers[QINIU_PROVIDER];
+  if (!profile || typeof profile !== 'object' || Array.isArray(profile)) {
+    return providers;
+  }
+
+  return {
+    ...providers,
+    [QINIU_PROVIDER]: {
+      ...profile,
+      api: protocol,
+      baseURL: QINIU_LLM_BASE_URLS[region],
+    },
+  };
 }

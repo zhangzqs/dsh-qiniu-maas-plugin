@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import type { Model } from 'qiniu-maas-model-market';
 import {
   filterModels,
+  toggleModel,
   sortModels,
-} from '../src/client/main/page/panels/model-utils.ts';
+} from '../src/client/main/page/panels/model-center/model-utils.ts';
 
 const models = [
   {
@@ -54,6 +55,16 @@ describe('filterModels', () => {
       'retired',
       'beta',
       'alpha',
+    ]);
+  });
+
+  it('toggles one model while preserving the marketplace model definitions', () => {
+    expect(toggleModel(models, ['alpha'], 'beta')).toEqual([
+      models[0],
+      models[1],
+    ]);
+    expect(toggleModel(models, ['alpha', 'beta'], 'alpha')).toEqual([
+      models[1],
     ]);
   });
 });

@@ -4,34 +4,31 @@ import type {
   SettingsScope,
   SnapshotStore,
 } from '@deepseek-ai/dsh-client-runtime/client';
-import type { Model } from 'qiniu-maas-model-market';
+import type { Model, QiniuRegion } from 'qiniu-maas-model-market';
 import type { QiniuInferenceProtocol } from '../qiniu-config.ts';
-import type { QiniuRegion } from 'qiniu-maas-model-market';
-import { QINIU_PROVIDER } from '../qiniu-config.ts';
 
-export interface PiAiSettings {
-  providers?: PiAiConfig['providers'];
-  modelMarketRegion?: QiniuRegion;
+export type PiAiSettings = Pick<PiAiConfig, 'providers'>;
+
+export interface QiniuSettings {
+  enabledModelIds?: readonly string[];
+  region?: QiniuRegion;
   inferenceProtocol?: QiniuInferenceProtocol;
 }
 
 export interface QiniuState {
-  status: 'loading' | 'ready' | 'error';
-  models: readonly Model[];
   enabledModelIds: readonly string[];
-  error: string | null;
-  apiKeyConfigured: boolean;
   modelMarketRegion: QiniuRegion;
   inferenceProtocol: QiniuInferenceProtocol;
 }
 
 export interface QiniuInjected {
   api: Pick<IApiClient, 'credentials'>;
-  settings: SettingsScope<PiAiSettings>;
+  settings: SettingsScope<QiniuSettings>;
   hooks: {
     snapshot: SnapshotStore<QiniuState>;
   };
-  refresh: () => Promise<void>;
+  checkApiKeyConfigured: () => Promise<boolean>;
+  fetchModels: (region: QiniuRegion) => Promise<readonly Model[]>;
   saveModels: (models: readonly Model[]) => Promise<void>;
   setApiKey: (value: string) => Promise<void>;
   apiKeyRef: string;
@@ -41,37 +38,31 @@ export interface QiniuInjected {
 
 export type QiniuController = Pick<
   QiniuInjected,
-  | 'refresh'
+  | 'checkApiKeyConfigured'
+  | 'fetchModels'
   | 'saveModels'
   | 'setApiKey'
   | 'setModelMarketRegion'
   | 'setInferenceProtocol'
 >;
 
-export function modelMarketRegionOf(
-  settings: SettingsScope<PiAiSettings>,
-): QiniuRegion {
-  return settings.getSnapshot().value?.modelMarketRegion ?? 'cn';
+export function regionOf(settings: SettingsScope<QiniuSettings>): QiniuRegion {
+  return settings.getSnapshot().value?.region ?? 'cn';
 }
 
 export function enabledModelIdsOf(
-  settings: SettingsScope<PiAiSettings>,
+  settings: SettingsScope<QiniuSettings>,
 ): string[] {
-  const providers = settings.getSnapshot().value?.providers;
-  const profile = providers?.[QINIU_PROVIDER];
-  if (!profile || typeof profile !== 'object' || Array.isArray(profile))
-    return [];
-  const models = (profile as { models?: unknown }).models;
-  if (!Array.isArray(models)) return [];
-  return models.flatMap((model) => {
-    if (!model || typeof model !== 'object' || Array.isArray(model)) return [];
-    const item = model as { id?: unknown };
-    return typeof item.id === 'string' ? [item.id] : [];
-  });
+  const modelIds = settings.getSnapshot().value?.enabledModelIds;
+  return Array.isArray(modelIds)
+    ? modelIds.filter(
+        (modelId): modelId is string => typeof modelId === 'string',
+      )
+    : [];
 }
 
 export function inferenceProtocolOf(
-  settings: SettingsScope<PiAiSettings>,
+  settings: SettingsScope<QiniuSettings>,
 ): QiniuInferenceProtocol {
   return (
     settings.getSnapshot().value?.inferenceProtocol ?? 'openai-completions'

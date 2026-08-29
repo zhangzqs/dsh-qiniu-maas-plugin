@@ -70,6 +70,26 @@
   text-align: center;
 }
 
+.listState {
+  padding: 40px 0;
+  color: var(--dsw-alias-label-secondary, #6b7280);
+  text-align: center;
+}
+
+.listState p {
+  margin: 0 0 12px;
+}
+
+.error {
+  color: var(--dsw-alias-state-error-primary, #b42318);
+}
+
+.actionError {
+  margin: 0 0 12px;
+  color: var(--dsw-alias-state-error-primary, #b42318);
+  font-size: 13px;
+}
+
 @media (max-width: 640px) {
   .toolbar {
     align-items: stretch;

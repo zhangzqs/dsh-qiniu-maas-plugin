@@ -1,0 +1,28 @@
+.page {
+  position: relative;
+  max-width: 1080px;
+  padding: 24px;
+  color: var(--dsw-alias-label-primary, #111827);
+}
+
+@media (max-width: 640px) {
+  .page {
+    box-sizing: border-box;
+    position: fixed;
+    top: 78px;
+    right: 24px;
+    bottom: 24px;
+    left: 24px;
+    z-index: 1;
+    width: auto;
+    max-width: none;
+    margin-left: 0;
+    padding: 16px;
+    overflow: hidden;
+    background: var(--dsw-alias-fill-l1, #fff);
+  }
+
+  :global(body[data-ds-dark-theme]) .page {
+    background: #2c2c2e;
+  }
+}

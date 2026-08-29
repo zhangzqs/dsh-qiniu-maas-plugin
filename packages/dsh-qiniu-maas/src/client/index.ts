@@ -7,9 +7,10 @@ import { createQiniuController } from './controller/qiniu-controller.ts';
 import {
   inferenceProtocolOf,
   enabledModelIdsOf,
-  modelMarketRegionOf,
+  regionOf,
   type PiAiSettings,
   type QiniuInjected,
+  type QiniuSettings,
   type QiniuState,
 } from './state/qiniu-state.ts';
 import { QINIU_API_KEY_REF } from './qiniu-config.ts';
@@ -18,31 +19,35 @@ export const inject = ['slots', 'connection', 'settingsScope'];
 
 export function apply(ctx: ClientContext): void {
   const connection = ctx.get('connection') as ConnectionHandle;
-  const settings = ctx.settingsScope.bind<PiAiSettings>({
+  const qiniuSettings = ctx.settingsScope.bind<QiniuSettings>({
+    namespace: 'qiniu-maas',
+  });
+  const piAiSettings = ctx.settingsScope.bind<PiAiSettings>({
     namespace: 'llm-pi-ai',
   });
   const store = createSnapshotStore<QiniuState>({
-    status: 'loading',
-    models: [],
     enabledModelIds: [],
-    error: null,
-    apiKeyConfigured: false,
-    modelMarketRegion: modelMarketRegionOf(settings),
-    inferenceProtocol: inferenceProtocolOf(settings),
+    modelMarketRegion: regionOf(qiniuSettings),
+    inferenceProtocol: inferenceProtocolOf(qiniuSettings),
   });
-  const controller = createQiniuController(connection, settings, store);
+  const controller = createQiniuController(
+    connection,
+    qiniuSettings,
+    piAiSettings,
+    store,
+  );
 
   ctx.effect(
     () =>
-      settings.subscribe(() => {
+      qiniuSettings.subscribe(() => {
         store.update((state) => {
-          state.enabledModelIds = enabledModelIdsOf(settings);
+          state.enabledModelIds = enabledModelIdsOf(qiniuSettings);
+          state.modelMarketRegion = regionOf(qiniuSettings);
+          state.inferenceProtocol = inferenceProtocolOf(qiniuSettings);
         });
       }),
     'qiniu-maas: settings updates',
   );
-  void controller.refresh();
-
   ctx.slots.inject('settings.section', () =>
     ctx.slots.register(
       {
@@ -52,7 +57,7 @@ export function apply(ctx: ClientContext): void {
         label: 'Qiniu MaaS',
         inject: (): QiniuInjected => ({
           api: connection.api,
-          settings,
+          settings: qiniuSettings,
           hooks: { snapshot: store },
           ...controller,
           apiKeyRef: QINIU_API_KEY_REF,

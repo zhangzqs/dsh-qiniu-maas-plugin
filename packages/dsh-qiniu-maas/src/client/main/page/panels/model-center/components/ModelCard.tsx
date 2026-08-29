@@ -7,13 +7,26 @@ import css from './ModelCard.module.css';
 interface Props {
   model: Model;
   isEnabled: boolean;
+  saving: boolean;
   onDetails: (id: string) => void;
   onToggle: (id: string) => Promise<void>;
+}
+
+function toggleLabel(
+  isEnabled: boolean,
+  isRetired: boolean,
+  saving: boolean,
+): string {
+  if (saving) return '保存中...';
+  if (isEnabled) return '停用';
+  if (isRetired) return '已退役';
+  return '启用';
 }
 
 export const ModelCard = memo(function ModelCard({
   model,
   isEnabled,
+  saving,
   onDetails,
   onToggle,
 }: Props): ReactNode {
@@ -59,10 +72,10 @@ export const ModelCard = memo(function ModelCard({
           size="sm"
           type="button"
           className={isEnabled ? css.disable : css.enable}
-          disabled={!canEnable}
+          disabled={saving || !canEnable}
           onClick={() => void onToggle(model.id)}
         >
-          {isEnabled ? '停用' : isRetired ? '已退役' : '启用'}
+          {toggleLabel(isEnabled, isRetired, saving)}
         </Button>
       </div>
     </article>

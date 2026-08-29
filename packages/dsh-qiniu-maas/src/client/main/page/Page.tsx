@@ -1,28 +1,15 @@
 import { useState, type ReactNode } from 'react';
-import type { Model, QiniuRegion } from 'qiniu-maas-model-market';
-import type { QiniuInferenceProtocol } from '../../qiniu-config.ts';
-import { ModelCenterPanel } from './panels/ModelCenterPanel.tsx';
-import { SettingsPanel } from './panels/SettingsPanel.tsx';
-import { Tabs, type Tab } from './Tabs.tsx';
-
-export interface ModelCenterPanelProps {
-  models: readonly Model[];
-  enabledModelIds: readonly string[];
-  onRefresh: () => Promise<void>;
-  onDetails: (id: string) => void;
-  onToggle: (id: string) => Promise<void>;
-}
-
-export interface SettingsPanelProps {
-  apiKeyConfigured: boolean;
-  modelMarketRegion: QiniuRegion;
-  inferenceProtocol: QiniuInferenceProtocol;
-  apiKey: string;
-  onApiKeyChange: (value: string) => void;
-  onApiKeySubmit: () => Promise<void>;
-  onModelMarketRegionChange: (region: QiniuRegion) => void;
-  onInferenceProtocolChange: (protocol: QiniuInferenceProtocol) => void;
-}
+import {
+  ModelCenterPanel,
+  type Props as ModelCenterPanelProps,
+} from './panels/model-center/ModelCenterPanel.tsx';
+import {
+  SettingsPanel,
+  type Props as SettingsPanelProps,
+} from './panels/settings/SettingsPanel.tsx';
+import { PageHeader } from './components/PageHeader.tsx';
+import { Tabs, type Tab } from './components/Tabs.tsx';
+import css from './Page.module.css';
 
 interface Props {
   models: ModelCenterPanelProps;
@@ -32,10 +19,15 @@ interface Props {
 export function Page({ models, settings }: Props): ReactNode {
   const [tab, setTab] = useState<Tab>('model-center');
   return (
-    <>
+    <section className={css.page}>
+      <PageHeader />
       <Tabs tab={tab} onChange={setTab} />
       {tab === 'model-center' && <ModelCenterPanel {...models} />}
       {tab === 'settings' && <SettingsPanel {...settings} />}
-    </>
+    </section>
   );
 }
+
+/* Kept as a named alias for consumers that compose the page props. */
+export type { Props as ModelCenterPanelProps } from './panels/model-center/ModelCenterPanel.tsx';
+export type { Props as SettingsPanelProps } from './panels/settings/SettingsPanel.tsx';
