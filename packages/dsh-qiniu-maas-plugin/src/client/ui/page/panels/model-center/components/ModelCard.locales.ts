@@ -13,14 +13,4 @@ export const modelCardMessages = {
     en: 'Retired. Migrate to {model}.',
   },
   'model.saving': { zh: '保存中...', en: 'Saving...' },
-} satisfies QiniuLocaleMessages<
-  | 'model.disable'
-  | 'model.disabled'
-  | 'model.enable'
-  | 'model.enabled'
-  | 'model.noDescription'
-  | 'model.retired'
-  | 'model.retiredMigration'
-  | 'model.saving'
-  | 'model.viewDetails'
->;
+} satisfies QiniuLocaleMessages;

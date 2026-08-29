@@ -30,22 +30,4 @@ export const modelCenterMessages = {
   'model.sort': { zh: '模型排序', en: 'Sort models' },
   'model.sortNewest': { zh: '发布时间：最新', en: 'Release date: newest' },
   'model.sortOldest': { zh: '发布时间：最早', en: 'Release date: oldest' },
-} satisfies QiniuLocaleMessages<
-  | 'model.count'
-  | 'model.empty'
-  | 'model.enabledOnly'
-  | 'model.filter'
-  | 'model.loadFailed'
-  | 'model.loading'
-  | 'model.nameAsc'
-  | 'model.nameDesc'
-  | 'model.refresh'
-  | 'model.retry'
-  | 'model.saveFailed'
-  | 'model.search'
-  | 'model.searchPlaceholder'
-  | 'model.showRetired'
-  | 'model.sort'
-  | 'model.sortNewest'
-  | 'model.sortOldest'
->;
+} satisfies QiniuLocaleMessages;

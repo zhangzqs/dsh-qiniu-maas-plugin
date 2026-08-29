@@ -24,25 +24,4 @@ export const modelDetailMessages = {
   'model.releaseAt': { zh: '发布时间', en: 'Release date' },
   'model.structuredOutput': { zh: '结构化输出', en: 'Structured output' },
   'model.unknown': { zh: '未知', en: 'Unknown' },
-} satisfies QiniuLocaleMessages<
-  | 'model.capabilities'
-  | 'model.closeDetails'
-  | 'model.context'
-  | 'model.details'
-  | 'model.documents'
-  | 'model.functionCalling'
-  | 'model.info'
-  | 'model.input'
-  | 'model.integrationDocumentation'
-  | 'model.issuer'
-  | 'model.limits'
-  | 'model.maxOutput'
-  | 'model.modelDocumentation'
-  | 'model.noDescription'
-  | 'model.output'
-  | 'model.protocols'
-  | 'model.reasoning'
-  | 'model.releaseAt'
-  | 'model.structuredOutput'
-  | 'model.unknown'
->;
+} satisfies QiniuLocaleMessages;

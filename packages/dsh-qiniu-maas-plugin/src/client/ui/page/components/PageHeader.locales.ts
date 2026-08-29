@@ -1,10 +1,4 @@
-import type { LocaleId } from '@deepseek-ai/dsh-client-locale/client';
-import type { QiniuLocaleKey } from '../../i18n/namespace.ts';
-
-type Messages = Record<
-  Extract<QiniuLocaleKey, 'brand' | 'subtitle' | 'portal'>,
-  Record<LocaleId, string>
->;
+import type { QiniuLocaleMessages } from '../../i18n/namespace.ts';
 
 export const pageHeaderMessages = {
   brand: { zh: '七牛 MaaS', en: 'Qiniu MaaS' },
@@ -13,4 +7,4 @@ export const pageHeaderMessages = {
     en: 'Manage Qiniu AI model inference services.',
   },
   portal: { zh: '前往七牛 AI 大模型控制台', en: 'Open Qiniu AI console' },
-} satisfies Messages;
+} satisfies QiniuLocaleMessages;

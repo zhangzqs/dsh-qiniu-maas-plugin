@@ -26,18 +26,4 @@ export const settingsMessages = {
   'settings.regionCn': { zh: '国内', en: 'Mainland China' },
   'settings.regionGlobal': { zh: '全球', en: 'Global' },
   'settings.saveApiKey': { zh: '保存 API Key', en: 'Save API Key' },
-} satisfies QiniuLocaleMessages<
-  | 'common.icon'
-  | 'settings.apiKey'
-  | 'settings.apiKeyCheckFailed'
-  | 'settings.apiKeyChecking'
-  | 'settings.apiKeyConfigured'
-  | 'settings.apiKeyDescription'
-  | 'settings.apiKeyNotConfigured'
-  | 'settings.apiKeyPlaceholder'
-  | 'settings.protocol'
-  | 'settings.region'
-  | 'settings.regionCn'
-  | 'settings.regionGlobal'
-  | 'settings.saveApiKey'
->;
+} satisfies QiniuLocaleMessages;

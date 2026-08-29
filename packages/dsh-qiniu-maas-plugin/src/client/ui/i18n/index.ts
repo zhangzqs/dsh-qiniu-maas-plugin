@@ -1,5 +1,9 @@
 import type { LocaleId } from '@deepseek-ai/dsh-client-locale/client';
-import type { LocaleDictOf } from '@deepseek-ai/dsh-client-ui-slots';
+import type {
+  LocaleDictOf,
+  TranslateNS,
+} from '@deepseek-ai/dsh-client-ui-slots';
+import { createContext, useContext } from 'react';
 import { pageHeaderMessages } from '../page/components/PageHeader.locales.ts';
 import { tabsMessages } from '../page/components/Tabs.locales.ts';
 import { modelCenterMessages } from '../page/panels/model-center/ModelCenterPanel.locales.ts';
@@ -9,14 +13,28 @@ import { settingsMessages } from '../page/panels/settings/SettingsPanel.locales.
 import type { QiniuLocaleMessage, QiniuLocaleMessages } from './namespace.ts';
 export * from './namespace.ts';
 
-const allMessages: QiniuLocaleMessages = {
+const allMessages = {
   ...pageHeaderMessages,
   ...tabsMessages,
   ...modelCenterMessages,
   ...modelCardMessages,
   ...modelDetailMessages,
   ...settingsMessages,
-};
+} satisfies QiniuLocaleMessages;
+
+export type QiniuLocaleKey = keyof typeof allMessages;
+declare module '@deepseek-ai/dsh-client-ui-slots' {
+  interface LocaleNamespaceMap {
+    'qiniu-maas': QiniuLocaleKey;
+  }
+}
+export type QiniuTranslator = TranslateNS<'qiniu-maas'>;
+export const QiniuLocaleContext = createContext<QiniuTranslator | null>(null);
+export function useQiniuT(): QiniuTranslator {
+  const t = useContext(QiniuLocaleContext);
+  if (t === null) throw new Error('Qiniu locale context is not available');
+  return t;
+}
 
 export function toLocaleDicts(
   messages: QiniuLocaleMessages,
