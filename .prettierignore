@@ -3,3 +3,5 @@ node_modules
 **/example.json
 .git
 .playwright-cli
+.agents/skills/
+codex-session-*.md

@@ -1,0 +1,23 @@
+{
+  "skill_name": "dsh-plugin-code-style",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "请在一个现有的 DeepSeek Harness 插件中新增一个 Client 设置页面，并把页面注册到官方 settings slot。先确认当前官方 slot 和插件 bundle 契约，再实现一个职责清晰的 React 入口、controller 和测试。",
+      "expected_output": "会先读取仓库内 dsh-plugin-development Skill 和 DeepSeek Harness 官方源码，确认 slot/bundle 契约；实现时区分 Client/UI 与 controller，复用官方类型和组件，并补充可执行验证。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "请 review 这个 DSH 插件的 React Client：页面组件接收十几个 props，API 请求写在 JSX 事件里，CSS 全放在全局 components 目录。请按 React 和 DSH 最佳实践给出重构建议。",
+      "expected_output": "会先读取仓库内的 React 最佳实践 Skill，再建议按功能域就近组织组件，把请求和副作用移入 controller，缩小 Props 边界，复用官方 UI 组件和 CSS Module，并检查卸载清理、错误处理、可访问性和测试。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "一个 DSH 插件需要监听 session 事件并渲染一个 conversation node，但我不确定事件 map、node kind 和 renderer 应该怎么注册。请不要凭记忆写代码，先告诉我该查哪些官方源码和验证哪些契约。",
+      "expected_output": "会先要求查阅仓库内 dsh-plugin-development Skill 和官方 Harness 当前 conversation event、ChatNodeDataMap、slot renderer 代码，确认确定性折叠、owner、key 和 disposer 后再实现。",
+      "files": []
+    }
+  ]
+}

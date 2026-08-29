@@ -1,0 +1,18 @@
+[
+  {
+    "query": "请在一个现有的 DeepSeek Harness 插件中新增一个 Client 设置页面，并把页面注册到官方 settings slot。先确认当前官方 slot 和插件 bundle 契约，再实现一个职责清晰的 React 入口、controller 和测试。",
+    "should_trigger": true
+  },
+  {
+    "query": "请 review 这个 DSH 插件的 React Client：页面组件接收十几个 props，API 请求写在 JSX 事件里，CSS 全放在全局 components 目录。请按 React 和 DSH 最佳实践给出重构建议。",
+    "should_trigger": true
+  },
+  {
+    "query": "一个 DSH 插件需要监听 session 事件并渲染一个 conversation node，但我不确定事件 map、node kind 和 renderer 应该怎么注册。请不要凭记忆写代码，先告诉我该查哪些官方源码和验证哪些契约。",
+    "should_trigger": true
+  },
+  {
+    "query": "请把这个普通的 JSON 文件转换成 CSV，并保留原始字段顺序。",
+    "should_trigger": false
+  }
+]
