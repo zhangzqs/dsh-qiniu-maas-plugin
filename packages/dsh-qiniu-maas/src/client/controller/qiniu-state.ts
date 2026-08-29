@@ -22,5 +22,3 @@ export interface QiniuInjected extends QiniuActions {
     snapshot: SnapshotStore<QiniuState>;
   };
 }
-
-export type QiniuController = QiniuActions;
