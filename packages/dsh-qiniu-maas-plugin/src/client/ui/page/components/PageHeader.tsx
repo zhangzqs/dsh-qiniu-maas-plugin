@@ -14,14 +14,24 @@ export function PageHeader(): ReactNode {
       <p className={css.version}>
         {t(pageHeaderKeys.version, { version: qiniuPluginVersion })}
       </p>
-      <a
-        className={css.portalLink}
-        href="https://portal.qiniu.com/ai-inference/model"
-        target="_blank"
-        rel="noreferrer"
-      >
-        {t(pageHeaderKeys.portal)}
-      </a>
+      <div className={css.links}>
+        <a
+          className={css.link}
+          href="https://portal.qiniu.com/ai-inference/model"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t(pageHeaderKeys.portal)}
+        </a>
+        <a
+          className={css.link}
+          href="https://github.com/zhangzqs/dsh-qiniu-maas-plugin"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t(pageHeaderKeys.repository)}
+        </a>
+      </div>
     </header>
   );
 }

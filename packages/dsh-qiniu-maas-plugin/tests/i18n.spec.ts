@@ -41,4 +41,11 @@ describe('qiniu locale messages', () => {
       'Plugin version: {version}',
     );
   });
+
+  it('includes the repository link message', () => {
+    expect(qiniuMessages.zh['page.header.repository']).toBe('查看 GitHub 项目');
+    expect(qiniuMessages.en['page.header.repository']).toBe(
+      'View GitHub repository',
+    );
+  });
 });
