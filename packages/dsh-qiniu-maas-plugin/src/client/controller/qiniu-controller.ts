@@ -61,12 +61,18 @@ export function createQiniuController(
   const setEnabledModels = async (models: readonly Model[]): Promise<void> => {
     const settings = qiniuSettings.read();
     const enabledModelIds = new Set(settings.enabledModelIds);
+    const marketModelIds = new Set(models.map((model) => model.id));
     const enabledModels = models.filter(
       (model) => !model.suggested_model || enabledModelIds.has(model.id),
     );
-    await qiniuSettings.setEnabledModelIds(
-      enabledModels.map((model) => model.id),
+    const unavailableModelIds = settings.enabledModelIds.filter(
+      (modelId) => !marketModelIds.has(modelId),
     );
+    const nextEnabledModelIds = [
+      ...unavailableModelIds,
+      ...enabledModels.map((model) => model.id),
+    ];
+    await qiniuSettings.setEnabledModelIds(nextEnabledModelIds);
     await piAiSettings.setProviders(
       syncQiniuProvider(
         piAiSettings.read().providers,
@@ -76,7 +82,7 @@ export function createQiniuController(
     );
     cachedMarketModels = enabledModels;
     store.update((state) => {
-      state.enabledModelIds = enabledModels.map((model) => model.id);
+      state.enabledModelIds = nextEnabledModelIds;
     });
   };
 

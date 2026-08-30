@@ -26,4 +26,30 @@ describe('qiniu controller', () => {
       refs: [QINIU_API_KEY_REF],
     });
   });
+
+  it('preserves enabled model IDs unavailable in the current region', async () => {
+    const setEnabledModelIds = vi.fn().mockResolvedValue(undefined);
+    const setProviders = vi.fn().mockResolvedValue(undefined);
+    const settings = {
+      enabledModelIds: ['unavailable-model', 'model-a'],
+      region: 'global',
+      inferenceProtocol: 'openai-completions',
+    } as const;
+    const controller = createQiniuController(
+      {} as never,
+      { read: () => settings, setEnabledModelIds } as never,
+      { read: () => ({ providers: {} }), setProviders } as never,
+      {
+        update: vi.fn(),
+        getSnapshot: () => ({ enabledModelIds: [] }),
+      } as never,
+    );
+
+    await controller.setEnabledModels([{ id: 'model-a', name: 'Model A' }]);
+
+    expect(setEnabledModelIds).toHaveBeenCalledWith([
+      'unavailable-model',
+      'model-a',
+    ]);
+  });
 });
