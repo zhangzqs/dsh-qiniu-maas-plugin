@@ -1,6 +1,9 @@
 export { createQiniuController } from './qiniu-controller.ts';
-export type { QiniuController } from './qiniu-controller.ts';
-export type { QiniuActions, QiniuState } from './qiniu-state.ts';
+export type {
+  QiniuActions,
+  QiniuController,
+  QiniuState,
+} from './qiniu-controller.ts';
 export { createPiAiSettingsController } from './settings/pi-ai-settings-controller.ts';
 export { createQiniuSettingsController } from './settings/qiniu-settings-controller.ts';
 export type {
