@@ -6,7 +6,6 @@ import { SettingSelect } from './components/SettingSelect.tsx';
 import css from './SettingsPanel.module.css';
 import { useQiniuT } from '../../../i18n/index.ts';
 import { settingsKeys } from './SettingsPanel.locales.ts';
-import { qiniuPluginVersion } from '../../../../version.ts';
 
 const PROTOCOL_OPTIONS = [
   { id: 'openai-completions', label: 'OpenAI Chat Completions' },
@@ -56,7 +55,6 @@ export function SettingsPanel({
         checkApiKeyConfigured={checkApiKeyConfigured}
         setApiKey={setApiKey}
       />
-      <div>{t(settingsKeys.version, { version: qiniuPluginVersion })}</div>
     </div>
   );
 }
