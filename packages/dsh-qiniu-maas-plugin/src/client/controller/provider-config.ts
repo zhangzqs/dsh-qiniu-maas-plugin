@@ -1,17 +1,17 @@
 import {
   QINIU_LLM_BASE_URLS,
   type Model,
+  type QiniuInferenceProtocol,
   type QiniuRegion,
 } from 'qiniu-maas-market-sdk';
 import type {
   PiAiModelProfile,
   PiAiProviderProfile,
 } from '@deepseek-ai/dsh-llm-pi-ai';
-import { type QiniuInferenceProtocol } from '../../shared.ts';
-import { QINIU_API_KEY_REF } from './qiniu-constants.ts';
-import type { PiAiSettings } from './settings/pi-ai-settings-controller.ts';
+import type { PiAiSettings } from './settings/pi-ai.ts';
 
-const QINIU_PROVIDER = 'qiniu-maas';
+export const QINIU_PROVIDER = 'qiniu-maas';
+export const QINIU_API_KEY_REF = 'QINIU_MAAS_API_KEY';
 type PiAiProviders = NonNullable<PiAiSettings['providers']>;
 
 function toPiAiModelProfile(

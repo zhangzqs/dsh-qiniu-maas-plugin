@@ -4,14 +4,14 @@ import {
   type Model,
   type QiniuRegion,
 } from 'qiniu-maas-market-sdk';
-import { QINIU_API_KEY_REF } from './qiniu-constants.ts';
 import {
+  QINIU_API_KEY_REF,
   selectEnabledModels,
   settingsWithEnabledModels,
   settingsWithInferenceEndpoint,
-} from './provider-controller.ts';
-import type { PiAiSettingsController } from './settings/pi-ai-settings-controller.ts';
-import type { QiniuSettingsController } from './settings/qiniu-settings-controller.ts';
+} from './provider-config.ts';
+import type { PiAiSettingsController } from './settings/pi-ai.ts';
+import type { QiniuSettingsController } from './settings/qiniu.ts';
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
 import type { QiniuInferenceProtocol } from 'qiniu-maas-market-sdk';
 

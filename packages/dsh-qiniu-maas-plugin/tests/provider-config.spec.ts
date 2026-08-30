@@ -3,7 +3,7 @@ import {
   selectEnabledModels,
   settingsWithEnabledModels,
   settingsWithInferenceEndpoint,
-} from '../src/client/controller/provider-controller.ts';
+} from '../src/client/controller/provider-config.ts';
 
 describe('provider controller', () => {
   it('keeps enabled models in marketplace order', () => {

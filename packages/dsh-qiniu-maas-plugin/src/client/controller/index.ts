@@ -4,13 +4,10 @@ export type {
   QiniuController,
   QiniuState,
 } from './qiniu-controller.ts';
-export { createPiAiSettingsController } from './settings/pi-ai-settings-controller.ts';
-export { createQiniuSettingsController } from './settings/qiniu-settings-controller.ts';
-export type {
-  PiAiSettings,
-  PiAiSettingsController,
-} from './settings/pi-ai-settings-controller.ts';
+export { createPiAiSettingsController } from './settings/pi-ai.ts';
+export { createQiniuSettingsController } from './settings/qiniu.ts';
+export type { PiAiSettings, PiAiSettingsController } from './settings/pi-ai.ts';
 export type {
   QiniuSettingsController,
   QiniuSettingsValue,
-} from './settings/qiniu-settings-controller.ts';
+} from './settings/qiniu.ts';
