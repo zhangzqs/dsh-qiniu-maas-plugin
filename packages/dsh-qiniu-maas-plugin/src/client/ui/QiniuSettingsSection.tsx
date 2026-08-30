@@ -31,7 +31,7 @@ export function QiniuSettingsSection(props: Props): ReactNode {
     fetchMarketModels,
     setEnabledModels,
     setApiKey,
-    setModelMarketRegion,
+    setRegion,
     setInferenceProtocol,
     useSnapshot,
     t,
@@ -43,17 +43,17 @@ export function QiniuSettingsSection(props: Props): ReactNode {
       t={t}
       models={{
         enabledModelIds: state.enabledModelIds,
-        modelMarketRegion: state.modelMarketRegion,
+        region: state.region,
         fetchMarketModels,
         setEnabledModels,
       }}
       settings={{
         checkApiKeyConfigured,
         setApiKey,
-        modelMarketRegion: state.modelMarketRegion,
+        region: state.region,
         inferenceProtocol: state.inferenceProtocol,
         onModelMarketRegionChange: (region: QiniuRegion) => {
-          void setModelMarketRegion(region);
+          void setRegion(region);
         },
         onInferenceProtocolChange: (protocol: QiniuInferenceProtocol) => {
           void setInferenceProtocol(protocol);
