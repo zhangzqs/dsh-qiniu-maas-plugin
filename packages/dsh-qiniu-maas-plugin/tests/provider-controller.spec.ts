@@ -58,7 +58,7 @@ describe('provider controller', () => {
     ).toMatchObject({
       'qiniu-maas': {
         api: 'anthropic-messages',
-        baseURL: 'https://openai.sufy.com/v1',
+        baseURL: 'https://api.modelink.ai/v1',
       },
     });
   });
@@ -78,7 +78,7 @@ describe('provider controller', () => {
         displayName: 'Qiniu MaaS',
         models: [{ id: 'model-a', name: 'Model A', contextWindow: 128000 }],
         api: 'anthropic-messages',
-        baseURL: 'https://openai.sufy.com/v1',
+        baseURL: 'https://api.modelink.ai/v1',
       },
     });
   });
