@@ -1,9 +1,13 @@
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { basename, dirname, resolve as resolvePath } from 'node:path';
 import { transform } from 'lightningcss';
 import { defineConfig } from 'tsdown';
 
 const id = '@qiniu/dsh-qiniu-maas-plugin';
+const packageJson = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf8'),
+) as { version: string };
 const clientExternals = [
   'react',
   'react/jsx-runtime',
@@ -30,6 +34,7 @@ export default defineConfig({
     alwaysBundle: (source: string) => source === 'qiniu-maas-market-sdk',
   },
   define: {
+    __QINIU_PLUGIN_VERSION__: JSON.stringify(packageJson.version),
     'process.env.NODE_ENV': JSON.stringify('production'),
     'import.meta.env.MODE': JSON.stringify('production'),
     'import.meta.env': JSON.stringify({ MODE: 'production' }),

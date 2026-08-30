@@ -13,6 +13,7 @@ import { modelDetailMessages } from '../page/panels/model-center/components/Mode
 import { settingsMessages } from '../page/panels/settings/SettingsPanel.locales.ts';
 import { apiKeySettingMessages } from '../page/panels/settings/components/ApiKeySetting.locales.ts';
 import { modelAvatarMessages } from '../page/panels/model-center/components/ModelAvatar.locales.ts';
+import { qiniuSettingsSectionMessages } from '../QiniuSettingsSection.locales.ts';
 export type QiniuLocaleMessage = Record<LocaleId, string>;
 export type QiniuLocaleMessages = Record<string, QiniuLocaleMessage>;
 
@@ -27,6 +28,7 @@ const allMessages = {
   ...modelAvatarMessages,
   ...settingsMessages,
   ...apiKeySettingMessages,
+  ...qiniuSettingsSectionMessages,
 } satisfies QiniuLocaleMessages;
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
