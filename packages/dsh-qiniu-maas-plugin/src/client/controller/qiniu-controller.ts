@@ -18,7 +18,10 @@ export interface QiniuState {
 
 export interface QiniuActions {
   checkApiKeyConfigured: () => Promise<boolean>;
-  fetchMarketModels: (region: QiniuRegion) => Promise<readonly Model[]>;
+  fetchMarketModels: (
+    region: QiniuRegion,
+    forceRefresh?: boolean,
+  ) => Promise<readonly Model[]>;
   setEnabledModels: (models: readonly Model[]) => Promise<void>;
   setApiKey: (value: string) => Promise<void>;
   setRegion: (region: QiniuRegion) => Promise<void>;
@@ -33,13 +36,22 @@ export function createQiniuController(
   piAiSettings: PiAiSettingsController,
   store: SnapshotStore<QiniuState>,
 ): QiniuController {
+  const marketModelsCache = new Map<QiniuRegion, readonly Model[]>();
+
   const fetchMarketModels = async (
     region: QiniuRegion,
+    forceRefresh = false,
   ): Promise<readonly Model[]> => {
+    const cachedModels = marketModelsCache.get(region);
+    if (!forceRefresh && cachedModels !== undefined) {
+      return cachedModels;
+    }
     const models = await listModels({ region });
-    return [...models].sort(
+    const sortedModels = [...models].sort(
       (left, right) => (right.rank ?? 0) - (left.rank ?? 0),
     );
+    marketModelsCache.set(region, sortedModels);
+    return sortedModels;
   };
 
   // 查询dsh内的credentials配置，查询API Key是否已配置

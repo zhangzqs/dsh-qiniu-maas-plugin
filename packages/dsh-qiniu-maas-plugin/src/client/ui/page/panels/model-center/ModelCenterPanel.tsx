@@ -29,7 +29,10 @@ import { modelCenterKeys } from './ModelCenterPanel.locales.ts';
 export interface Props {
   enabledModelIds: readonly string[];
   region: QiniuRegion;
-  fetchMarketModels: (region: QiniuRegion) => Promise<readonly Model[]>;
+  fetchMarketModels: (
+    region: QiniuRegion,
+    forceRefresh?: boolean,
+  ) => Promise<readonly Model[]>;
   setEnabledModels: (models: readonly Model[]) => Promise<void>;
 }
 
@@ -106,7 +109,7 @@ export function ModelCenterPanel({
       }
 
       try {
-        const nextModels = await fetchMarketModels(region);
+        const nextModels = await fetchMarketModels(region, isRefresh);
         if (currentRequestId === requestId.current) {
           setLoadedModels(nextModels);
         }
