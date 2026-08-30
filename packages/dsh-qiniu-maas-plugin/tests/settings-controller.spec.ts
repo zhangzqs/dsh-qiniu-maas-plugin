@@ -38,12 +38,12 @@ describe('settings controllers', () => {
 
     await controller.setEnabledModelIds(['model-a']);
     await controller.setRegion('global');
-    await controller.setInferenceProtocol('openai-responses');
+    await controller.setInferenceProtocol('anthropic-messages');
 
     expect(controller.read()).toEqual({
       enabledModelIds: ['model-a'],
       region: 'global',
-      inferenceProtocol: 'openai-responses',
+      inferenceProtocol: 'anthropic-messages',
     });
     expect(scope.set).toHaveBeenNthCalledWith(1, 'enabledModelIds', [
       'model-a',

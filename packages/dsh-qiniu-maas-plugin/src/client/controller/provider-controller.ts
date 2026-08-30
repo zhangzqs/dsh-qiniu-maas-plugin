@@ -55,7 +55,7 @@ export function settingsWithEnabledModels(
     displayName: 'Qiniu MaaS',
     apiKeyEnv: QINIU_API_KEY_REF,
     api: protocol,
-    baseURL: QINIU_LLM_BASE_URLS[region],
+    baseURL: QINIU_LLM_BASE_URLS[region][protocol],
     models: models.map(toPiAiModelProfile),
   };
   return { ...currentProviders, [QINIU_PROVIDER]: profile };
@@ -77,7 +77,7 @@ export function settingsWithInferenceEndpoint(
     [QINIU_PROVIDER]: {
       ...profile,
       api: protocol,
-      baseURL: QINIU_LLM_BASE_URLS[region],
+      baseURL: QINIU_LLM_BASE_URLS[region][protocol],
     },
   };
 }

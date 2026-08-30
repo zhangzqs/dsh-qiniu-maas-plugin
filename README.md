@@ -9,7 +9,7 @@
 - 展示模型图标、热门标签、上下文长度、能力和定价等信息。
 - 标识已启用模型和已退役模型；退役模型不可新启用，并提示迁移建议。
 - 配置七牛 MaaS API Key、服务区域和推理协议。
-- 支持国内和全球服务区域，以及 OpenAI Chat Completions、OpenAI Responses 和 Anthropic Messages 协议。
+- 支持国内和全球服务区域，以及 OpenAI Chat Completions 和 Anthropic Messages 协议。
 
 模型市场使用公开接口，模型发现由 Client 直接完成。实际推理使用 DSH 原生 `llm` provider，不在插件中实现另一套推理客户端。
 

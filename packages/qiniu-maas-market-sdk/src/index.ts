@@ -1,10 +1,13 @@
 export {
   listModels,
-  QINIU_LLM_BASE_URLS,
   ModelMarketError,
   type ModelMarketOptions,
-  type QiniuRegion,
 } from './client.ts';
+export {
+  QINIU_LLM_BASE_URLS,
+  type QiniuInferenceProtocol,
+  type QiniuRegion,
+} from './endpoints.ts';
 export type {
   Issuer,
   Model,

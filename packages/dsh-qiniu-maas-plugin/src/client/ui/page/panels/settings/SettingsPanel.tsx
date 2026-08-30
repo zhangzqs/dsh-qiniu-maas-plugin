@@ -9,7 +9,6 @@ import { settingsKeys } from './SettingsPanel.locales.ts';
 
 const PROTOCOL_OPTIONS = [
   { id: 'openai-completions', label: 'OpenAI Chat Completions' },
-  { id: 'openai-responses', label: 'OpenAI Responses' },
   { id: 'anthropic-messages', label: 'Anthropic Messages' },
 ] as const;
 
