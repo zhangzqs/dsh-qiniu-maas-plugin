@@ -40,14 +40,24 @@ export function ModelCenterPanel({
   setEnabledModels,
 }: Props): ReactNode {
   const t = useQiniuT();
-  const sortOptions = (
-    [
-      ['release-newest', modelCenterKeys.sortNewest],
-      ['release-oldest', modelCenterKeys.sortOldest],
-      ['name-asc', modelCenterKeys.nameAsc],
-      ['name-desc', modelCenterKeys.nameDesc],
-    ] as const
-  ).map(([id, key]) => ({ id, label: t(key) }));
+  const sortOptions = [
+    {
+      id: 'release-newest',
+      label: t(modelCenterKeys.sortNewest),
+    },
+    {
+      id: 'release-oldest',
+      label: t(modelCenterKeys.sortOldest),
+    },
+    {
+      id: 'name-asc',
+      label: t(modelCenterKeys.nameAsc),
+    },
+    {
+      id: 'name-desc',
+      label: t(modelCenterKeys.nameDesc),
+    },
+  ] as const;
   const filterOptions = [
     { id: 'enabled', label: t(modelCenterKeys.enabledOnly) },
     { id: 'retired', label: t(modelCenterKeys.showRetired) },
