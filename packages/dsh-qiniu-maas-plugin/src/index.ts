@@ -5,7 +5,7 @@ import {
 } from '@deepseek-ai/dsh-settings';
 import z from '@deepseek-ai/schemastery';
 import {
-  QINIU_SETTINGS_NAMESPACE,
+  QINIU_MAAS_NAMESPACE,
   type QiniuInferenceProtocol,
   type QiniuSettings,
 } from './shared.ts';
@@ -14,7 +14,7 @@ import type { QiniuRegion } from 'qiniu-maas-market-sdk';
 export const name = '@qiniu/dsh-qiniu-maas-plugin';
 export const inject: string[] = [];
 
-const SETTINGS_NAMESPACE = settingsNamespace(QINIU_SETTINGS_NAMESPACE);
+const SETTINGS_NAMESPACE = settingsNamespace(QINIU_MAAS_NAMESPACE);
 
 export type Config = QiniuSettings;
 

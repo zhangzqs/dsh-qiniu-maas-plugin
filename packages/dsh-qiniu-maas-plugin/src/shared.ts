@@ -1,6 +1,6 @@
 import type { QiniuRegion } from 'qiniu-maas-market-sdk';
 
-export const QINIU_SETTINGS_NAMESPACE = 'qiniu-maas' as const;
+export const QINIU_MAAS_NAMESPACE = 'qiniu-maas' as const;
 
 export type QiniuInferenceProtocol =
   | 'openai-completions'
