@@ -3,6 +3,9 @@ import { Button, Pill } from '@deepseek-ai/dsh-client-ui-primitives';
 import type { Model } from 'qiniu-maas-market-sdk';
 import { ModelAvatar } from './ModelAvatar.tsx';
 import css from './ModelCard.module.css';
+import { modelCardKeys } from './ModelCard.locales.ts';
+import { useQiniuT } from '../../../../i18n/index.ts';
+import { commonKeys } from '../../../Common.locales.ts';
 
 interface Props {
   model: Model;
@@ -12,17 +15,6 @@ interface Props {
   onToggleEnabled: (id: string) => Promise<void>;
 }
 
-function toggleLabel(
-  isEnabled: boolean,
-  isRetired: boolean,
-  updating: boolean,
-): string {
-  if (updating) return '保存中...';
-  if (isEnabled) return '停用';
-  if (isRetired) return '已退役';
-  return '启用';
-}
-
 export const ModelCard = memo(function ModelCard({
   model,
   isEnabled,
@@ -30,8 +22,15 @@ export const ModelCard = memo(function ModelCard({
   onViewDetails,
   onToggleEnabled,
 }: Props): ReactNode {
+  const t = useQiniuT();
   const isRetired = Boolean(model.suggested_model);
   const canEnable = isEnabled || !isRetired;
+  const getActionLabel = (): string => {
+    if (updating) return t(commonKeys.saving);
+    if (isEnabled) return t(modelCardKeys.disable);
+    if (isRetired) return t(modelCardKeys.retired);
+    return t(modelCardKeys.enable);
+  };
   return (
     <article className={css.card}>
       <div className={css.main}>
@@ -45,16 +44,20 @@ export const ModelCard = memo(function ModelCard({
               </Pill>
             ))}
             <Pill className={isEnabled ? css.badgeEnabled : css.badge}>
-              {isEnabled ? '已启用' : '未启用'}
+              {isEnabled ? t(modelCardKeys.enabled) : t(modelCardKeys.disabled)}
             </Pill>
           </div>
           <p className={css.modelId}>{model.id}</p>
           {isRetired && (
             <p className={css.retiredWarning}>
-              已退役，建议迁移到 {model.suggested_model}
+              {t(modelCardKeys.retiredMigration, {
+                model: model.suggested_model,
+              })}
             </p>
           )}
-          <p className={css.description}>{model.description || '暂无描述'}</p>
+          <p className={css.description}>
+            {model.description || t(modelCardKeys.noDescription)}
+          </p>
         </div>
       </div>
       <div className={css.actions}>
@@ -65,7 +68,7 @@ export const ModelCard = memo(function ModelCard({
           className={css.quiet}
           onClick={() => onViewDetails(model.id)}
         >
-          查看详情
+          {t(modelCardKeys.viewDetails)}
         </Button>
         <Button
           variant={isEnabled ? 'outline' : 'primary'}
@@ -75,7 +78,7 @@ export const ModelCard = memo(function ModelCard({
           disabled={updating || !canEnable}
           onClick={() => void onToggleEnabled(model.id)}
         >
-          {toggleLabel(isEnabled, isRetired, updating)}
+          {getActionLabel()}
         </Button>
       </div>
     </article>

@@ -4,11 +4,8 @@ import type { QiniuInferenceProtocol } from '../../../../qiniu-protocol.ts';
 import { ApiKeySetting } from './components/ApiKeySetting.tsx';
 import { SettingSelect } from './components/SettingSelect.tsx';
 import css from './SettingsPanel.module.css';
-
-const REGION_OPTIONS = [
-  { id: 'cn', label: '国内' },
-  { id: 'global', label: '全球' },
-] as const;
+import { useQiniuT } from '../../../i18n/index.ts';
+import { settingsKeys } from './SettingsPanel.locales.ts';
 
 const PROTOCOL_OPTIONS = [
   { id: 'openai-completions', label: 'OpenAI Chat Completions' },
@@ -33,16 +30,21 @@ export function SettingsPanel({
   onModelMarketRegionChange,
   onInferenceProtocolChange,
 }: Props): ReactNode {
+  const t = useQiniuT();
+  const regionOptions = [
+    { id: 'cn', label: t(settingsKeys.regionCn) },
+    { id: 'global', label: t(settingsKeys.regionGlobal) },
+  ] as const;
   return (
     <div className={css.block}>
       <SettingSelect
-        label="服务区域"
+        label={t(settingsKeys.region)}
         value={modelMarketRegion}
-        options={REGION_OPTIONS}
+        options={regionOptions}
         onChange={(value) => onModelMarketRegionChange(value as QiniuRegion)}
       />
       <SettingSelect
-        label="推理协议"
+        label={t(settingsKeys.protocol)}
         value={inferenceProtocol}
         options={PROTOCOL_OPTIONS}
         onChange={(value) =>
