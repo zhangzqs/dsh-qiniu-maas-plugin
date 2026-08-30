@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { syncQiniuProvider } from '../src/client/controller/provider-config.ts';
+import { syncQiniuProvider } from '../src/client/controller/provider-sync.ts';
 
-describe('provider controller', () => {
+describe('provider sync', () => {
   it('merges the Qiniu provider while preserving other providers', () => {
     expect(
       syncQiniuProvider(

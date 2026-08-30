@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createQiniuController } from '../src/client/controller/qiniu-controller.ts';
-import { QINIU_API_KEY_REF } from '../src/client/controller/provider-config.ts';
+import { QINIU_API_KEY_REF } from '../src/client/controller/provider-sync.ts';
 
 describe('qiniu controller', () => {
   it('checks API Key configuration on demand', async () => {

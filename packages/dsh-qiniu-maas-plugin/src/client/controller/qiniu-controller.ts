@@ -4,7 +4,7 @@ import {
   type Model,
   type QiniuRegion,
 } from 'qiniu-maas-market-sdk';
-import { QINIU_API_KEY_REF, syncQiniuProvider } from './provider-config.ts';
+import { QINIU_API_KEY_REF, syncQiniuProvider } from './provider-sync.ts';
 import type { PiAiSettingsController } from './settings/pi-ai.ts';
 import type { QiniuSettingsController } from './settings/qiniu.ts';
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
@@ -68,19 +68,36 @@ export function createQiniuController(
 
   const setEnabledModels = async (models: readonly Model[]): Promise<void> => {
     const settings = qiniuSettings.read();
-    const enabledModelIds = new Set(settings.enabledModelIds);
-    const marketModelIds = new Set(models.map((model) => model.id));
-    const enabledModels = models.filter(
-      (model) => !model.suggested_model || enabledModelIds.has(model.id),
-    );
-    const unavailableModelIds = settings.enabledModelIds.filter(
-      (modelId) => !marketModelIds.has(modelId),
-    );
-    const nextEnabledModelIds = [
-      ...unavailableModelIds,
-      ...enabledModels.map((model) => model.id),
-    ];
-    await qiniuSettings.setEnabledModelIds(nextEnabledModelIds);
+
+    // 当前区域可用模型中的用户启用的模型
+    const enabledModels = (() => {
+      const enabledModelIds = new Set(settings.enabledModelIds);
+      return models.filter(
+        (model) => !model.suggested_model || enabledModelIds.has(model.id),
+      );
+    })();
+
+    // 当前用户已启用，但当前区域无法列举出来的模型
+    const unavailableModelIds = (() => {
+      const marketModelIds = new Set(models.map((model) => model.id));
+      return settings.enabledModelIds.filter(
+        (modelId) => !marketModelIds.has(modelId),
+      );
+    })();
+
+    {
+      // 将已启用的模型列表保存到settings
+      const nextEnabledModelIds = [
+        ...unavailableModelIds,
+        ...enabledModels.map((model) => model.id),
+      ];
+      await qiniuSettings.setEnabledModelIds(nextEnabledModelIds);
+      store.update((state) => {
+        state.enabledModelIds = nextEnabledModelIds;
+      });
+    }
+
+    // 更新pi-ai的provider配置
     await piAiSettings.setProviders(
       syncQiniuProvider(
         piAiSettings.read().providers,
@@ -88,11 +105,9 @@ export function createQiniuController(
         enabledModels,
       ),
     );
-    store.update((state) => {
-      state.enabledModelIds = nextEnabledModelIds;
-    });
   };
 
+  // 设置服务区域
   const setRegion = async (region: QiniuRegion): Promise<void> => {
     const marketModels = await fetchMarketModels(region);
     await qiniuSettings.setRegion(region);
