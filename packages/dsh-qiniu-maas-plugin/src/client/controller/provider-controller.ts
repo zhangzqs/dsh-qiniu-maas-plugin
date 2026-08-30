@@ -7,7 +7,7 @@ import type {
   PiAiModelProfile,
   PiAiProviderProfile,
 } from '@deepseek-ai/dsh-llm-pi-ai';
-import { type QiniuInferenceProtocol } from '../qiniu-protocol.ts';
+import { type QiniuInferenceProtocol } from '../../shared.ts';
 import { QINIU_API_KEY_REF } from './qiniu-constants.ts';
 import type { PiAiSettings } from './settings/pi-ai-settings-controller.ts';
 

@@ -4,26 +4,29 @@ import {
   settingsNamespace,
 } from '@deepseek-ai/dsh-settings';
 import z from '@deepseek-ai/schemastery';
+import {
+  QINIU_SETTINGS_NAMESPACE,
+  type QiniuInferenceProtocol,
+  type QiniuSettings,
+} from './shared.ts';
+import type { QiniuRegion } from 'qiniu-maas-market-sdk';
 
 export const name = '@qiniu/dsh-qiniu-maas-plugin';
 export const inject: string[] = [];
 
-const SETTINGS_NAMESPACE = settingsNamespace('qiniu-maas');
+const SETTINGS_NAMESPACE = settingsNamespace(QINIU_SETTINGS_NAMESPACE);
 
-export interface Config {
-  enabledModelIds?: string[];
-  region?: 'cn' | 'global';
-  inferenceProtocol?:
-    | 'openai-completions'
-    | 'openai-responses'
-    | 'anthropic-messages';
-}
+export type Config = QiniuSettings;
 
 export const Config: z<Config> = z.object({
   enabledModelIds: z.array(z.string()).default([]),
-  region: z.union(['cn', 'global']).default('cn'),
+  region: z.union(['cn', 'global'] satisfies QiniuRegion[]).default('cn'),
   inferenceProtocol: z
-    .union(['openai-completions', 'openai-responses', 'anthropic-messages'])
+    .union([
+      'openai-completions',
+      'openai-responses',
+      'anthropic-messages',
+    ] satisfies QiniuInferenceProtocol[])
     .default('openai-completions'),
 });
 

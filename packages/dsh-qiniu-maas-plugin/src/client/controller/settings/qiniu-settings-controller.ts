@@ -1,12 +1,8 @@
 import type { SettingsScope } from '@deepseek-ai/dsh-client-runtime/client';
 import type { QiniuRegion } from 'qiniu-maas-market-sdk';
-import type { QiniuInferenceProtocol } from '../../qiniu-protocol.ts';
+import type { QiniuInferenceProtocol, QiniuSettings } from '../../../shared.ts';
 
-export interface QiniuSettings {
-  enabledModelIds?: readonly string[];
-  region?: QiniuRegion;
-  inferenceProtocol?: QiniuInferenceProtocol;
-}
+export type { QiniuSettings } from '../../../shared.ts';
 
 export interface QiniuSettingsValue {
   enabledModelIds: string[];

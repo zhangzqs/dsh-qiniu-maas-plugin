@@ -7,8 +7,9 @@ import type {
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
 import type { QiniuRegion } from 'qiniu-maas-market-sdk';
+import { QINIU_SETTINGS_NAMESPACE } from '../../shared.ts';
 import type { QiniuActions, QiniuState } from '../controller/qiniu-state.ts';
-import type { QiniuInferenceProtocol } from '../qiniu-protocol.ts';
+import type { QiniuInferenceProtocol } from '../../shared.ts';
 import { Page } from './page/Page.tsx';
 
 export interface QiniuInjected extends QiniuActions {
@@ -19,7 +20,7 @@ export interface QiniuInjected extends QiniuActions {
 
 type Props = PropsRuntime<'settings.section'> &
   InjectFace<QiniuInjected> &
-  PropsLocale<'qiniu-maas'>;
+  PropsLocale<typeof QINIU_SETTINGS_NAMESPACE>;
 
 export function QiniuSettingsSection(props: Props): ReactNode {
   const {

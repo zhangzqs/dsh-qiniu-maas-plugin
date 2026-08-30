@@ -14,19 +14,20 @@ import {
 import { QiniuSettingsSection, type QiniuInjected } from './ui/index.ts';
 import { qiniuMessages } from './ui/i18n/index.ts';
 import { qiniuSettingsSectionKeys } from './ui/QiniuSettingsSection.locales.ts';
+import { QINIU_SETTINGS_NAMESPACE } from '../shared.ts';
 
 export const inject = ['slots', 'connection', 'settingsScope', 'locale'];
 
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => {
     const locale = ctx.get('locale') as LocaleRuntime;
-    return locale.register('qiniu-maas', qiniuMessages);
+    return locale.register(QINIU_SETTINGS_NAMESPACE, qiniuMessages);
   }, 'qiniu-maas: locale dictionary');
   const connection = ctx.get('connection') as ConnectionHandle;
 
   const qiniuSettingsController = createQiniuSettingsController(
     ctx.settingsScope.bind<QiniuSettings>({
-      namespace: 'qiniu-maas',
+      namespace: QINIU_SETTINGS_NAMESPACE,
     }),
   );
   const piAiSettingsController = createPiAiSettingsController(
@@ -70,9 +71,11 @@ export function apply(ctx: ClientContext): void {
         order: 20,
         label: () => {
           const locale = ctx.get('locale') as LocaleRuntime;
-          return locale.bind('qiniu-maas')(qiniuSettingsSectionKeys.label);
+          return locale.bind(QINIU_SETTINGS_NAMESPACE)(
+            qiniuSettingsSectionKeys.label,
+          );
         },
-        locale: 'qiniu-maas',
+        locale: QINIU_SETTINGS_NAMESPACE,
         inject: (): QiniuInjected => ({
           hooks: { snapshot: store },
           ...controller,
