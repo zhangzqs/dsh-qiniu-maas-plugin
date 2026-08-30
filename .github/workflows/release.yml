@@ -1,25 +1,33 @@
-name: Release
+name: Release Assets
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types:
+      - published
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to rebuild and upload, for example v0.1.6-rc.0
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-assets-${{ github.event.release.tag_name || inputs.tag }}
   cancel-in-progress: false
 
 jobs:
-  release:
+  upload:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout release tag
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+          fetch-depth: 0
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
@@ -37,7 +45,7 @@ jobs:
 
       - name: Validate release tag
         env:
-          TAG_NAME: ${{ github.ref_name }}
+          TAG_NAME: ${{ github.event.release.tag_name || inputs.tag }}
         run: |
           TAG_VERSION="${TAG_NAME#v}"
           PLUGIN_VERSION="$(node -p "require('./packages/dsh-qiniu-maas-plugin/package.json').version")"
@@ -45,11 +53,6 @@ jobs:
             echo "Tag version $TAG_VERSION does not match plugin version $PLUGIN_VERSION"
             exit 1
           fi
-
-      - name: Clean build output
-        run: |
-          rm -rf packages/dsh-qiniu-maas-plugin/lib
-          rm -rf packages/qiniu-maas-market-sdk/lib
 
       - name: Check formatting
         run: pnpm format:check
@@ -83,11 +86,8 @@ jobs:
           tar -tzf "$PACKAGE_PATH" | grep -Fx 'package/lib/index.js'
           tar -tzf "$PACKAGE_PATH" | grep -Fx 'package/lib/client.js'
 
-      - name: Create GitHub Release
+      - name: Upload plugin package
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "$GITHUB_REF_NAME" dist/*.tgz \
-            --verify-tag \
-            --generate-notes \
-            --title "七牛 MaaS DSH 插件 $GITHUB_REF_NAME"
+          TAG_NAME: ${{ github.event.release.tag_name || inputs.tag }}
+        run: gh release upload "$TAG_NAME" dist/*.tgz --clobber
