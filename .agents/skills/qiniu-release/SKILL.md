@@ -10,9 +10,10 @@ description: Use when publishing a Qiniu MaaS DSH plugin, upgrading SDK or plugi
 - SDK：`packages/qiniu-maas-market-sdk`
 - 插件：`packages/dsh-qiniu-maas-plugin`
 - Release tag：`v<插件 package.json 的 version>`
+- Release 标题必须与 tag 完全一致，例如 tag 为 `v0.1.6-rc.0` 时标题也使用 `v0.1.6-rc.0`。
 - RC 版本必须同时写入相关 `package.json`，例如版本 `0.1.6-rc.0` 对应 tag `v0.1.6-rc.0`；正式版本再单独改为 `0.1.6` 并创建 `v0.1.6`。
 - GitHub Actions 不自动修改 `main`、创建 tag 或创建 Release。
-- Release 由用户在 GitHub 页面手工创建；`.github/workflows/release.yml` 只构建并上传 `.tgz` 产物。
+- Release 默认由用户在 GitHub 页面手工创建；只有用户明确授权自动发布时，才使用 GitHub CLI 创建 Release。`.github/workflows/release.yml` 只构建并上传 `.tgz` 产物。
 - prerelease 和正式 Release 都可以上传产物；正式 Release 必须由用户手工创建或将 prerelease 转正。
 
 ## 流程
@@ -40,7 +41,20 @@ description: Use when publishing a Qiniu MaaS DSH plugin, upgrading SDK or plugi
 
    RC 验证通过后，另开一个版本 PR，把相关包从 `0.1.6-rc.0` 改为正式版本 `0.1.6`，合并后再创建新的正式 Release。不要复用 RC tag，也不要只修改 tag 而保留 RC 的 package 版本。
 
-4. 在 GitHub Release 页面选择已合并提交对应的 tag，创建 Release。自动 prerelease 使用 `-rc.N` tag；正式版本由用户手工创建或取消 prerelease 标记。创建 Release 后会触发 `Release Assets` workflow。
+4. 创建 Release 时提供两种模式：
+
+   - 默认引导用户打开 GitHub Release 页面，选择已合并提交对应的 tag，标题直接填写与 tag 完全一致的值。用户完成创建后继续等待 workflow。
+   - 只有用户明确授权自动发布时才执行 CLI。自动模式仅用于 RC tag，并创建 prerelease：
+
+     ```sh
+     gh release create "$TAG" \
+       --target "$COMMIT" \
+       --prerelease \
+       --generate-notes \
+       --title "$TAG"
+     ```
+
+     正式版本不得由自动模式创建，必须由用户在网页上手工发布。创建 Release 后会触发 `Release Assets` workflow。
 
 5. 轮询 workflow，直到成功：
 
