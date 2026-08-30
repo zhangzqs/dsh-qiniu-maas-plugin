@@ -13,6 +13,7 @@ import {
 } from './controller/index.ts';
 import { QiniuSettingsSection, type QiniuInjected } from './ui/index.ts';
 import { qiniuMessages } from './ui/i18n/index.ts';
+import { qiniuSettingsSectionKeys } from './ui/QiniuSettingsSection.locales.ts';
 
 export const inject = ['slots', 'connection', 'settingsScope', 'locale'];
 
@@ -67,7 +68,10 @@ export function apply(ctx: ClientContext): void {
         name: 'settings.section',
         id: 'qiniu-maas',
         order: 20,
-        label: 'Qiniu MaaS',
+        label: () => {
+          const locale = ctx.get('locale') as LocaleRuntime;
+          return locale.bind('qiniu-maas')(qiniuSettingsSectionKeys.label);
+        },
         locale: 'qiniu-maas',
         inject: (): QiniuInjected => ({
           hooks: { snapshot: store },

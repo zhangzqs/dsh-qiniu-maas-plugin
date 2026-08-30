@@ -44,6 +44,21 @@ jobs:
       - name: Build packages
         run: pnpm build
 
+      - name: Pack plugin for PR testing
+        if: github.event_name == 'pull_request'
+        working-directory: packages/dsh-qiniu-maas-plugin
+        run: |
+          mkdir -p ../../pr-artifact
+          pnpm pack --pack-destination ../../pr-artifact
+
+      - name: Upload plugin artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: qiniu-dsh-qiniu-maas-plugin-pr-${{ github.event.pull_request.number }}
+          path: pr-artifact/*.tgz
+          retention-days: 7
+
       - name: Run tests
         run: pnpm test
 

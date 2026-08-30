@@ -4,6 +4,10 @@ import {
   tabsKeys,
   tabsMessages,
 } from '../src/client/ui/page/components/Tabs.locales.ts';
+import {
+  qiniuSettingsSectionKeys,
+  qiniuSettingsSectionMessages,
+} from '../src/client/ui/QiniuSettingsSection.locales.ts';
 
 describe('qiniu locale messages', () => {
   it('builds dictionaries for every supported locale', () => {
@@ -20,5 +24,14 @@ describe('qiniu locale messages', () => {
     for (const messages of Object.values(qiniuMessages)) {
       expect(Object.keys(messages)).toEqual(Object.keys(qiniuMessages.zh));
     }
+  });
+
+  it('includes the settings section label translations', () => {
+    expect(
+      qiniuSettingsSectionMessages[qiniuSettingsSectionKeys.label],
+    ).toEqual({
+      zh: '七牛 MaaS',
+      en: 'Qiniu MaaS',
+    });
   });
 });
