@@ -55,6 +55,17 @@ export function createQiniuController(
     );
   };
 
+  // 设置API Key
+  const setApiKey = async (value: string): Promise<void> => {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) throw new Error('API Key 不能为空');
+    const response = await connection.api.credentials.set({
+      ref: QINIU_API_KEY_REF,
+      value: trimmed,
+    });
+    if (!response.result.ok) throw new Error(response.result.error.message);
+  };
+
   const setEnabledModels = async (models: readonly Model[]): Promise<void> => {
     const settings = qiniuSettings.read();
     const enabledModelIds = new Set(settings.enabledModelIds);
@@ -82,41 +93,34 @@ export function createQiniuController(
     });
   };
 
-  const setApiKey = async (value: string): Promise<void> => {
-    const trimmed = value.trim();
-    if (trimmed.length === 0) throw new Error('API Key 不能为空');
-    const response = await connection.api.credentials.set({
-      ref: QINIU_API_KEY_REF,
-      value: trimmed,
-    });
-    if (!response.result.ok) throw new Error(response.result.error.message);
-  };
-
-  const syncProviderSettings = async (
-    marketModels: readonly Model[],
-  ): Promise<void> => {
-    const qiniuSettingsValue = qiniuSettings.read();
-    const providers = piAiSettings.read().providers;
-    await piAiSettings.setProviders(
-      syncQiniuProvider(providers, qiniuSettingsValue, marketModels),
-    );
-  };
-
   const setRegion = async (region: QiniuRegion): Promise<void> => {
     const marketModels = await fetchMarketModels(region);
     await qiniuSettings.setRegion(region);
-    await syncProviderSettings(marketModels);
+    await piAiSettings.setProviders(
+      syncQiniuProvider(
+        piAiSettings.read().providers,
+        qiniuSettings.read(),
+        marketModels,
+      ),
+    );
     store.update((state) => {
       state.region = region;
     });
   };
 
+  // 设置推理协议
   const setInferenceProtocol = async (
     protocol: QiniuInferenceProtocol,
   ): Promise<void> => {
     const marketModels = await fetchMarketModels(qiniuSettings.read().region);
     await qiniuSettings.setInferenceProtocol(protocol);
-    await syncProviderSettings(marketModels);
+    await piAiSettings.setProviders(
+      syncQiniuProvider(
+        piAiSettings.read().providers,
+        qiniuSettings.read(),
+        marketModels,
+      ),
+    );
     store.update((state) => {
       state.inferenceProtocol = protocol;
     });
