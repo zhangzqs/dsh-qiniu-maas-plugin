@@ -9,8 +9,8 @@ import type {
   PiAiProviderProfile,
 } from '@deepseek-ai/dsh-llm-pi-ai';
 import type { PiAiSettings } from './settings/pi-ai.ts';
+import { QINIU_MAAS_NAMESPACE } from '../../shared.ts';
 
-export const QINIU_PROVIDER = 'qiniu-maas';
 export const QINIU_API_KEY_REF = 'QINIU_MAAS_API_KEY';
 type PiAiProviders = NonNullable<PiAiSettings['providers']>;
 
@@ -39,7 +39,7 @@ export function settingsWithEnabledModels(
   const currentProviders = providers ?? {};
   if (models.length === 0) {
     const otherProviders = { ...currentProviders };
-    delete otherProviders[QINIU_PROVIDER];
+    delete otherProviders[QINIU_MAAS_NAMESPACE];
     return otherProviders;
   }
   const profile: PiAiProviderProfile = {
@@ -49,7 +49,7 @@ export function settingsWithEnabledModels(
     baseURL: QINIU_LLM_BASE_URLS[region][protocol],
     models: models.map(toPiAiModelProfile),
   };
-  return { ...currentProviders, [QINIU_PROVIDER]: profile };
+  return { ...currentProviders, [QINIU_MAAS_NAMESPACE]: profile };
 }
 
 export function settingsWithInferenceEndpoint(
@@ -58,14 +58,14 @@ export function settingsWithInferenceEndpoint(
   protocol: QiniuInferenceProtocol,
 ): PiAiProviders {
   const currentProviders = providers ?? {};
-  const profile = currentProviders[QINIU_PROVIDER];
+  const profile = currentProviders[QINIU_MAAS_NAMESPACE];
   if (!profile || typeof profile !== 'object' || Array.isArray(profile)) {
     return currentProviders;
   }
 
   return {
     ...currentProviders,
-    [QINIU_PROVIDER]: {
+    [QINIU_MAAS_NAMESPACE]: {
       ...profile,
       api: protocol,
       baseURL: QINIU_LLM_BASE_URLS[region][protocol],
