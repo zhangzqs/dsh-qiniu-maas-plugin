@@ -4,7 +4,7 @@ import {
   type Model,
   type QiniuRegion,
 } from 'qiniu-maas-market-sdk';
-import { QINIU_API_KEY_REF, syncQiniuProvider } from './provider-sync.ts';
+import { QINIU_API_KEY_REF, syncProviderSettings } from './provider-sync.ts';
 import type { PiAiSettingsController } from './settings/pi-ai.ts';
 import type { QiniuSettingsController } from './settings/qiniu.ts';
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
@@ -36,23 +36,25 @@ export function createQiniuController(
   piAiSettings: PiAiSettingsController,
   store: SnapshotStore<QiniuState>,
 ): QiniuController {
-  const marketModelsCache = new Map<QiniuRegion, readonly Model[]>();
-
-  const fetchMarketModels = async (
-    region: QiniuRegion,
-    forceRefresh = false,
-  ): Promise<readonly Model[]> => {
-    const cachedModels = marketModelsCache.get(region);
-    if (!forceRefresh && cachedModels !== undefined) {
-      return cachedModels;
-    }
-    const models = await listModels({ region });
-    const sortedModels = [...models].sort(
-      (left, right) => (right.rank ?? 0) - (left.rank ?? 0),
-    );
-    marketModelsCache.set(region, sortedModels);
-    return sortedModels;
-  };
+  // 获取当前区域可用模型列表
+  const fetchMarketModels = (() => {
+    const marketModelsCache = new Map<QiniuRegion, readonly Model[]>();
+    return async function fetchMarketModels(
+      region: QiniuRegion,
+      forceRefresh = false,
+    ): Promise<readonly Model[]> {
+      const cachedModels = marketModelsCache.get(region);
+      if (!forceRefresh && cachedModels !== undefined) {
+        return cachedModels;
+      }
+      const models = await listModels({ region });
+      const sortedModels = [...models].sort(
+        (left, right) => (right.rank ?? 0) - (left.rank ?? 0),
+      );
+      marketModelsCache.set(region, sortedModels);
+      return sortedModels;
+    };
+  })();
 
   // 查询dsh内的credentials配置，查询API Key是否已配置
   const checkApiKeyConfigured = async (): Promise<boolean> => {
@@ -78,6 +80,7 @@ export function createQiniuController(
     if (!response.result.ok) throw new Error(response.result.error.message);
   };
 
+  // 设置已启用的模型列表
   const setEnabledModels = async (models: readonly Model[]): Promise<void> => {
     const settings = qiniuSettings.read();
 
@@ -110,26 +113,14 @@ export function createQiniuController(
     }
 
     // 更新pi-ai的provider配置
-    await piAiSettings.setProviders(
-      syncQiniuProvider(
-        piAiSettings.read().providers,
-        qiniuSettings.read(),
-        enabledModels,
-      ),
-    );
+    await syncProviderSettings(piAiSettings, qiniuSettings, enabledModels);
   };
 
   // 设置服务区域
   const setRegion = async (region: QiniuRegion): Promise<void> => {
     const marketModels = await fetchMarketModels(region);
     await qiniuSettings.setRegion(region);
-    await piAiSettings.setProviders(
-      syncQiniuProvider(
-        piAiSettings.read().providers,
-        qiniuSettings.read(),
-        marketModels,
-      ),
-    );
+    await syncProviderSettings(piAiSettings, qiniuSettings, marketModels);
     store.update((state) => {
       state.region = region;
     });
@@ -141,13 +132,7 @@ export function createQiniuController(
   ): Promise<void> => {
     const marketModels = await fetchMarketModels(qiniuSettings.read().region);
     await qiniuSettings.setInferenceProtocol(protocol);
-    await piAiSettings.setProviders(
-      syncQiniuProvider(
-        piAiSettings.read().providers,
-        qiniuSettings.read(),
-        marketModels,
-      ),
-    );
+    await syncProviderSettings(piAiSettings, qiniuSettings, marketModels);
     store.update((state) => {
       state.inferenceProtocol = protocol;
     });
