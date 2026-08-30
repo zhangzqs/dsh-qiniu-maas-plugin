@@ -38,7 +38,7 @@ export function apply(ctx: ClientContext): void {
     const qiniuSettingsValue = qiniuSettingsController.read();
     return createSnapshotStore<QiniuState>({
       enabledModelIds: qiniuSettingsValue.enabledModelIds,
-      modelMarketRegion: qiniuSettingsValue.region,
+      region: qiniuSettingsValue.region,
       inferenceProtocol: qiniuSettingsValue.inferenceProtocol,
     });
   })();
@@ -56,7 +56,7 @@ export function apply(ctx: ClientContext): void {
         const settings = qiniuSettingsController.read();
         store.update((state) => {
           state.enabledModelIds = settings.enabledModelIds;
-          state.modelMarketRegion = settings.region;
+          state.region = settings.region;
           state.inferenceProtocol = settings.inferenceProtocol;
         });
       }),

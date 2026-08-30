@@ -67,20 +67,17 @@ jobs:
         run: pnpm typecheck
 
       - name: Pack plugin
-        working-directory: packages/dsh-qiniu-maas-plugin
-        run: |
-          mkdir -p ../../release
-          pnpm pack --pack-destination ../../release
+        run: pnpm pack:plugin
 
       - name: Verify plugin package
         run: |
-          PACKAGE_COUNT="$(find release -maxdepth 1 -type f -name '*.tgz' | wc -l)"
+          PACKAGE_COUNT="$(find dist -maxdepth 1 -type f -name '*.tgz' | wc -l)"
           if [ "$PACKAGE_COUNT" -ne 1 ]; then
             echo "Expected exactly one plugin package, found $PACKAGE_COUNT"
             exit 1
           fi
 
-          PACKAGE_PATH="$(find release -maxdepth 1 -type f -name '*.tgz' -print)"
+          PACKAGE_PATH="$(find dist -maxdepth 1 -type f -name '*.tgz' -print)"
           tar -tzf "$PACKAGE_PATH" | grep -Fx 'package/package.json'
           tar -tzf "$PACKAGE_PATH" | grep -Fx 'package/cordis.patch.yml'
           tar -tzf "$PACKAGE_PATH" | grep -Fx 'package/lib/index.js'
@@ -90,7 +87,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" release/*.tgz \
+          gh release create "$GITHUB_REF_NAME" dist/*.tgz \
             --verify-tag \
             --generate-notes \
             --title "七牛 MaaS DSH 插件 $GITHUB_REF_NAME"

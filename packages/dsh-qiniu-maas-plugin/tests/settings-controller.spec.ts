@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createPiAiSettingsController } from '../src/client/controller/settings/pi-ai-settings-controller.ts';
-import { createQiniuSettingsController } from '../src/client/controller/settings/qiniu-settings-controller.ts';
+import { createPiAiSettingsController } from '../src/client/controller/settings/pi-ai.ts';
+import { createQiniuSettingsController } from '../src/client/controller/settings/qiniu.ts';
 
 function settingsScope(initialValue: Record<string, unknown>) {
   let value = initialValue;
@@ -38,12 +38,12 @@ describe('settings controllers', () => {
 
     await controller.setEnabledModelIds(['model-a']);
     await controller.setRegion('global');
-    await controller.setInferenceProtocol('openai-responses');
+    await controller.setInferenceProtocol('anthropic-messages');
 
     expect(controller.read()).toEqual({
       enabledModelIds: ['model-a'],
       region: 'global',
-      inferenceProtocol: 'openai-responses',
+      inferenceProtocol: 'anthropic-messages',
     });
     expect(scope.set).toHaveBeenNthCalledWith(1, 'enabledModelIds', [
       'model-a',

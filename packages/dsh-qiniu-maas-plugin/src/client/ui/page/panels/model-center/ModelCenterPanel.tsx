@@ -28,14 +28,17 @@ import { modelCenterKeys } from './ModelCenterPanel.locales.ts';
 
 export interface Props {
   enabledModelIds: readonly string[];
-  modelMarketRegion: QiniuRegion;
-  fetchMarketModels: (region: QiniuRegion) => Promise<readonly Model[]>;
+  region: QiniuRegion;
+  fetchMarketModels: (
+    region: QiniuRegion,
+    forceRefresh?: boolean,
+  ) => Promise<readonly Model[]>;
   setEnabledModels: (models: readonly Model[]) => Promise<void>;
 }
 
 export function ModelCenterPanel({
   enabledModelIds,
-  modelMarketRegion,
+  region,
   fetchMarketModels,
   setEnabledModels,
 }: Props): ReactNode {
@@ -106,7 +109,7 @@ export function ModelCenterPanel({
       }
 
       try {
-        const nextModels = await fetchMarketModels(modelMarketRegion);
+        const nextModels = await fetchMarketModels(region, isRefresh);
         if (currentRequestId === requestId.current) {
           setLoadedModels(nextModels);
         }
@@ -121,7 +124,7 @@ export function ModelCenterPanel({
         }
       }
     },
-    [fetchMarketModels, modelMarketRegion],
+    [fetchMarketModels, region],
   );
 
   useEffect(() => {

@@ -1,20 +1,12 @@
 import type { Model } from './models/model.ts';
+import type { QiniuRegion } from './endpoints.ts';
 
 const MODEL_MARKET_URLS = {
   /** 国内模型市场服务域名。 */
   cn: 'https://api.qnaigc.com/v1/market/models',
   /** 全球模型市场服务域名。 */
   global: 'https://api.modelink.ai/v1/market/models',
-} as const;
-
-export const QINIU_LLM_BASE_URLS = {
-  /** 国内 LLM 推理服务地址。 */
-  cn: 'https://api.qnaigc.com/v1',
-  /** 全球 LLM 推理服务地址。 */
-  global: 'https://api.modelink.ai/v1',
-} as const;
-
-export type QiniuRegion = keyof typeof QINIU_LLM_BASE_URLS;
+} as const satisfies Record<QiniuRegion, string>;
 
 export interface ModelMarketOptions {
   /** 选择模型市场服务域名，默认使用国内服务。 */

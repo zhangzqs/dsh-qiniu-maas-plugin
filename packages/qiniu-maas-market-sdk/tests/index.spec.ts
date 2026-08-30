@@ -1,12 +1,36 @@
 import { describe, expect, it, vi } from 'vitest';
-import { QINIU_LLM_BASE_URLS, listModels } from '../src/index.ts';
+import {
+  QINIU_LLM_BASE_URLS,
+  listModels,
+  type QiniuInferenceProtocol,
+  type QiniuRegion,
+} from '../src/index.ts';
 
 describe('qiniu-maas-market-sdk', () => {
   it('exports inference service URLs for the shared Qiniu region type', () => {
     expect(QINIU_LLM_BASE_URLS).toEqual({
-      cn: 'https://api.qnaigc.com/v1',
-      global: 'https://api.modelink.ai/v1',
+      cn: {
+        'openai-completions': 'https://api.qnaigc.com/v1',
+        'anthropic-messages': 'https://api.qnaigc.com',
+      },
+      global: {
+        'openai-completions': 'https://api.modelink.ai/v1',
+        'anthropic-messages': 'https://api.modelink.ai',
+      },
     });
+  });
+
+  it('exports the supported inference protocol type values', () => {
+    const protocols: QiniuInferenceProtocol[] = [
+      'openai-completions',
+      'anthropic-messages',
+    ];
+    expect(protocols).toHaveLength(2);
+  });
+
+  it('exports the supported region type values', () => {
+    const regions: QiniuRegion[] = ['cn', 'global'];
+    expect(regions).toHaveLength(2);
   });
 
   it('requests the public domestic marketplace without credentials', async () => {

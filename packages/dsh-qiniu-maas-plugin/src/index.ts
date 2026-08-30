@@ -24,7 +24,6 @@ export const Config: z<Config> = z.object({
   inferenceProtocol: z
     .union([
       'openai-completions',
-      'openai-responses',
       'anthropic-messages',
     ] satisfies QiniuInferenceProtocol[])
     .default('openai-completions'),

@@ -8,7 +8,10 @@ import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
 import type { QiniuRegion } from 'qiniu-maas-market-sdk';
 import { QINIU_MAAS_NAMESPACE } from '../../shared.ts';
-import type { QiniuActions, QiniuState } from '../controller/qiniu-state.ts';
+import type {
+  QiniuActions,
+  QiniuState,
+} from '../controller/qiniu-controller.ts';
 import type { QiniuInferenceProtocol } from '../../shared.ts';
 import { Page } from './page/Page.tsx';
 
@@ -28,7 +31,7 @@ export function QiniuSettingsSection(props: Props): ReactNode {
     fetchMarketModels,
     setEnabledModels,
     setApiKey,
-    setModelMarketRegion,
+    setRegion,
     setInferenceProtocol,
     useSnapshot,
     t,
@@ -40,17 +43,17 @@ export function QiniuSettingsSection(props: Props): ReactNode {
       t={t}
       models={{
         enabledModelIds: state.enabledModelIds,
-        modelMarketRegion: state.modelMarketRegion,
+        region: state.region,
         fetchMarketModels,
         setEnabledModels,
       }}
       settings={{
         checkApiKeyConfigured,
         setApiKey,
-        modelMarketRegion: state.modelMarketRegion,
+        region: state.region,
         inferenceProtocol: state.inferenceProtocol,
         onModelMarketRegionChange: (region: QiniuRegion) => {
-          void setModelMarketRegion(region);
+          void setRegion(region);
         },
         onInferenceProtocolChange: (protocol: QiniuInferenceProtocol) => {
           void setInferenceProtocol(protocol);
