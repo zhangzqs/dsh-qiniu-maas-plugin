@@ -1,29 +1,55 @@
 import { describe, expect, it } from 'vitest';
-import { syncQiniuProvider } from '../src/client/controller/provider-sync.ts';
+import { syncProviderSettings } from '../src/client/controller/provider-sync.ts';
+import type { PiAiSettingsController } from '../src/client/controller/settings/pi-ai.ts';
+import type { QiniuSettingsController } from '../src/client/controller/settings/qiniu.ts';
+
+function createSettingsController(
+  providers: Parameters<PiAiSettingsController['setProviders']>[0],
+): PiAiSettingsController {
+  let value = { providers };
+  return {
+    read: () => value,
+    setProviders: async (nextProviders) => {
+      value = { providers: nextProviders };
+    },
+  };
+}
+
+function createQiniuSettingsController(
+  value: ReturnType<QiniuSettingsController['read']>,
+): QiniuSettingsController {
+  return {
+    read: () => value,
+    subscribe: () => () => {},
+    setEnabledModelIds: async () => {},
+    setRegion: async () => {},
+    setInferenceProtocol: async () => {},
+  };
+}
 
 describe('provider sync', () => {
-  it('merges the Qiniu provider while preserving other providers', () => {
-    expect(
-      syncQiniuProvider(
-        { openai: { apiKeyEnv: 'OPENAI_API_KEY' } },
-        {
-          enabledModelIds: ['model-a'],
-          region: 'cn',
-          inferenceProtocol: 'openai-completions',
+  it('merges the Qiniu provider while preserving other providers', async () => {
+    const settings = createSettingsController({
+      openai: { apiKeyEnv: 'OPENAI_API_KEY' },
+    });
+    const qiniuSettings = createQiniuSettingsController({
+      enabledModelIds: ['model-a'],
+      region: 'cn',
+      inferenceProtocol: 'openai-completions',
+    });
+    await syncProviderSettings(settings, qiniuSettings, [
+      {
+        id: 'model-a',
+        name: 'Model A',
+        architecture: {
+          input_modalities: ['text'],
+          output_modalities: ['text'],
         },
-        [
-          {
-            id: 'model-a',
-            name: 'Model A',
-            architecture: {
-              input_modalities: ['text'],
-              output_modalities: ['text'],
-            },
-            model_constraints: { context_length: 128000, max_tokens: 8192 },
-          },
-        ],
-      ),
-    ).toMatchObject({
+        model_constraints: { context_length: 128000, max_tokens: 8192 },
+      },
+    ]);
+
+    expect(settings.read().providers).toMatchObject({
       openai: { apiKeyEnv: 'OPENAI_API_KEY' },
       'qiniu-maas': {
         displayName: 'Qiniu MaaS',
@@ -42,18 +68,18 @@ describe('provider sync', () => {
     });
   });
 
-  it('applies the selected inference region and protocol', () => {
-    expect(
-      syncQiniuProvider(
-        {},
-        {
-          enabledModelIds: ['model-a'],
-          region: 'global',
-          inferenceProtocol: 'anthropic-messages',
-        },
-        [{ id: 'model-a', name: 'Model A' }],
-      ),
-    ).toMatchObject({
+  it('applies the selected inference region and protocol', async () => {
+    const settings = createSettingsController({});
+    const qiniuSettings = createQiniuSettingsController({
+      enabledModelIds: ['model-a'],
+      region: 'global',
+      inferenceProtocol: 'anthropic-messages',
+    });
+    await syncProviderSettings(settings, qiniuSettings, [
+      { id: 'model-a', name: 'Model A' },
+    ]);
+
+    expect(settings.read().providers).toMatchObject({
       'qiniu-maas': {
         api: 'anthropic-messages',
         baseURL: 'https://api.modelink.ai',
@@ -61,24 +87,21 @@ describe('provider sync', () => {
     });
   });
 
-  it('removes the provider when no enabled model remains', () => {
-    const providers = {
+  it('removes the provider when no enabled model remains', async () => {
+    const settings = createSettingsController({
       'qiniu-maas': {
         displayName: 'Qiniu MaaS',
         models: [{ id: 'model-a', name: 'Model A', contextWindow: 128000 }],
       },
-    };
+    });
+    const qiniuSettings = createQiniuSettingsController({
+      enabledModelIds: ['model-a'],
+      region: 'global',
+      inferenceProtocol: 'anthropic-messages',
+    });
 
-    expect(
-      syncQiniuProvider(
-        providers,
-        {
-          enabledModelIds: ['model-a'],
-          region: 'global',
-          inferenceProtocol: 'anthropic-messages',
-        },
-        [],
-      ),
-    ).toEqual({});
+    await syncProviderSettings(settings, qiniuSettings, []);
+
+    expect(settings.read().providers).toEqual({});
   });
 });
