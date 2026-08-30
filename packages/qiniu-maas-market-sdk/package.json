@@ -1,6 +1,6 @@
 {
   "name": "qiniu-maas-market-sdk",
-  "version": "0.1.2-rc.0",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "main": "lib/index.js",
