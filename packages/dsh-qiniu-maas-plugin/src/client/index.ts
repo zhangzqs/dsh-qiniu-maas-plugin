@@ -8,25 +8,25 @@ import {
   createQiniuController,
   createQiniuSettingsController,
   type PiAiSettings,
-  type QiniuSettings,
   type QiniuState,
 } from './controller/index.ts';
 import { QiniuSettingsSection, type QiniuInjected } from './ui/index.ts';
 import { qiniuMessages } from './ui/i18n/index.ts';
 import { qiniuSettingsSectionKeys } from './ui/QiniuSettingsSection.locales.ts';
+import { QINIU_MAAS_NAMESPACE, type QiniuSettings } from '../shared.ts';
 
 export const inject = ['slots', 'connection', 'settingsScope', 'locale'];
 
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => {
     const locale = ctx.get('locale') as LocaleRuntime;
-    return locale.register('qiniu-maas', qiniuMessages);
+    return locale.register(QINIU_MAAS_NAMESPACE, qiniuMessages);
   }, 'qiniu-maas: locale dictionary');
   const connection = ctx.get('connection') as ConnectionHandle;
 
   const qiniuSettingsController = createQiniuSettingsController(
     ctx.settingsScope.bind<QiniuSettings>({
-      namespace: 'qiniu-maas',
+      namespace: QINIU_MAAS_NAMESPACE,
     }),
   );
   const piAiSettingsController = createPiAiSettingsController(
@@ -70,9 +70,11 @@ export function apply(ctx: ClientContext): void {
         order: 20,
         label: () => {
           const locale = ctx.get('locale') as LocaleRuntime;
-          return locale.bind('qiniu-maas')(qiniuSettingsSectionKeys.label);
+          return locale.bind(QINIU_MAAS_NAMESPACE)(
+            qiniuSettingsSectionKeys.label,
+          );
         },
-        locale: 'qiniu-maas',
+        locale: QINIU_MAAS_NAMESPACE,
         inject: (): QiniuInjected => ({
           hooks: { snapshot: store },
           ...controller,

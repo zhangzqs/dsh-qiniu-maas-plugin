@@ -14,6 +14,7 @@ import { settingsMessages } from '../page/panels/settings/SettingsPanel.locales.
 import { apiKeySettingMessages } from '../page/panels/settings/components/ApiKeySetting.locales.ts';
 import { modelAvatarMessages } from '../page/panels/model-center/components/ModelAvatar.locales.ts';
 import { qiniuSettingsSectionMessages } from '../QiniuSettingsSection.locales.ts';
+import { QINIU_MAAS_NAMESPACE } from '../../../shared.ts';
 export type QiniuLocaleMessage = Record<LocaleId, string>;
 export type QiniuLocaleMessages = Record<string, QiniuLocaleMessage>;
 
@@ -33,10 +34,10 @@ const allMessages = {
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
-    'qiniu-maas': keyof typeof allMessages;
+    [QINIU_MAAS_NAMESPACE]: keyof typeof allMessages;
   }
 }
-export type QiniuTranslator = TranslateNS<'qiniu-maas'>;
+export type QiniuTranslator = TranslateNS<typeof QINIU_MAAS_NAMESPACE>;
 
 export const QiniuLocaleContext = createContext<QiniuTranslator | null>(null);
 
@@ -51,7 +52,7 @@ export function useQiniuT(): QiniuTranslator {
 export const qiniuMessages = (() => {
   const dictionaries = { zh: {}, en: {} } as Record<
     LocaleId,
-    LocaleDictOf<'qiniu-maas'>
+    LocaleDictOf<typeof QINIU_MAAS_NAMESPACE>
   >;
   for (const [key, value] of Object.entries(allMessages) as [
     string,

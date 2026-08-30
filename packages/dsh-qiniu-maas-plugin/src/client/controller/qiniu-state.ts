@@ -1,5 +1,5 @@
 import type { Model, QiniuRegion } from 'qiniu-maas-market-sdk';
-import type { QiniuInferenceProtocol } from '../qiniu-protocol.ts';
+import type { QiniuInferenceProtocol } from '../../shared.ts';
 
 export interface QiniuState {
   enabledModelIds: readonly string[];

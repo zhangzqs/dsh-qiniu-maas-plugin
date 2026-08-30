@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { QiniuRegion } from 'qiniu-maas-market-sdk';
-import type { QiniuInferenceProtocol } from '../../../../qiniu-protocol.ts';
+import type { QiniuInferenceProtocol } from '../../../../../shared.ts';
 import { ApiKeySetting } from './components/ApiKeySetting.tsx';
 import { SettingSelect } from './components/SettingSelect.tsx';
 import css from './SettingsPanel.module.css';

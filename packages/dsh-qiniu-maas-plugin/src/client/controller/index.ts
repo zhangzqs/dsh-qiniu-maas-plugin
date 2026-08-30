@@ -8,7 +8,6 @@ export type {
   PiAiSettingsController,
 } from './settings/pi-ai-settings-controller.ts';
 export type {
-  QiniuSettings,
   QiniuSettingsController,
   QiniuSettingsValue,
 } from './settings/qiniu-settings-controller.ts';
