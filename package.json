@@ -8,6 +8,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "build": "pnpm -r build",
+    "pack:plugin": "rm -rf packages/dsh-qiniu-maas-plugin/lib && pnpm --dir packages/dsh-qiniu-maas-plugin build && mkdir -p dist && pnpm --dir packages/dsh-qiniu-maas-plugin pack --pack-destination ../../dist",
     "test": "vitest run",
     "typecheck": "pnpm -r typecheck"
   },
