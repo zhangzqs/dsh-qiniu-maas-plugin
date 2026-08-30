@@ -96,11 +96,16 @@ export function createQiniuController(
 
   const updateProviderSettings = async (): Promise<void> => {
     const state = store.getSnapshot();
-    const enabledModelIds = new Set(state.enabledModelIds);
-    const enabledModels =
-      cachedMarketModels.length > 0
-        ? cachedMarketModels.filter((model) => enabledModelIds.has(model.id))
-        : undefined;
+    const enabledModels = (() => {
+      if (cachedMarketModels.length === 0) {
+        return undefined;
+      }
+      const enabledModelIds = new Set(state.enabledModelIds);
+      return cachedMarketModels.filter((model) =>
+        enabledModelIds.has(model.id),
+      );
+    })();
+
     const qiniuSettingsValue = qiniuSettings.read();
     const providers = piAiSettings.read().providers;
     await piAiSettings.setProviders(
