@@ -33,16 +33,13 @@ export function createQiniuController(
   piAiSettings: PiAiSettingsController,
   store: SnapshotStore<QiniuState>,
 ): QiniuController {
-  let cachedMarketModels: readonly Model[] = [];
-
   const fetchMarketModels = async (
     region: QiniuRegion,
   ): Promise<readonly Model[]> => {
     const models = await listModels({ region });
-    cachedMarketModels = [...models].sort(
+    return [...models].sort(
       (left, right) => (right.rank ?? 0) - (left.rank ?? 0),
     );
-    return cachedMarketModels;
   };
 
   // 查询dsh内的credentials配置，查询API Key是否已配置
@@ -80,7 +77,6 @@ export function createQiniuController(
         enabledModels,
       ),
     );
-    cachedMarketModels = enabledModels;
     store.update((state) => {
       state.enabledModelIds = nextEnabledModelIds;
     });
