@@ -8,13 +8,12 @@ import {
   createQiniuController,
   createQiniuSettingsController,
   type PiAiSettings,
-  type QiniuSettings,
   type QiniuState,
 } from './controller/index.ts';
 import { QiniuSettingsSection, type QiniuInjected } from './ui/index.ts';
 import { qiniuMessages } from './ui/i18n/index.ts';
 import { qiniuSettingsSectionKeys } from './ui/QiniuSettingsSection.locales.ts';
-import { QINIU_SETTINGS_NAMESPACE } from '../shared.ts';
+import { QINIU_SETTINGS_NAMESPACE, type QiniuSettings } from '../shared.ts';
 
 export const inject = ['slots', 'connection', 'settingsScope', 'locale'];
 
