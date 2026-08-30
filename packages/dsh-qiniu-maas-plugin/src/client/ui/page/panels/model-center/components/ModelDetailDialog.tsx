@@ -7,8 +7,8 @@ import { useQiniuT } from '../../../../i18n/index.ts';
 import { modelCardKeys } from './ModelCard.locales.ts';
 import { modelDetailKeys } from './ModelDetailDialog.locales.ts';
 
-function formatTokenCount(value: number | undefined, unknown: string): string {
-  if (value === undefined) return unknown;
+function formatTokenCount(value: number | undefined): string | undefined {
+  if (value === undefined) return undefined;
   if (value < 1_000) return value.toLocaleString();
 
   const divisor = value < 1_000_000 ? 1_000 : 1_000_000;
@@ -63,18 +63,15 @@ export function ModelDetailDialog({ model, onClose }: Props): ReactNode {
         <div className={css.details}>
           <span>{t(modelDetailKeys.context)}</span>
           <strong>
-            {formatTokenCount(
-              model.model_constraints?.context_length,
-              t(modelDetailKeys.unknown),
-            )}
+            {formatTokenCount(model.model_constraints?.context_length) ??
+              t(modelDetailKeys.unknown)}
           </strong>
           <span>{t(modelDetailKeys.maxOutput)}</span>
           <strong>
             {formatTokenCount(
               model.model_constraints?.max_completion_tokens ??
                 model.model_constraints?.max_tokens,
-              t(modelDetailKeys.unknown),
-            )}
+            ) ?? t(modelDetailKeys.unknown)}
           </strong>
         </div>
       </section>

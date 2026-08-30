@@ -21,6 +21,16 @@ export function ApiKeySetting({
   const [isChecking, setIsChecking] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  const getStatusLabel = (): string => {
+    if (isChecking) return t(apiKeySettingKeys.checking);
+    if (statusError !== undefined) {
+      return t(apiKeySettingKeys.checkFailed, { error: statusError });
+    }
+    return isConfigured
+      ? t(apiKeySettingKeys.configured)
+      : t(apiKeySettingKeys.notConfigured);
+  };
+
   useEffect(() => {
     let isActive = true;
     setIsChecking(true);
@@ -85,15 +95,7 @@ export function ApiKeySetting({
           {isSaving ? t(commonKeys.saving) : t(apiKeySettingKeys.save)}
         </Button>
       </div>
-      <span className={css.status}>
-        {isChecking
-          ? t(apiKeySettingKeys.checking)
-          : statusError
-            ? t(apiKeySettingKeys.checkFailed, { error: statusError })
-            : isConfigured
-              ? t(apiKeySettingKeys.configured)
-              : t(apiKeySettingKeys.notConfigured)}
-      </span>
+      <span className={css.status}>{getStatusLabel()}</span>
     </section>
   );
 }

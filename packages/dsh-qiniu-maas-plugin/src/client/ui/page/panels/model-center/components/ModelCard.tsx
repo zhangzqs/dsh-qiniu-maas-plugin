@@ -25,6 +25,12 @@ export const ModelCard = memo(function ModelCard({
   const t = useQiniuT();
   const isRetired = Boolean(model.suggested_model);
   const canEnable = isEnabled || !isRetired;
+  const getActionLabel = (): string => {
+    if (updating) return t(commonKeys.saving);
+    if (isEnabled) return t(modelCardKeys.disable);
+    if (isRetired) return t(modelCardKeys.retired);
+    return t(modelCardKeys.enable);
+  };
   return (
     <article className={css.card}>
       <div className={css.main}>
@@ -72,13 +78,7 @@ export const ModelCard = memo(function ModelCard({
           disabled={updating || !canEnable}
           onClick={() => void onToggleEnabled(model.id)}
         >
-          {updating
-            ? t(commonKeys.saving)
-            : isEnabled
-              ? t(modelCardKeys.disable)
-              : isRetired
-                ? t(modelCardKeys.retired)
-                : t(modelCardKeys.enable)}
+          {getActionLabel()}
         </Button>
       </div>
     </article>

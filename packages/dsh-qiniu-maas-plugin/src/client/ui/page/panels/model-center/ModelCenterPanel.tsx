@@ -26,13 +26,6 @@ import css from './ModelCenterPanel.module.css';
 import { useQiniuT } from '../../../i18n/index.ts';
 import { modelCenterKeys } from './ModelCenterPanel.locales.ts';
 
-const SORT_OPTIONS = [
-  ['release-newest', modelCenterKeys.sortNewest],
-  ['release-oldest', modelCenterKeys.sortOldest],
-  ['name-asc', modelCenterKeys.nameAsc],
-  ['name-desc', modelCenterKeys.nameDesc],
-] as const;
-
 export interface Props {
   enabledModelIds: readonly string[];
   modelMarketRegion: QiniuRegion;
@@ -47,7 +40,14 @@ export function ModelCenterPanel({
   setEnabledModels,
 }: Props): ReactNode {
   const t = useQiniuT();
-  const sortOptions = SORT_OPTIONS.map(([id, key]) => ({ id, label: t(key) }));
+  const sortOptions = (
+    [
+      ['release-newest', modelCenterKeys.sortNewest],
+      ['release-oldest', modelCenterKeys.sortOldest],
+      ['name-asc', modelCenterKeys.nameAsc],
+      ['name-desc', modelCenterKeys.nameDesc],
+    ] as const
+  ).map(([id, key]) => ({ id, label: t(key) }));
   const filterOptions = [
     { id: 'enabled', label: t(modelCenterKeys.enabledOnly) },
     { id: 'retired', label: t(modelCenterKeys.showRetired) },
