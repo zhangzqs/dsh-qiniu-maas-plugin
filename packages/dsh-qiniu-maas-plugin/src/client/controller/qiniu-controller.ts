@@ -6,7 +6,6 @@ import {
 } from 'qiniu-maas-market-sdk';
 import {
   QINIU_API_KEY_REF,
-  selectEnabledModels,
   settingsWithEnabledModels,
   settingsWithInferenceEndpoint,
 } from './provider-config.ts';
@@ -97,9 +96,10 @@ export function createQiniuController(
 
   const updateProviderSettings = async (): Promise<void> => {
     const state = store.getSnapshot();
+    const enabledModelIds = new Set(state.enabledModelIds);
     const enabledModels =
       cachedMarketModels.length > 0
-        ? selectEnabledModels(cachedMarketModels, state.enabledModelIds)
+        ? cachedMarketModels.filter((model) => enabledModelIds.has(model.id))
         : undefined;
     const qiniuSettingsValue = qiniuSettings.read();
     const providers = piAiSettings.read().providers;

@@ -29,15 +29,6 @@ function toPiAiModelProfile(
   };
 }
 
-/** 从模型列表中筛选过滤模型 */
-export function selectEnabledModels(
-  models: readonly Model[],
-  enabledModelIds: readonly string[],
-): Model[] {
-  const enabledModelIdsSet = new Set(enabledModelIds);
-  return models.filter((model) => enabledModelIdsSet.has(model.id));
-}
-
 /** 根据已启用模型生成七牛 provider 配置 */
 export function settingsWithEnabledModels(
   providers: PiAiSettings['providers'],

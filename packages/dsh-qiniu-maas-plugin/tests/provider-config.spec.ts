@@ -1,20 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
-  selectEnabledModels,
   settingsWithEnabledModels,
   settingsWithInferenceEndpoint,
 } from '../src/client/controller/provider-config.ts';
 
 describe('provider controller', () => {
-  it('keeps enabled models in marketplace order', () => {
-    const models = [
-      { id: 'model-a', name: 'Model A' },
-      { id: 'model-b', name: 'Model B' },
-    ];
-
-    expect(selectEnabledModels(models, ['model-b'])).toEqual([models[1]]);
-  });
-
   it('merges the Qiniu provider while preserving other providers', () => {
     expect(
       settingsWithEnabledModels({ openai: { apiKeyEnv: 'OPENAI_API_KEY' } }, [
