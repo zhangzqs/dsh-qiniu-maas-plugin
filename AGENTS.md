@@ -39,6 +39,7 @@
 - 模型中心合并展示模型市场和已启用模型，支持搜索、筛选、排序、模型详情 Dialog 和列表上的启用/停用操作。默认按发布时间倒序排列。
 - 设置面板只提供推理 API Key、模型市场区域和推理协议设置。区域变化只刷新模型中心面板，不触发整页刷新。
 - 组件专属的 CSS 使用 CSS Module，并与组件文件就近放置；优先使用 DSH 官方 UI primitives、图标和交互组件。
+- 用户可见文案使用 DSH locale。组件专属消息放在同目录 `<Component>.locales.ts`，跨组件消息放在最近公共父目录；key 使用 `<域>.<组件>.<语义>` 分层命名，消息值复用 `LocaleId`。locale 文件导出 `as const` key 对象，组件通过该对象调用 `t` 以支持 IDE 跳转；每条消息均使用多行 `zh`/`en` 格式。
 - 涉及 React 组件、数据获取、渲染性能或 bundle 优化时，查阅 [Vercel React Best Practices 官方 Skill](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices)；涉及 DSH runtime 契约时，遵循仓库内 `dsh-plugin-development` Skill，并以 DeepSeek Harness 当前源码为准。
 - 用户可见文案使用“七牛 MaaS”“模型中心”“已启用模型”等业务名称；代码命名应明确表达数据形状，例如模型列表使用 `models`，模型 ID 集合使用带 `Ids` 的名称。
 

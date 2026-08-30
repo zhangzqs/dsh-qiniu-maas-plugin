@@ -4,14 +4,14 @@ const MODEL_MARKET_URLS = {
   /** 国内模型市场服务域名。 */
   cn: 'https://api.qnaigc.com/v1/market/models',
   /** 全球模型市场服务域名。 */
-  global: 'https://openai.sufy.com/v1/market/models',
+  global: 'https://api.modelink.ai/v1/market/models',
 } as const;
 
 export const QINIU_LLM_BASE_URLS = {
   /** 国内 LLM 推理服务地址。 */
   cn: 'https://api.qnaigc.com/v1',
   /** 全球 LLM 推理服务地址。 */
-  global: 'https://openai.sufy.com/v1',
+  global: 'https://api.modelink.ai/v1',
 } as const;
 
 export type QiniuRegion = keyof typeof QINIU_LLM_BASE_URLS;

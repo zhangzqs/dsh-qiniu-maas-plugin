@@ -23,11 +23,11 @@
 
 当前推荐从 GitHub Release 安装插件 tarball：
 
-插件包名为 `@qiniu/dsh-qiniu-maas-plugin`，当前版本为 `0.1.1`。该包通过 GitHub Release 分发，不发布到 npm。
+插件包名为 `@qiniu/dsh-qiniu-maas-plugin`，当前版本为 `0.1.2`。该包通过 GitHub Release 分发，不发布到 npm。
 
 ```sh
 npx -p @deepseek-ai/dsh dsh plugin --profile web add \
-  https://github.com/zhangzqs/dsh-qiniu-maas-plugin/releases/download/v0.1.1/qiniu-dsh-qiniu-maas-plugin-0.1.1.tgz
+  https://github.com/zhangzqs/dsh-qiniu-maas-plugin/releases/download/v0.1.2/qiniu-dsh-qiniu-maas-plugin-0.1.2.tgz
 ```
 
 安装完成后重启对应的 DSH profile。插件的 SDK 代码已经内联到插件 bundle 中，不需要单独安装 `qiniu-maas-market-sdk`。
@@ -111,8 +111,8 @@ Release workflow 监听 `v*` tag。发布流程如下：
 2. 基于合并后的提交创建并推送对应 tag：
 
 ```sh
-git tag -a v0.1.1 -m "release: 七牛 MaaS DSH 插件 v0.1.1"
-git push origin v0.1.1
+git tag -a v0.1.2 -m "release: 七牛 MaaS DSH 插件 v0.1.2"
+git push origin v0.1.2
 ```
 
 GitHub Actions 会自动执行格式检查、Lint、测试、类型检查和构建，校验 tag 版本与 `packages/dsh-qiniu-maas-plugin/package.json` 一致，生成独立的 `.tgz` 安装包并创建 GitHub Release。

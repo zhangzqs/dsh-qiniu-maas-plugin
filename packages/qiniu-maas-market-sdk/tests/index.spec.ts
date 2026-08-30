@@ -5,7 +5,7 @@ describe('qiniu-maas-market-sdk', () => {
   it('exports inference service URLs for the shared Qiniu region type', () => {
     expect(QINIU_LLM_BASE_URLS).toEqual({
       cn: 'https://api.qnaigc.com/v1',
-      global: 'https://openai.sufy.com/v1',
+      global: 'https://api.modelink.ai/v1',
     });
   });
 
@@ -71,7 +71,7 @@ describe('qiniu-maas-market-sdk', () => {
       listModels({ fetch: fetcher, region: 'global' }),
     ).rejects.toThrow('model marketplace request failed (503)');
     expect(fetcher.mock.calls[0]?.[0]).toBe(
-      'https://openai.sufy.com/v1/market/models',
+      'https://api.modelink.ai/v1/market/models',
     );
   });
 
