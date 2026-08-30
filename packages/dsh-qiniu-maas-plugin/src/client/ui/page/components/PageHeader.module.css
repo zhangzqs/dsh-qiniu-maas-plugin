@@ -28,3 +28,9 @@
   margin: 8px 0 0;
   color: var(--dsw-alias-label-secondary, #6b7280);
 }
+
+.version {
+  margin: 6px 0 0;
+  color: var(--dsw-alias-label-tertiary, #6b7280);
+  font-size: 12px;
+}

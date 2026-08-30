@@ -36,10 +36,8 @@ describe('qiniu locale messages', () => {
   });
 
   it('includes the plugin version message', () => {
-    expect(qiniuMessages.zh['settings.panel.version']).toBe(
-      '插件版本：{version}',
-    );
-    expect(qiniuMessages.en['settings.panel.version']).toBe(
+    expect(qiniuMessages.zh['page.header.version']).toBe('插件版本：{version}');
+    expect(qiniuMessages.en['page.header.version']).toBe(
       'Plugin version: {version}',
     );
   });

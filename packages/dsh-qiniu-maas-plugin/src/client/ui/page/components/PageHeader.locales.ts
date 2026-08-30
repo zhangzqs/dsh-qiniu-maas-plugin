@@ -4,6 +4,7 @@ export const pageHeaderKeys = {
   title: 'page.header.title',
   subtitle: 'page.header.subtitle',
   portal: 'page.header.portal',
+  version: 'page.header.version',
 } as const;
 
 export const pageHeaderMessages = {
@@ -18,5 +19,9 @@ export const pageHeaderMessages = {
   [pageHeaderKeys.portal]: {
     zh: '前往七牛 AI 大模型控制台',
     en: 'Open Qiniu AI console',
+  },
+  [pageHeaderKeys.version]: {
+    zh: '插件版本：{version}',
+    en: 'Plugin version: {version}',
   },
 } satisfies QiniuLocaleMessages;

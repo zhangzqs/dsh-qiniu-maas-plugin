@@ -5,7 +5,6 @@ export const settingsKeys = {
   region: 'settings.panel.region',
   regionCn: 'settings.panel.region.cn',
   regionGlobal: 'settings.panel.region.global',
-  version: 'settings.panel.version',
 } as const;
 
 export const settingsMessages = {
@@ -24,9 +23,5 @@ export const settingsMessages = {
   [settingsKeys.regionGlobal]: {
     zh: '全球',
     en: 'Global',
-  },
-  [settingsKeys.version]: {
-    zh: '插件版本：{version}',
-    en: 'Plugin version: {version}',
   },
 } satisfies QiniuLocaleMessages;
