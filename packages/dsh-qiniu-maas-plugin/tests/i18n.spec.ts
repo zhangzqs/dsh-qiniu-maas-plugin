@@ -34,4 +34,13 @@ describe('qiniu locale messages', () => {
       en: 'Qiniu MaaS',
     });
   });
+
+  it('includes the plugin version message', () => {
+    expect(qiniuMessages.zh['settings.panel.version']).toBe(
+      '插件版本：{version}',
+    );
+    expect(qiniuMessages.en['settings.panel.version']).toBe(
+      'Plugin version: {version}',
+    );
+  });
 });
