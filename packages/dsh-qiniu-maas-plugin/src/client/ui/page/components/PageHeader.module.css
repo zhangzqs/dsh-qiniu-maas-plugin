@@ -23,6 +23,13 @@
   letter-spacing: 0.08em;
 }
 
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .header h2 {
   margin: 0;
   font-size: 24px;
@@ -35,7 +42,6 @@
 }
 
 .version {
-  margin: 6px 0 0;
   color: var(--dsw-alias-label-tertiary, #6b7280);
-  font-size: 12px;
+  font-size: 11px;
 }

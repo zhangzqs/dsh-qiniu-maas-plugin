@@ -9,11 +9,13 @@ export function PageHeader(): ReactNode {
   return (
     <header className={css.header}>
       <p className={css.kicker}>QINIU MAAS</p>
-      <h2>{t(pageHeaderKeys.title)}</h2>
+      <div className={css.titleRow}>
+        <h2>{t(pageHeaderKeys.title)}</h2>
+        <span className={css.version}>
+          {t(pageHeaderKeys.version, { version: qiniuPluginVersion })}
+        </span>
+      </div>
       <p className={css.subtitle}>{t(pageHeaderKeys.subtitle)}</p>
-      <p className={css.version}>
-        {t(pageHeaderKeys.version, { version: qiniuPluginVersion })}
-      </p>
       <div className={css.links}>
         <a
           className={css.link}
