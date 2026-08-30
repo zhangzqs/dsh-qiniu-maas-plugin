@@ -4,11 +4,7 @@ import {
   type Model,
   type QiniuRegion,
 } from 'qiniu-maas-market-sdk';
-import {
-  QINIU_API_KEY_REF,
-  settingsWithEnabledModels,
-  settingsWithInferenceEndpoint,
-} from './provider-config.ts';
+import { QINIU_API_KEY_REF, syncQiniuProvider } from './provider-config.ts';
 import type { PiAiSettingsController } from './settings/pi-ai.ts';
 import type { QiniuSettingsController } from './settings/qiniu.ts';
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
@@ -71,11 +67,10 @@ export function createQiniuController(
       enabledModels.map((model) => model.id),
     );
     await piAiSettings.setProviders(
-      settingsWithEnabledModels(
+      syncQiniuProvider(
         piAiSettings.read().providers,
+        qiniuSettings.read(),
         enabledModels,
-        settings.region,
-        settings.inferenceProtocol,
       ),
     );
     cachedMarketModels = enabledModels;
@@ -94,39 +89,20 @@ export function createQiniuController(
     if (!response.result.ok) throw new Error(response.result.error.message);
   };
 
-  const updateProviderSettings = async (): Promise<void> => {
-    const state = store.getSnapshot();
-    const enabledModels = (() => {
-      if (cachedMarketModels.length === 0) {
-        return undefined;
-      }
-      const enabledModelIds = new Set(state.enabledModelIds);
-      return cachedMarketModels.filter((model) =>
-        enabledModelIds.has(model.id),
-      );
-    })();
-
+  const updateProviderSettings = async (
+    marketModels: readonly Model[],
+  ): Promise<void> => {
     const qiniuSettingsValue = qiniuSettings.read();
     const providers = piAiSettings.read().providers;
     await piAiSettings.setProviders(
-      enabledModels === undefined
-        ? settingsWithInferenceEndpoint(
-            providers,
-            qiniuSettingsValue.region,
-            qiniuSettingsValue.inferenceProtocol,
-          )
-        : settingsWithEnabledModels(
-            providers,
-            enabledModels,
-            qiniuSettingsValue.region,
-            qiniuSettingsValue.inferenceProtocol,
-          ),
+      syncQiniuProvider(providers, qiniuSettingsValue, marketModels),
     );
   };
 
   const setModelMarketRegion = async (region: QiniuRegion): Promise<void> => {
+    const marketModels = await fetchMarketModels(region);
     await qiniuSettings.setRegion(region);
-    await updateProviderSettings();
+    await updateProviderSettings(marketModels);
     store.update((state) => {
       state.modelMarketRegion = region;
     });
@@ -135,8 +111,9 @@ export function createQiniuController(
   const setInferenceProtocol = async (
     protocol: QiniuInferenceProtocol,
   ): Promise<void> => {
+    const marketModels = await fetchMarketModels(qiniuSettings.read().region);
     await qiniuSettings.setInferenceProtocol(protocol);
-    await updateProviderSettings();
+    await updateProviderSettings(marketModels);
     store.update((state) => {
       state.inferenceProtocol = protocol;
     });

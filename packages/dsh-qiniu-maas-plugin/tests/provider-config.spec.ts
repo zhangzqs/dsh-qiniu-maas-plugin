@@ -1,23 +1,28 @@
 import { describe, expect, it } from 'vitest';
-import {
-  settingsWithEnabledModels,
-  settingsWithInferenceEndpoint,
-} from '../src/client/controller/provider-config.ts';
+import { syncQiniuProvider } from '../src/client/controller/provider-config.ts';
 
 describe('provider controller', () => {
   it('merges the Qiniu provider while preserving other providers', () => {
     expect(
-      settingsWithEnabledModels({ openai: { apiKeyEnv: 'OPENAI_API_KEY' } }, [
+      syncQiniuProvider(
+        { openai: { apiKeyEnv: 'OPENAI_API_KEY' } },
         {
-          id: 'model-a',
-          name: 'Model A',
-          architecture: {
-            input_modalities: ['text'],
-            output_modalities: ['text'],
-          },
-          model_constraints: { context_length: 128000, max_tokens: 8192 },
+          enabledModelIds: ['model-a'],
+          region: 'cn',
+          inferenceProtocol: 'openai-completions',
         },
-      ]),
+        [
+          {
+            id: 'model-a',
+            name: 'Model A',
+            architecture: {
+              input_modalities: ['text'],
+              output_modalities: ['text'],
+            },
+            model_constraints: { context_length: 128000, max_tokens: 8192 },
+          },
+        ],
+      ),
     ).toMatchObject({
       openai: { apiKeyEnv: 'OPENAI_API_KEY' },
       'qiniu-maas': {
@@ -39,11 +44,14 @@ describe('provider controller', () => {
 
   it('applies the selected inference region and protocol', () => {
     expect(
-      settingsWithEnabledModels(
+      syncQiniuProvider(
         {},
+        {
+          enabledModelIds: ['model-a'],
+          region: 'global',
+          inferenceProtocol: 'anthropic-messages',
+        },
         [{ id: 'model-a', name: 'Model A' }],
-        'global',
-        'anthropic-messages',
       ),
     ).toMatchObject({
       'qiniu-maas': {
@@ -53,7 +61,7 @@ describe('provider controller', () => {
     });
   });
 
-  it('updates the endpoint without replacing saved model definitions', () => {
+  it('removes the provider when no enabled model remains', () => {
     const providers = {
       'qiniu-maas': {
         displayName: 'Qiniu MaaS',
@@ -62,14 +70,15 @@ describe('provider controller', () => {
     };
 
     expect(
-      settingsWithInferenceEndpoint(providers, 'global', 'anthropic-messages'),
-    ).toEqual({
-      'qiniu-maas': {
-        displayName: 'Qiniu MaaS',
-        models: [{ id: 'model-a', name: 'Model A', contextWindow: 128000 }],
-        api: 'anthropic-messages',
-        baseURL: 'https://api.modelink.ai',
-      },
-    });
+      syncQiniuProvider(
+        providers,
+        {
+          enabledModelIds: ['model-a'],
+          region: 'global',
+          inferenceProtocol: 'anthropic-messages',
+        },
+        [],
+      ),
+    ).toEqual({});
   });
 });
