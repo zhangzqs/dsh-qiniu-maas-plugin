@@ -42,7 +42,7 @@ describe('provider sync', () => {
         id: 'model-a',
         name: 'Model A',
         architecture: {
-          input_modalities: ['text'],
+          input_modalities: ['text', 'image'],
           output_modalities: ['text'],
         },
         model_constraints: { context_length: 128000, max_tokens: 8192 },
@@ -61,7 +61,7 @@ describe('provider sync', () => {
             name: 'Model A',
             contextWindow: 128000,
             maxTokens: 8192,
-            input: ['text'],
+            input: ['text', 'image'],
           },
         ],
       },

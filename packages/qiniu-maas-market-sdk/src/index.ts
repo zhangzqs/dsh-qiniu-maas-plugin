@@ -11,8 +11,11 @@ export {
 export type {
   Issuer,
   Model,
+  QiniuModelApiProtocol,
   ModelAbility,
   ModelArchitecture,
+  QiniuModelInputModality,
+  QiniuModelOutputModality,
   ModelConstraints,
   ModelFiling,
   PricingItem,
