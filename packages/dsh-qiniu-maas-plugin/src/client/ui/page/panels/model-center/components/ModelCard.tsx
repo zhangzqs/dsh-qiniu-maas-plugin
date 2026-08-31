@@ -12,7 +12,7 @@ interface Props {
   isEnabled: boolean;
   updating: boolean;
   onViewDetails: (id: string) => void;
-  onToggleEnabled: (id: string) => Promise<void>;
+  onEnabledChange: (id: string, enabled: boolean) => Promise<void>;
 }
 
 export const ModelCard = memo(function ModelCard({
@@ -20,7 +20,7 @@ export const ModelCard = memo(function ModelCard({
   isEnabled,
   updating,
   onViewDetails,
-  onToggleEnabled,
+  onEnabledChange,
 }: Props): ReactNode {
   const t = useQiniuT();
   const isRetired = Boolean(model.suggested_model);
@@ -76,7 +76,7 @@ export const ModelCard = memo(function ModelCard({
           type="button"
           className={isEnabled ? css.disable : css.enable}
           disabled={updating || !canEnable}
-          onClick={() => void onToggleEnabled(model.id)}
+          onClick={() => void onEnabledChange(model.id, !isEnabled)}
         >
           {getActionLabel()}
         </Button>

@@ -29,7 +29,7 @@ export function QiniuSettingsSection(props: Props): ReactNode {
   const {
     checkApiKeyConfigured,
     fetchMarketModels,
-    setEnabledModels,
+    setEnabledModelIds,
     setApiKey,
     setRegion,
     setInferenceProtocol,
@@ -45,7 +45,7 @@ export function QiniuSettingsSection(props: Props): ReactNode {
         enabledModelIds: state.enabledModelIds,
         region: state.region,
         fetchMarketModels,
-        setEnabledModels,
+        setEnabledModelIds,
       }}
       settings={{
         checkApiKeyConfigured,

@@ -22,7 +22,7 @@ export interface QiniuActions {
     region: QiniuRegion,
     forceRefresh?: boolean,
   ) => Promise<readonly Model[]>;
-  setEnabledModels: (models: readonly Model[]) => Promise<void>;
+  setEnabledModelIds: (modelIds: readonly string[]) => Promise<void>;
   setApiKey: (value: string) => Promise<void>;
   setRegion: (region: QiniuRegion) => Promise<void>;
   setInferenceProtocol: (protocol: QiniuInferenceProtocol) => Promise<void>;
@@ -85,39 +85,16 @@ export function createQiniuController(
   };
 
   // 设置已启用的模型列表
-  const setEnabledModels = async (models: readonly Model[]): Promise<void> => {
-    const settings = qiniuSettings.read();
-
-    // 当前区域可用模型中的用户启用的模型
-    const enabledModels = (() => {
-      const enabledModelIds = new Set(settings.enabledModelIds);
-      return models.filter(
-        (model) => !model.suggested_model || enabledModelIds.has(model.id),
-      );
-    })();
-
-    // 当前用户已启用，但当前区域无法列举出来的模型
-    const unavailableModelIds = (() => {
-      const marketModelIds = new Set(models.map((model) => model.id));
-      return settings.enabledModelIds.filter(
-        (modelId) => !marketModelIds.has(modelId),
-      );
-    })();
-
-    {
-      // 将已启用的模型列表保存到settings
-      const nextEnabledModelIds = [
-        ...unavailableModelIds,
-        ...enabledModels.map((model) => model.id),
-      ];
-      await qiniuSettings.setEnabledModelIds(nextEnabledModelIds);
-      store.update((state) => {
-        state.enabledModelIds = nextEnabledModelIds;
-      });
-    }
-
-    // 更新pi-ai的provider配置
-    await syncProviderSettings(piAiSettings, qiniuSettings, enabledModels);
+  const setEnabledModelIds = async (
+    modelIds: readonly string[],
+  ): Promise<void> => {
+    const marketModels = await fetchMarketModels(qiniuSettings.read().region);
+    const nextEnabledModelIds = [...modelIds];
+    await qiniuSettings.setEnabledModelIds(nextEnabledModelIds);
+    store.update((state) => {
+      state.enabledModelIds = nextEnabledModelIds;
+    });
+    await syncProviderSettings(piAiSettings, qiniuSettings, marketModels);
   };
 
   // 设置服务区域
@@ -145,7 +122,7 @@ export function createQiniuController(
   return {
     checkApiKeyConfigured,
     fetchMarketModels,
-    setEnabledModels,
+    setEnabledModelIds,
     setApiKey,
     setRegion,
     setInferenceProtocol,

@@ -116,7 +116,15 @@ describe('qiniu controller', () => {
     });
   });
 
-  it('preserves enabled model IDs unavailable in the current region', async () => {
+  it('sets enabled model IDs directly', async () => {
+    listModelsMock.mockResolvedValueOnce([
+      {
+        id: 'model-a',
+        name: 'Model A',
+        rank: 1,
+        support_api_protocols: ['openai'],
+      },
+    ]);
     const setEnabledModelIds = vi.fn().mockResolvedValue(undefined);
     const setProviders = vi.fn().mockResolvedValue(undefined);
     const settings = {
@@ -134,11 +142,36 @@ describe('qiniu controller', () => {
       } as never,
     );
 
-    await controller.setEnabledModels([{ id: 'model-a', name: 'Model A' }]);
+    await controller.setEnabledModelIds(['model-a']);
 
-    expect(setEnabledModelIds).toHaveBeenCalledWith([
-      'unavailable-model',
-      'model-a',
+    expect(setEnabledModelIds).toHaveBeenCalledWith(['model-a']);
+  });
+
+  it('removes a model from settings when it is disabled', async () => {
+    listModelsMock.mockResolvedValueOnce([
+      {
+        id: 'model-a',
+        name: 'Model A',
+        rank: 1,
+        support_api_protocols: ['openai'],
+      },
     ]);
+    const setEnabledModelIds = vi.fn().mockResolvedValue(undefined);
+    const setProviders = vi.fn().mockResolvedValue(undefined);
+    const settings = {
+      enabledModelIds: ['model-a'],
+      region: 'cn',
+      inferenceProtocol: 'openai-completions',
+    } as const;
+    const controller = createQiniuController(
+      {} as never,
+      { read: () => settings, setEnabledModelIds } as never,
+      { read: () => ({ providers: {} }), setProviders } as never,
+      { update: vi.fn() } as never,
+    );
+
+    await controller.setEnabledModelIds([]);
+
+    expect(setEnabledModelIds).toHaveBeenCalledWith([]);
   });
 });

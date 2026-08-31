@@ -19,7 +19,6 @@ import { ModelDetailDialog } from './components/ModelDetailDialog.tsx';
 import {
   filterModels,
   sortModels,
-  toggleModel,
   type ModelSortOrder,
 } from './model-utils.ts';
 import css from './ModelCenterPanel.module.css';
@@ -33,14 +32,14 @@ export interface Props {
     region: QiniuRegion,
     forceRefresh?: boolean,
   ) => Promise<readonly Model[]>;
-  setEnabledModels: (models: readonly Model[]) => Promise<void>;
+  setEnabledModelIds: (modelIds: readonly string[]) => Promise<void>;
 }
 
 export function ModelCenterPanel({
   enabledModelIds,
   region,
   fetchMarketModels,
-  setEnabledModels,
+  setEnabledModelIds,
 }: Props): ReactNode {
   const t = useQiniuT();
   const sortOptions = [
@@ -132,7 +131,7 @@ export function ModelCenterPanel({
   }, [loadMarketModels]);
 
   const handleToggle = useCallback(
-    async (id: string): Promise<void> => {
+    async (id: string, enabled: boolean): Promise<void> => {
       const model = models.find((item) => item.id === id);
       const isEnabled = enabledModelIdSet.has(id);
       if (model === undefined || (model.suggested_model && !isEnabled)) return;
@@ -140,7 +139,13 @@ export function ModelCenterPanel({
       setUpdatingModelId(id);
       setActionError(null);
       try {
-        await setEnabledModels(toggleModel(models, enabledModelIds, id));
+        const nextEnabledModelIds = new Set(enabledModelIds);
+        if (enabled) {
+          nextEnabledModelIds.add(id);
+        } else {
+          nextEnabledModelIds.delete(id);
+        }
+        await setEnabledModelIds([...nextEnabledModelIds]);
       } catch (reason) {
         setActionError(
           reason instanceof Error ? reason.message : String(reason),
@@ -149,7 +154,7 @@ export function ModelCenterPanel({
         setUpdatingModelId(undefined);
       }
     },
-    [enabledModelIdSet, enabledModelIds, models, setEnabledModels],
+    [enabledModelIdSet, enabledModelIds, models, setEnabledModelIds],
   );
 
   return (
@@ -261,7 +266,7 @@ export function ModelCenterPanel({
                 isEnabled={enabledModelIdSet.has(model.id)}
                 updating={updatingModelId === model.id}
                 onViewDetails={setSelectedModelId}
-                onToggleEnabled={handleToggle}
+                onEnabledChange={handleToggle}
               />
             ))}
           </div>
