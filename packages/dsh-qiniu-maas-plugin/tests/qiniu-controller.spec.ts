@@ -10,8 +10,22 @@ import { QINIU_API_KEY_REF } from '../src/client/controller/provider-sync.ts';
 describe('qiniu controller', () => {
   it('caches market models by region and supports force refresh', async () => {
     listModelsMock
-      .mockResolvedValueOnce([{ id: 'model-a', name: 'Model A', rank: 1 }])
-      .mockResolvedValueOnce([{ id: 'model-b', name: 'Model B', rank: 2 }]);
+      .mockResolvedValueOnce([
+        {
+          id: 'model-a',
+          name: 'Model A',
+          rank: 1,
+          support_api_protocols: ['openai'],
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 'model-b',
+          name: 'Model B',
+          rank: 2,
+          support_api_protocols: ['anthropic'],
+        },
+      ]);
     const controller = createQiniuController(
       {} as never,
       {} as never,
@@ -20,15 +34,62 @@ describe('qiniu controller', () => {
     );
 
     await expect(controller.fetchMarketModels('cn')).resolves.toEqual([
-      { id: 'model-a', name: 'Model A', rank: 1 },
+      {
+        id: 'model-a',
+        name: 'Model A',
+        rank: 1,
+        support_api_protocols: ['openai'],
+      },
     ]);
     await expect(controller.fetchMarketModels('cn')).resolves.toEqual([
-      { id: 'model-a', name: 'Model A', rank: 1 },
+      {
+        id: 'model-a',
+        name: 'Model A',
+        rank: 1,
+        support_api_protocols: ['openai'],
+      },
     ]);
     await expect(controller.fetchMarketModels('cn', true)).resolves.toEqual([
-      { id: 'model-b', name: 'Model B', rank: 2 },
+      {
+        id: 'model-b',
+        name: 'Model B',
+        rank: 2,
+        support_api_protocols: ['anthropic'],
+      },
     ]);
     expect(listModelsMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('filters out models without an OpenAI or Anthropic API protocol', async () => {
+    listModelsMock.mockResolvedValueOnce([
+      {
+        id: 'text-model',
+        name: 'Text Model',
+        rank: 1,
+        support_api_protocols: ['openai'],
+      },
+      {
+        id: 'video-model',
+        name: 'Video Model',
+        rank: 2,
+        support_api_protocols: ['wan-video'],
+      },
+    ]);
+    const controller = createQiniuController(
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+    );
+
+    await expect(controller.fetchMarketModels('cn')).resolves.toEqual([
+      {
+        id: 'text-model',
+        name: 'Text Model',
+        rank: 1,
+        support_api_protocols: ['openai'],
+      },
+    ]);
   });
 
   it('checks API Key configuration on demand', async () => {

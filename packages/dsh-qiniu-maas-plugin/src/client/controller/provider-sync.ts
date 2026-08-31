@@ -19,12 +19,15 @@ function toPiAiModelProfile(
   const name = model.name ?? model.id;
   const contextWindow = model.model_constraints?.context_length;
   const maxTokens = model.model_constraints?.max_tokens;
+  const input = model.architecture?.input_modalities.filter(
+    (modality) => modality === 'text' || modality === 'image',
+  );
   return {
     id: model.id,
     name,
     ...(contextWindow === undefined ? {} : { contextWindow }),
     ...(maxTokens === undefined ? {} : { maxTokens }),
-    input: ['text'],
+    ...(input === undefined || input.length === 0 ? {} : { input }),
   };
 }
 

@@ -5,6 +5,15 @@ import type { Issuer } from './issuer.ts';
 import type { PricingRule } from './pricing.ts';
 import type { RateLimit } from './rate-limit.ts';
 
+/** 模型支持的 API 协议。 */
+export type QiniuModelApiProtocol =
+  | 'openai'
+  | 'anthropic'
+  | 'fal_ai'
+  | 'google'
+  | 'openai-image'
+  | 'openai_video';
+
 /** 模型市场中的模型配置详情。 */
 export interface Model {
   /** 模型唯一标识。 */
@@ -36,7 +45,7 @@ export interface Model {
   /** 已弃用的支持请求参数列表。 */
   supported_parameters: string[];
   /** 支持的 API 协议列表。 */
-  support_api_protocols: string[];
+  support_api_protocols: QiniuModelApiProtocol[];
   /** 模型排序权重。 */
   rank: number;
   /** 模型退役时间，空字符串表示未设定。 */

@@ -2,6 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   QINIU_LLM_BASE_URLS,
   listModels,
+  type QiniuModelApiProtocol,
+  type QiniuModelInputModality,
+  type QiniuModelOutputModality,
   type QiniuInferenceProtocol,
   type QiniuRegion,
 } from '../src/index.ts';
@@ -26,6 +29,35 @@ describe('qiniu-maas-market-sdk', () => {
       'anthropic-messages',
     ];
     expect(protocols).toHaveLength(2);
+  });
+
+  it('exports the supported model API protocol type values', () => {
+    const protocols: QiniuModelApiProtocol[] = [
+      'openai',
+      'anthropic',
+      'fal_ai',
+      'google',
+      'openai-image',
+      'openai_video',
+    ];
+    expect(protocols).toHaveLength(6);
+  });
+
+  it('exports the marketplace modality type values', () => {
+    const inputModalities: QiniuModelInputModality[] = [
+      'audio',
+      'file',
+      'image',
+      'text',
+      'video',
+    ];
+    const outputModalities: QiniuModelOutputModality[] = [
+      'image',
+      'text',
+      'video',
+    ];
+    expect(inputModalities).toHaveLength(5);
+    expect(outputModalities).toHaveLength(3);
   });
 
   it('exports the supported region type values', () => {
