@@ -264,7 +264,10 @@ export function ModelCenterPanel({
                 key={model.id}
                 model={model}
                 isEnabled={enabledModelIdSet.has(model.id)}
-                updating={updatingModelId !== undefined}
+                updating={updatingModelId === model.id}
+                blocked={
+                  updatingModelId !== undefined && updatingModelId !== model.id
+                }
                 onViewDetails={setSelectedModelId}
                 onEnabledChange={handleToggle}
               />

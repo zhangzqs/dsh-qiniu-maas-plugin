@@ -11,6 +11,7 @@ interface Props {
   model: Model;
   isEnabled: boolean;
   updating: boolean;
+  blocked: boolean;
   onViewDetails: (id: string) => void;
   onEnabledChange: (id: string, enabled: boolean) => Promise<void>;
 }
@@ -19,6 +20,7 @@ export const ModelCard = memo(function ModelCard({
   model,
   isEnabled,
   updating,
+  blocked,
   onViewDetails,
   onEnabledChange,
 }: Props): ReactNode {
@@ -76,7 +78,11 @@ export const ModelCard = memo(function ModelCard({
           type="button"
           className={isEnabled ? css.disable : css.enable}
           disabled={updating || !canEnable}
-          onClick={() => void onEnabledChange(model.id, !isEnabled)}
+          aria-disabled={blocked}
+          onClick={() => {
+            if (blocked) return;
+            void onEnabledChange(model.id, !isEnabled);
+          }}
         >
           {getActionLabel()}
         </Button>
