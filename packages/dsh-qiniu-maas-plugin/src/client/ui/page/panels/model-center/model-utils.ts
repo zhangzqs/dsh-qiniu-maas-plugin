@@ -28,23 +28,6 @@ export function filterModels(
   });
 }
 
-export function toggleModel(
-  models: readonly Model[],
-  enabledModelIds: readonly string[],
-  modelId: string,
-): Model[] {
-  const enabledModelIdsSet = new Set(enabledModelIds);
-  if (!models.some((model) => model.id === modelId)) return [...models];
-
-  if (enabledModelIdsSet.has(modelId)) {
-    enabledModelIdsSet.delete(modelId);
-  } else {
-    enabledModelIdsSet.add(modelId);
-  }
-
-  return models.filter((model) => enabledModelIdsSet.has(model.id));
-}
-
 export function sortModels(
   models: readonly Model[],
   sortOrder: ModelSortOrder,
