@@ -88,12 +88,27 @@ export function createQiniuController(
   const setEnabledModelIds = async (
     modelIds: readonly string[],
   ): Promise<void> => {
-    const marketModels = await fetchMarketModels(qiniuSettings.read().region);
-    const nextEnabledModelIds = [...modelIds];
-    await qiniuSettings.setEnabledModelIds(nextEnabledModelIds);
-    store.update((state) => {
-      state.enabledModelIds = nextEnabledModelIds;
-    });
+    const settings = qiniuSettings.read();
+
+    // 获取当前区域的所有模型列表
+    const marketModels = await fetchMarketModels(settings.region);
+
+    {
+      // 计算当前区域不可用的模型ID
+      const marketModelIds = new Set(marketModels.map((model) => model.id));
+      const unavailableModelIds = settings.enabledModelIds.filter(
+        (modelId) => !marketModelIds.has(modelId),
+      );
+
+      // 将这两个数组合并，去重得到新的已启用模型ID并更新设置
+      const nextEnabledModelIds = [
+        ...new Set([...unavailableModelIds, ...modelIds]),
+      ];
+      await qiniuSettings.setEnabledModelIds(nextEnabledModelIds);
+      store.update((state) => {
+        state.enabledModelIds = nextEnabledModelIds;
+      });
+    }
     await syncProviderSettings(piAiSettings, qiniuSettings, marketModels);
   };
 

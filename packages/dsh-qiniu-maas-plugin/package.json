@@ -1,6 +1,6 @@
 {
   "name": "@qiniu/dsh-qiniu-maas-plugin",
-  "version": "0.1.7-rc.2",
+  "version": "0.1.7-rc.3",
   "private": true,
   "type": "module",
   "main": "lib/index.js",

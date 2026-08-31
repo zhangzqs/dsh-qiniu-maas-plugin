@@ -264,7 +264,7 @@ export function ModelCenterPanel({
                 key={model.id}
                 model={model}
                 isEnabled={enabledModelIdSet.has(model.id)}
-                updating={updatingModelId === model.id}
+                updating={updatingModelId !== undefined}
                 onViewDetails={setSelectedModelId}
                 onEnabledChange={handleToggle}
               />

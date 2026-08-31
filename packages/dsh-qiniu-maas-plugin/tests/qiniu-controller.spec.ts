@@ -144,7 +144,10 @@ describe('qiniu controller', () => {
 
     await controller.setEnabledModelIds(['model-a']);
 
-    expect(setEnabledModelIds).toHaveBeenCalledWith(['model-a']);
+    expect(setEnabledModelIds).toHaveBeenCalledWith([
+      'unavailable-model',
+      'model-a',
+    ]);
   });
 
   it('removes a model from settings when it is disabled', async () => {
