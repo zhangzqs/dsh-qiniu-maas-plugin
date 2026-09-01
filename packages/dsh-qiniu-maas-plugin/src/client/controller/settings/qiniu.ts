@@ -4,6 +4,7 @@ import type { QiniuInferenceProtocol, QiniuSettings } from '../../../shared.ts';
 
 export interface QiniuSettingsValue {
   enabledModelIds: string[];
+  hasAutoEnabledDefaultModels: boolean;
   region: QiniuRegion;
   inferenceProtocol: QiniuInferenceProtocol;
 }
@@ -12,6 +13,7 @@ export interface QiniuSettingsController {
   read(): QiniuSettingsValue;
   subscribe(listener: () => void): () => void;
   setEnabledModelIds(modelIds: readonly string[]): Promise<void>;
+  setHasAutoEnabledDefaultModels(value: boolean): Promise<void>;
   setRegion(region: QiniuRegion): Promise<void>;
   setInferenceProtocol(protocol: QiniuInferenceProtocol): Promise<void>;
 }
@@ -29,6 +31,7 @@ export function createQiniuSettingsController(
             (modelId): modelId is string => typeof modelId === 'string',
           )
         : [],
+      hasAutoEnabledDefaultModels: value?.hasAutoEnabledDefaultModels === true,
       region: value?.region ?? 'cn',
       inferenceProtocol: value?.inferenceProtocol ?? 'openai-completions',
     };
@@ -40,6 +43,10 @@ export function createQiniuSettingsController(
 
   function setEnabledModelIds(modelIds: readonly string[]): Promise<void> {
     return settings.set('enabledModelIds', modelIds);
+  }
+
+  function setHasAutoEnabledDefaultModels(value: boolean): Promise<void> {
+    return settings.set('hasAutoEnabledDefaultModels', value);
   }
 
   function setRegion(region: QiniuRegion): Promise<void> {
@@ -56,6 +63,7 @@ export function createQiniuSettingsController(
     read,
     subscribe,
     setEnabledModelIds,
+    setHasAutoEnabledDefaultModels,
     setRegion,
     setInferenceProtocol,
   };

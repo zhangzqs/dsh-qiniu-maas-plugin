@@ -50,6 +50,10 @@ export function apply(ctx: ClientContext): void {
     store,
   );
 
+  void controller.initializeDefaultModels().catch((error: unknown) => {
+    console.error('qiniu-maas: failed to initialize default models', error);
+  });
+
   ctx.effect(
     () =>
       qiniuSettingsController.subscribe(() => {

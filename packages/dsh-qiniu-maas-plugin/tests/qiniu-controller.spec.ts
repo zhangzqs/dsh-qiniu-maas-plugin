@@ -177,4 +177,94 @@ describe('qiniu controller', () => {
 
     expect(setEnabledModelIds).toHaveBeenCalledWith([]);
   });
+
+  it('automatically enables the top five non-retired models once', async () => {
+    listModelsMock.mockResolvedValueOnce(
+      Array.from({ length: 6 }, (_, index) => ({
+        id: `model-${index + 1}`,
+        name: `Model ${index + 1}`,
+        rank: 6 - index,
+        suggested_model: index === 2 ? 'model-1' : '',
+        support_api_protocols: ['openai'],
+      })),
+    );
+    const setEnabledModelIds = vi.fn().mockResolvedValue(undefined);
+    const setHasAutoEnabledDefaultModels = vi.fn().mockResolvedValue(undefined);
+    const setProviders = vi.fn().mockResolvedValue(undefined);
+    const settings = {
+      enabledModelIds: [],
+      hasAutoEnabledDefaultModels: false,
+      region: 'cn',
+      inferenceProtocol: 'openai-completions',
+    } as const;
+    const controller = createQiniuController(
+      {} as never,
+      {
+        read: () => settings,
+        setEnabledModelIds,
+        setHasAutoEnabledDefaultModels,
+      } as never,
+      { read: () => ({ providers: {} }), setProviders } as never,
+      { update: vi.fn() } as never,
+    );
+
+    await controller.initializeDefaultModels();
+
+    expect(setEnabledModelIds).toHaveBeenCalledWith([
+      'model-1',
+      'model-2',
+      'model-4',
+      'model-5',
+      'model-6',
+    ]);
+    expect(setHasAutoEnabledDefaultModels).toHaveBeenCalledWith(true);
+  });
+
+  it('does not replace existing models during initialization', async () => {
+    listModelsMock.mockResolvedValueOnce([]);
+    const setHasAutoEnabledDefaultModels = vi.fn().mockResolvedValue(undefined);
+    const settings = {
+      enabledModelIds: ['existing-model'],
+      hasAutoEnabledDefaultModels: false,
+      region: 'cn',
+      inferenceProtocol: 'openai-completions',
+    } as const;
+    const controller = createQiniuController(
+      {} as never,
+      {
+        read: () => settings,
+        setHasAutoEnabledDefaultModels,
+      } as never,
+      { read: () => ({ providers: {} }), setProviders: vi.fn() } as never,
+      { update: vi.fn() } as never,
+    );
+
+    await controller.initializeDefaultModels();
+
+    expect(setHasAutoEnabledDefaultModels).toHaveBeenCalledWith(true);
+    expect(listModelsMock).toHaveBeenCalledWith({ region: 'cn' });
+  });
+
+  it('does not mark initialization complete when no models are available', async () => {
+    listModelsMock.mockResolvedValueOnce([]);
+    const setHasAutoEnabledDefaultModels = vi.fn().mockResolvedValue(undefined);
+    const controller = createQiniuController(
+      {} as never,
+      {
+        read: () => ({
+          enabledModelIds: [],
+          hasAutoEnabledDefaultModels: false,
+          region: 'cn',
+          inferenceProtocol: 'openai-completions',
+        }),
+        setHasAutoEnabledDefaultModels,
+      } as never,
+      {} as never,
+      {} as never,
+    );
+
+    await controller.initializeDefaultModels();
+
+    expect(setHasAutoEnabledDefaultModels).not.toHaveBeenCalled();
+  });
 });

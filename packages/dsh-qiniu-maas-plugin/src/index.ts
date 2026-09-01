@@ -20,6 +20,7 @@ export type Config = QiniuSettings;
 
 export const Config: z<Config> = z.object({
   enabledModelIds: z.array(z.string()).default([]),
+  hasAutoEnabledDefaultModels: z.boolean().default(false),
   region: z.union(['cn', 'global'] satisfies QiniuRegion[]).default('cn'),
   inferenceProtocol: z
     .union([
