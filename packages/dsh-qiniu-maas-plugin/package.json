@@ -4,14 +4,11 @@
   "private": true,
   "type": "module",
   "main": "lib/index.js",
-  "types": "lib/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./lib/types/index.d.ts",
       "default": "./lib/index.js"
     },
     "./client": {
-      "types": "./lib/types/client/index.d.ts",
       "default": "./lib/client.js"
     },
     "./cordis.patch.yml": "./cordis.patch.yml",
@@ -70,8 +67,12 @@
     "tsx": "^4.22.0"
   },
   "files": [
-    "lib",
+    "lib/index.js",
+    "lib/client.js",
     "cordis.patch.yml",
     "package.json"
-  ]
+  ],
+  "dependencies": {
+    "react-icons": "^5.7.0"
+  }
 }

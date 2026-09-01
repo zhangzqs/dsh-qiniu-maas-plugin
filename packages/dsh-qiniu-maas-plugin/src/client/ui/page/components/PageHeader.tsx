@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { SiGithub } from 'react-icons/si';
+import { LuExternalLink } from 'react-icons/lu';
 import css from './PageHeader.module.css';
 import { useQiniuT } from '../../i18n/index.ts';
 import { pageHeaderKeys } from './PageHeader.locales.ts';
@@ -14,6 +16,16 @@ export function PageHeader(): ReactNode {
         <span className={css.version}>
           {t(pageHeaderKeys.version, { version: qiniuPluginVersion })}
         </span>
+        <a
+          className={css.repository}
+          href="https://github.com/zhangzqs/dsh-qiniu-maas-plugin"
+          target="_blank"
+          rel="noreferrer"
+          aria-label={t(pageHeaderKeys.repository)}
+          title={t(pageHeaderKeys.repository)}
+        >
+          <SiGithub size={16} aria-hidden="true" />
+        </a>
       </div>
       <p className={css.subtitle}>{t(pageHeaderKeys.subtitle)}</p>
       <div className={css.links}>
@@ -23,15 +35,8 @@ export function PageHeader(): ReactNode {
           target="_blank"
           rel="noreferrer"
         >
+          <LuExternalLink size={14} aria-hidden="true" />
           {t(pageHeaderKeys.portal)}
-        </a>
-        <a
-          className={css.link}
-          href="https://github.com/zhangzqs/dsh-qiniu-maas-plugin"
-          target="_blank"
-          rel="noreferrer"
-        >
-          {t(pageHeaderKeys.repository)}
         </a>
       </div>
     </header>

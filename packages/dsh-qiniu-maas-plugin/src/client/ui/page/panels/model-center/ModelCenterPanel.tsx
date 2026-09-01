@@ -9,10 +9,10 @@ import {
 import {
   Button,
   IconChevronDownOutline14,
-  IconRefreshOutline16,
   Input,
   Menu,
 } from '@deepseek-ai/dsh-client-ui-primitives';
+import { LuRefreshCw } from 'react-icons/lu';
 import type { Model, QiniuRegion } from 'qiniu-maas-market-sdk';
 import { ModelCard } from './components/ModelCard.tsx';
 import { ModelDetailDialog } from './components/ModelDetailDialog.tsx';
@@ -225,7 +225,7 @@ export function ModelCenterPanel({
         <Button
           variant="toolbar"
           size="sm"
-          icon={<IconRefreshOutline16 />}
+          icon={<LuRefreshCw size={16} aria-hidden="true" />}
           type="button"
           className={`${css.refreshButton} ${isRefreshing ? css.refreshing : ''}`}
           aria-label={t(modelCenterKeys.refresh)}

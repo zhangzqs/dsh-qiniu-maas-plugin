@@ -1,5 +1,6 @@
 .page {
   position: relative;
+  box-sizing: border-box;
   max-width: 1080px;
   padding: 24px;
   color: var(--dsw-alias-label-primary, #111827);
@@ -7,7 +8,6 @@
 
 @media (max-width: 640px) {
   .page {
-    box-sizing: border-box;
     position: fixed;
     top: 78px;
     right: 24px;
@@ -18,7 +18,7 @@
     max-width: none;
     margin-left: 0;
     padding: 16px;
-    overflow: hidden;
+    overflow: auto;
     background: var(--dsw-alias-fill-l1, #fff);
   }
 

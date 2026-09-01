@@ -1,5 +1,6 @@
 import { Modal, Pill } from '@deepseek-ai/dsh-client-ui-primitives';
 import type { ReactNode } from 'react';
+import { LuExternalLink } from 'react-icons/lu';
 import type { Model } from 'qiniu-maas-market-sdk';
 import { ModelAvatar } from './ModelAvatar.tsx';
 import css from './ModelDetailDialog.module.css';
@@ -104,6 +105,7 @@ export function ModelDetailDialog({ model, onClose }: Props): ReactNode {
           <div className={css.links}>
             {model.model_doc_url && (
               <a href={model.model_doc_url} target="_blank" rel="noreferrer">
+                <LuExternalLink size={14} aria-hidden="true" />
                 {t(modelDetailKeys.modelDocumentation)}
               </a>
             )}
@@ -113,6 +115,7 @@ export function ModelDetailDialog({ model, onClose }: Props): ReactNode {
                 target="_blank"
                 rel="noreferrer"
               >
+                <LuExternalLink size={14} aria-hidden="true" />
                 {t(modelDetailKeys.integrationDocumentation)}
               </a>
             )}
