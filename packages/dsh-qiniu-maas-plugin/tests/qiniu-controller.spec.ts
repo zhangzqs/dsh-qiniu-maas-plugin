@@ -184,6 +184,7 @@ describe('qiniu controller', () => {
         id: `model-${index + 1}`,
         name: `Model ${index + 1}`,
         rank: 6 - index,
+        release_at: `2026-0${index + 1}-01T00:00:00Z`,
         suggested_model: index === 2 ? 'model-1' : '',
         support_api_protocols: ['openai'],
       })),
@@ -211,11 +212,11 @@ describe('qiniu controller', () => {
     await controller.initializeDefaultModels();
 
     expect(setEnabledModelIds).toHaveBeenCalledWith([
-      'model-1',
-      'model-2',
-      'model-4',
-      'model-5',
       'model-6',
+      'model-5',
+      'model-4',
+      'model-2',
+      'model-1',
     ]);
     expect(setHasAutoEnabledDefaultModels).toHaveBeenCalledWith(true);
   });

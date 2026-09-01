@@ -57,7 +57,7 @@ export function createQiniuController(
             (protocol) => protocol === 'openai' || protocol === 'anthropic',
           ),
         )
-        .sort((left, right) => (right.rank ?? 0) - (left.rank ?? 0));
+        .sort((left, right) => right.release_at.localeCompare(left.release_at));
       marketModelsCache.set(region, sortedModels);
       return sortedModels;
     };
