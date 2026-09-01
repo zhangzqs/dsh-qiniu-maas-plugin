@@ -16,6 +16,11 @@ export const modelDetailKeys = {
   modelDocumentation: 'model.detail.modelDocumentation',
   output: 'model.detail.output',
   protocols: 'model.detail.protocols',
+  pricing: 'model.detail.pricing',
+  pricingItem: 'model.detail.pricingItem',
+  rmbPrice: 'model.detail.rmbPrice',
+  usdPrice: 'model.detail.usdPrice',
+  pricingRange: 'model.detail.pricingRange',
   reasoning: 'model.detail.reasoning',
   releaseAt: 'model.detail.releaseAt',
   structuredOutput: 'model.detail.structuredOutput',
@@ -82,6 +87,26 @@ export const modelDetailMessages = {
   [modelDetailKeys.protocols]: {
     zh: '支持协议',
     en: 'Supported protocols',
+  },
+  [modelDetailKeys.pricing]: {
+    zh: '价格',
+    en: 'Pricing',
+  },
+  [modelDetailKeys.pricingItem]: {
+    zh: '计费项',
+    en: 'Billing item',
+  },
+  [modelDetailKeys.rmbPrice]: {
+    zh: '人民币单价',
+    en: 'CNY price',
+  },
+  [modelDetailKeys.usdPrice]: {
+    zh: '美元单价',
+    en: 'USD price',
+  },
+  [modelDetailKeys.pricingRange]: {
+    zh: '输入区间',
+    en: 'Input range',
   },
   [modelDetailKeys.reasoning]: {
     zh: '推理',
