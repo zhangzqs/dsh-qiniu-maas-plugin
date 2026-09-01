@@ -27,6 +27,7 @@ describe('settings controllers', () => {
 
     expect(controller.read()).toEqual({
       enabledModelIds: ['model-a'],
+      hasAutoEnabledDefaultModels: false,
       region: 'global',
       inferenceProtocol: 'anthropic-messages',
     });
@@ -42,12 +43,32 @@ describe('settings controllers', () => {
 
     expect(controller.read()).toEqual({
       enabledModelIds: ['model-a'],
+      hasAutoEnabledDefaultModels: false,
       region: 'global',
       inferenceProtocol: 'anthropic-messages',
     });
     expect(scope.set).toHaveBeenNthCalledWith(1, 'enabledModelIds', [
       'model-a',
     ]);
+  });
+
+  it('reads and writes the default model initialization marker', async () => {
+    const scope = settingsScope({});
+    const controller = createQiniuSettingsController(scope as never);
+
+    expect(controller.read().hasAutoEnabledDefaultModels).toBe(false);
+    await controller.setHasAutoEnabledDefaultModels(true);
+
+    expect(controller.read().hasAutoEnabledDefaultModels).toBe(true);
+    expect(scope.set).toHaveBeenCalledWith('hasAutoEnabledDefaultModels', true);
+  });
+
+  it('returns an empty model list for malformed settings', () => {
+    const controller = createQiniuSettingsController(
+      settingsScope({ enabledModelIds: 'invalid' }) as never,
+    );
+
+    expect(controller.read().enabledModelIds).toEqual([]);
   });
 
   it('reads and writes Pi AI providers through its namespace controller', async () => {

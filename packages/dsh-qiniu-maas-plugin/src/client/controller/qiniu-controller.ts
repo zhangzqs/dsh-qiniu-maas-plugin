@@ -18,6 +18,7 @@ export interface QiniuState {
 
 export interface QiniuActions {
   checkApiKeyConfigured: () => Promise<boolean>;
+  initializeDefaultModels: () => Promise<void>;
   fetchMarketModels: (
     region: QiniuRegion,
     forceRefresh?: boolean,
@@ -29,6 +30,8 @@ export interface QiniuActions {
 }
 
 export type QiniuController = QiniuActions;
+
+const DEFAULT_MODEL_COUNT = 5;
 
 export function createQiniuController(
   connection: ConnectionHandle,
@@ -112,6 +115,28 @@ export function createQiniuController(
     await syncProviderSettings(piAiSettings, qiniuSettings, marketModels);
   };
 
+  // 首次使用插件时候，自动初始化启用前几个默认模型
+  const initializeDefaultModels = async (): Promise<void> => {
+    const settings = qiniuSettings.read();
+    if (settings.hasAutoEnabledDefaultModels) return;
+
+    const marketModels = await fetchMarketModels(settings.region);
+    if (settings.enabledModelIds.length > 0) {
+      await syncProviderSettings(piAiSettings, qiniuSettings, marketModels);
+      await qiniuSettings.setHasAutoEnabledDefaultModels(true);
+      return;
+    }
+
+    const defaultModelIds = marketModels
+      .filter((model) => !model.suggested_model)
+      .slice(0, DEFAULT_MODEL_COUNT)
+      .map((model) => model.id);
+
+    if (defaultModelIds.length === 0) return;
+    await setEnabledModelIds(defaultModelIds);
+    await qiniuSettings.setHasAutoEnabledDefaultModels(true);
+  };
+
   // 设置服务区域
   const setRegion = async (region: QiniuRegion): Promise<void> => {
     const marketModels = await fetchMarketModels(region);
@@ -136,6 +161,7 @@ export function createQiniuController(
 
   return {
     checkApiKeyConfigured,
+    initializeDefaultModels,
     fetchMarketModels,
     setEnabledModelIds,
     setApiKey,
