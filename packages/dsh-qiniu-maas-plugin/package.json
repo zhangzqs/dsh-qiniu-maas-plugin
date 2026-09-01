@@ -1,6 +1,6 @@
 {
   "name": "@qiniu/dsh-qiniu-maas-plugin",
-  "version": "0.1.8-rc.1",
+  "version": "0.1.8-rc.2",
   "private": true,
   "type": "module",
   "main": "lib/index.js",
@@ -69,6 +69,7 @@
   "files": [
     "lib/index.js",
     "lib/client.js",
+    "lib/shared.js",
     "cordis.patch.yml",
     "package.json"
   ],
