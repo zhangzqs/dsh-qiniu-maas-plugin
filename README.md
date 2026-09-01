@@ -93,6 +93,26 @@ pnpm build
 
 构建结果位于各包的 `lib/` 目录。插件的 DSH Client 入口由 `lib/client.js` 提供，Host bundle 配置由 `cordis.patch.yml` 提供。
 
+### 开发时自动构建与 HMR
+
+开发插件 UI 时，可以让 Client bundle 随源码变更自动重建：
+
+```sh
+# 在本仓库执行
+pnpm dev:watch
+
+# 在 deepseek-harness 仓库的另一个终端执行
+pnpm dsh web
+```
+
+DSH 的 HMR 监听本地链接插件中的 `lib/client.js`，因此需要先将当前 checkout 安装到 `web` profile：
+
+```sh
+pnpm dsh plugin --profile web add /home/zzq/code/repo/zzq/qiniu-maas-plugin
+```
+
+`pnpm dev:watch` 会先执行一次完整构建，再持续 watch Client bundle；修改 Client/React/CSS 源码后，DSH 会自动热更新。开发 watch 不会反复生成 `.tgz`，准备分发时再执行 `pnpm pack:plugin`。
+
 ## 项目结构
 
 ```text

@@ -31,7 +31,8 @@ export default defineConfig({
   clean: false,
   deps: {
     neverBundle: (source: string) => clientExternals.includes(source),
-    alwaysBundle: (source: string) => source === 'qiniu-maas-market-sdk',
+    alwaysBundle: (source: string) =>
+      source === 'qiniu-maas-market-sdk' || source.startsWith('react-icons/'),
   },
   define: {
     __QINIU_PLUGIN_VERSION__: JSON.stringify(packageJson.version),

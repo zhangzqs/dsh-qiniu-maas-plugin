@@ -4,7 +4,7 @@
   align-items: center;
   gap: 12px;
   box-sizing: border-box;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .sortButton,
@@ -18,7 +18,12 @@
   width: 28px;
   min-width: 28px;
   padding: 0;
+  background: var(--dsw-alias-bg-layer-1, #fff);
   cursor: pointer;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: var(--dsw-alias-bg-layer-2, #f7f8fa);
 }
 
 .refreshButton:disabled {
@@ -57,7 +62,7 @@
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
+  gap: 10px;
   max-height: min(560px, calc(100vh - 360px));
   overflow-y: auto;
   padding-right: 4px;
