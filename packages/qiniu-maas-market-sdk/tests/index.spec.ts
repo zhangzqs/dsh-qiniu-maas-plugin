@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   QINIU_LLM_BASE_URLS,
+  getModelMaxTokens,
   listModels,
   type QiniuModelApiProtocol,
   type QiniuModelInputModality,
@@ -10,6 +11,21 @@ import {
 } from '../src/index.ts';
 
 describe('qiniu-maas-market-sdk', () => {
+  it('gets the first positive max token limit', () => {
+    expect(
+      getModelMaxTokens({ max_completion_tokens: 0, max_tokens: 128000 }),
+    ).toBe(128000);
+    expect(
+      getModelMaxTokens({ max_completion_tokens: 0, max_tokens: 0 }),
+    ).toBeUndefined();
+    expect(
+      getModelMaxTokens({
+        max_completion_tokens: 0,
+        max_tokens: 0,
+        max_default_completion_tokens: 64000,
+      }),
+    ).toBe(64000);
+  });
   it('exports inference service URLs for the shared Qiniu region type', () => {
     expect(QINIU_LLM_BASE_URLS).toEqual({
       cn: {

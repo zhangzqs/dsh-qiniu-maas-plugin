@@ -87,6 +87,69 @@ describe('provider sync', () => {
     });
   });
 
+  it('keeps models with invalid marketplace constraints usable', async () => {
+    const settings = createSettingsController({});
+    const qiniuSettings = createQiniuSettingsController({
+      enabledModelIds: ['model-a'],
+      region: 'cn',
+      inferenceProtocol: 'openai-completions',
+    });
+
+    await syncProviderSettings(settings, qiniuSettings, [
+      {
+        id: 'model-a',
+        name: 'Model A',
+        model_constraints: {
+          context_length: 1000000,
+          max_completion_tokens: 0,
+          max_tokens: 128000,
+        },
+      } as never,
+    ]);
+
+    expect(settings.read().providers['qiniu-maas']).toMatchObject({
+      models: [
+        {
+          id: 'model-a',
+          name: 'Model A',
+          contextWindow: 1000000,
+          maxTokens: 128000,
+        },
+      ],
+    });
+    expect(settings.read().providers['qiniu-maas']).not.toMatchObject({
+      models: [{ contextWindow: 0, maxTokens: 0 }],
+    });
+  });
+
+  it('omits the output limit when all output limits are zero', async () => {
+    const settings = createSettingsController({});
+    const qiniuSettings = createQiniuSettingsController({
+      enabledModelIds: ['model-a'],
+      region: 'cn',
+      inferenceProtocol: 'openai-completions',
+    });
+
+    await syncProviderSettings(settings, qiniuSettings, [
+      {
+        id: 'model-a',
+        name: 'Model A',
+        model_constraints: {
+          context_length: 1000000,
+          max_completion_tokens: 0,
+          max_tokens: 0,
+        },
+      } as never,
+    ]);
+
+    expect(settings.read().providers['qiniu-maas']).toMatchObject({
+      models: [{ id: 'model-a', name: 'Model A' }],
+    });
+    expect(settings.read().providers['qiniu-maas']).not.toMatchObject({
+      models: [{ maxTokens: expect.anything() }],
+    });
+  });
+
   it('removes the provider when no enabled model remains', async () => {
     const settings = createSettingsController({
       'qiniu-maas': {
