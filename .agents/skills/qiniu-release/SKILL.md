@@ -9,6 +9,8 @@ description: Use when publishing a Qiniu MaaS DSH plugin, upgrading SDK or plugi
 
 - SDK：`packages/qiniu-maas-market-sdk`
 - 插件：`packages/dsh-qiniu-maas-plugin`
+- 遵循语义化版本：兼容性新增功能升级 minor，向后兼容的 bug 修复升级 patch，不兼容变更升级 major。
+- SDK 与插件独立判定版本增量：SDK 新增公开 API 时升级 SDK minor；仅插件 bug 修复时插件升级 patch，不要因为插件版本变化同步升级 SDK。
 - Release tag：`v<插件 package.json 的 version>`
 - Release 标题必须与 tag 完全一致，例如 tag 为 `v0.1.6-rc.0` 时标题也使用 `v0.1.6-rc.0`。
 - RC 版本必须同时写入相关 `package.json`，例如版本 `0.1.6-rc.0` 对应 tag `v0.1.6-rc.0`；正式版本再单独改为 `0.1.6` 并创建 `v0.1.6`。
@@ -35,7 +37,7 @@ description: Use when publishing a Qiniu MaaS DSH plugin, upgrading SDK or plugi
    git diff --name-only "$LAST_TAG"..HEAD
    ```
 
-   没有历史 tag 时停止并要求人工确认首个版本。SDK 有源码或公开接口变更时同时升级 SDK 和插件；仅插件变更时只升级插件。不要从 commit 文本自动猜测 SemVer，先让用户确认 `patch`、`minor`、`major` 或完整预发布版本号。
+   没有历史 tag 时停止并要求人工确认首个版本。分别检查 SDK 和插件的变更，依据语义化版本规则决定各自的 `patch`、`minor` 或 `major` 增量；SDK 有源码或公开接口变更时不必机械地同步插件版本，只有插件自身也有对应变更时才升级插件。不要从 commit 文本自动猜测 SemVer，先让用户确认版本增量或完整预发布版本号。
 
 3. 通过 PR 修改需要升级的 package 版本号并合并到 `main`。预发布版本使用标准 SemVer，例如 `0.1.6-rc.0`，不要使用 `0.1.6.rc`。不要直接向受保护的 `main` 推送版本修改。
 
