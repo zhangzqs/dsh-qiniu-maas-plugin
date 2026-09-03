@@ -4,7 +4,7 @@ export type {
   QiniuModelInputModality,
   QiniuModelOutputModality,
 } from './architecture.ts';
-export type { ModelConstraints } from './constraints.ts';
+export { getModelMaxTokens, type ModelConstraints } from './constraints.ts';
 export type { ModelFiling } from './filing.ts';
 export type { Issuer } from './issuer.ts';
 export type {

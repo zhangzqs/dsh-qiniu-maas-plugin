@@ -1,7 +1,12 @@
 import { Modal, Pill } from '@deepseek-ai/dsh-client-ui-primitives';
 import { Fragment, type ReactNode } from 'react';
 import { LuExternalLink } from 'react-icons/lu';
-import type { Model, PricingItem, PricingRule } from 'qiniu-maas-market-sdk';
+import {
+  getModelMaxTokens,
+  type Model,
+  type PricingItem,
+  type PricingRule,
+} from 'qiniu-maas-market-sdk';
 import { ModelAvatar } from './ModelAvatar.tsx';
 import css from './ModelDetailDialog.module.css';
 import { useQiniuT } from '../../../../i18n/index.ts';
@@ -260,10 +265,7 @@ export function ModelDetailDialog({ model, onClose }: Props): ReactNode {
       />
       <ModelLimitsSection
         contextLength={model.model_constraints?.context_length}
-        maxOutput={
-          model.model_constraints?.max_completion_tokens ??
-          model.model_constraints?.max_tokens
-        }
+        maxOutput={getModelMaxTokens(model.model_constraints)}
       />
       <ModelPricingSection pricingRules={model.pricing_rules_v2} />
       <ModelCapabilitiesSection

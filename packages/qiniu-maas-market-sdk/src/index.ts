@@ -26,3 +26,4 @@ export type {
   UsageItem,
   UsageItemV2,
 } from './models/index.ts';
+export { getModelMaxTokens } from './models/index.ts';

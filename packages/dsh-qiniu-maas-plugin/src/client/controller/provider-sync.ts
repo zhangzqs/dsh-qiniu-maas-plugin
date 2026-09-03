@@ -1,4 +1,8 @@
-import { QINIU_LLM_BASE_URLS, type Model } from 'qiniu-maas-market-sdk';
+import {
+  getModelMaxTokens,
+  QINIU_LLM_BASE_URLS,
+  type Model,
+} from 'qiniu-maas-market-sdk';
 import type {
   PiAiModelProfile,
   PiAiProviderProfile,
@@ -18,17 +22,21 @@ function toPiAiModelProfile(
 ): PiAiModelProfile {
   const name = model.name ?? model.id;
   const contextWindow = model.model_constraints?.context_length;
-  const maxTokens = model.model_constraints?.max_tokens;
+  const maxTokens = getModelMaxTokens(model.model_constraints);
   const input = model.architecture?.input_modalities.filter(
     (modality) => modality === 'text' || modality === 'image',
   );
   return {
     id: model.id,
     name,
-    ...(contextWindow === undefined ? {} : { contextWindow }),
-    ...(maxTokens === undefined ? {} : { maxTokens }),
+    ...(isPositiveInteger(contextWindow) ? { contextWindow } : {}),
+    ...(isPositiveInteger(maxTokens) ? { maxTokens } : {}),
     ...(input === undefined || input.length === 0 ? {} : { input }),
   };
+}
+
+function isPositiveInteger(value: number | undefined): value is number {
+  return value !== undefined && Number.isInteger(value) && value > 0;
 }
 
 /** 根据七牛设置和模型市场快照生成七牛 provider 配置。 */
