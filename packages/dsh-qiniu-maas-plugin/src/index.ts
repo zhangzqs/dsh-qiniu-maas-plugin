@@ -1,8 +1,5 @@
 import type { Context } from '@deepseek-ai/cordis';
-import {
-  installSettingsSection,
-  settingsNamespace,
-} from '@deepseek-ai/dsh-settings';
+import type {} from '@deepseek-ai/dsh-settings';
 import z from '@deepseek-ai/schemastery';
 import {
   QINIU_MAAS_NAMESPACE,
@@ -13,8 +10,6 @@ import type { QiniuRegion } from 'qiniu-maas-market-sdk';
 
 export const name = '@qiniu/dsh-qiniu-maas-plugin';
 export const inject: string[] = [];
-
-const SETTINGS_NAMESPACE = settingsNamespace(QINIU_MAAS_NAMESPACE);
 
 export type Config = QiniuSettings;
 
@@ -31,8 +26,16 @@ export const Config: z<Config> = z.object({
 });
 
 export function apply(ctx: Context, config: Config): void {
-  installSettingsSection(ctx, SETTINGS_NAMESPACE, Config, config, {
-    setSource: () => {},
-    onChange: () => {},
+  ctx.inject(['settings'], (settingsCtx) => {
+    settingsCtx.settings.installSection(
+      ctx,
+      QINIU_MAAS_NAMESPACE,
+      Config,
+      config,
+      {
+        setSource: () => {},
+        onChange: () => {},
+      },
+    );
   });
 }

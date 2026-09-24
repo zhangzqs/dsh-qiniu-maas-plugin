@@ -1,8 +1,9 @@
-import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client';
-import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
-import { createSnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
+import type { Context as ClientContext } from '@deepseek-ai/cordis';
+import type {} from '@deepseek-ai/dsh-api-remotes/client';
+import { createSnapshotStore } from '@deepseek-ai/dsh-client-store';
+import type {} from '@deepseek-ai/dsh-client-ui-renderer/client';
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
-import type { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client';
+import type {} from '@deepseek-ai/dsh-client-locale/client';
 import {
   createPiAiSettingsController,
   createQiniuController,
@@ -15,14 +16,19 @@ import { qiniuMessages } from './ui/i18n/index.ts';
 import { qiniuSettingsSectionKeys } from './ui/QiniuSettingsSection.locales.ts';
 import { QINIU_MAAS_NAMESPACE, type QiniuSettings } from '../shared.ts';
 
-export const inject = ['slots', 'connection', 'settingsScope', 'locale'];
+export const inject = [
+  'slots',
+  'locale',
+  'remote',
+  'remote.credentials',
+  'settingsScope',
+];
 
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => {
-    const locale = ctx.get('locale') as LocaleRuntime;
-    return locale.register(QINIU_MAAS_NAMESPACE, qiniuMessages);
-  }, 'qiniu-maas: locale dictionary');
-  const connection = ctx.get('connection') as ConnectionHandle;
+  ctx.effect(
+    () => ctx.locale.register(QINIU_MAAS_NAMESPACE, qiniuMessages),
+    'qiniu-maas: locale dictionary',
+  );
 
   const qiniuSettingsController = createQiniuSettingsController(
     ctx.settingsScope.bind<QiniuSettings>({
@@ -44,7 +50,7 @@ export function apply(ctx: ClientContext): void {
   })();
 
   const controller = createQiniuController(
-    connection,
+    ctx,
     qiniuSettingsController,
     piAiSettingsController,
     store,
@@ -73,8 +79,7 @@ export function apply(ctx: ClientContext): void {
         id: 'qiniu-maas',
         order: 20,
         label: () => {
-          const locale = ctx.get('locale') as LocaleRuntime;
-          return locale.bind(QINIU_MAAS_NAMESPACE)(
+          return ctx.locale.bind(QINIU_MAAS_NAMESPACE)(
             qiniuSettingsSectionKeys.label,
           );
         },

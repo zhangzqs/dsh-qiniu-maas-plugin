@@ -11,10 +11,9 @@ const packageJson = JSON.parse(
 const clientExternals = [
   'react',
   'react/jsx-runtime',
-  '@deepseek-ai/dsh-client-connection',
-  '@deepseek-ai/dsh-client-locale',
-  '@deepseek-ai/dsh-client-runtime',
-  '@deepseek-ai/dsh-client-ui-settings',
+  '@deepseek-ai/cordis',
+  '@deepseek-ai/dsh-client-store',
+  '@deepseek-ai/dsh-client-ui-primitives',
   '@deepseek-ai/dsh-client-ui-slots',
 ];
 const cssVirtualPrefix = '\0dsh-css:';
