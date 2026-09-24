@@ -15,11 +15,9 @@ import {
 import { QiniuSettingsSection, type QiniuInjected } from './ui/index.ts';
 import { qiniuMessages } from './ui/i18n/index.ts';
 import { qiniuSettingsSectionKeys } from './ui/QiniuSettingsSection.locales.ts';
-import {
-  QINIU_MAAS_ENTRY_ID,
-  QINIU_MAAS_NAMESPACE,
-  type QiniuSettings,
-} from '../shared.ts';
+import { QINIU_MAAS_NAMESPACE, type QiniuSettings } from '../shared.ts';
+
+const QINIU_MAAS_ENTRY_ID = 'qiniu-maas-dsh-plugin';
 
 export const inject = [
   'slots',
