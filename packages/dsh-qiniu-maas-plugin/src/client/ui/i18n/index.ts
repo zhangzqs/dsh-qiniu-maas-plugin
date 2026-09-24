@@ -17,7 +17,7 @@ import { settingsMessages } from '../page/panels/settings/SettingsPanel.locales.
 import { apiKeySettingMessages } from '../page/panels/settings/components/ApiKeySetting.locales.ts';
 import { modelAvatarMessages } from '../page/panels/model-center/components/ModelAvatar.locales.ts';
 import { qiniuSettingsSectionMessages } from '../QiniuSettingsSection.locales.ts';
-import { QINIU_MAAS_NAMESPACE } from '../../../shared.ts';
+import { QINIU_MAAS_NAMESPACE } from '../../constants.ts';
 export type QiniuLocaleMessage = Record<LocaleId, string>;
 export type QiniuLocaleMessages = Record<string, QiniuLocaleMessage>;
 

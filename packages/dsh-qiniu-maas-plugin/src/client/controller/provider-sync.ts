@@ -12,7 +12,7 @@ import type {
   QiniuSettingsController,
   QiniuSettingsValue,
 } from './settings/qiniu.ts';
-import { QINIU_MAAS_NAMESPACE } from '../../shared.ts';
+import { QINIU_MAAS_NAMESPACE } from '../constants.ts';
 
 export const QINIU_API_KEY_REF = 'QINIU_MAAS_API_KEY';
 
@@ -83,11 +83,14 @@ export async function syncProviderSettings(
   marketModels: readonly Model[],
 ): Promise<void> {
   const settings = qiniuSettings.read();
-  await piAiSettings.setProviders(
+  const accepted = await piAiSettings.setProviders(
     createQiniuProviderSettings(
       piAiSettings.read().providers,
       settings,
       marketModels,
     ),
   );
+  if (!accepted) {
+    throw new Error('qiniu-maas: pi-ai provider settings write was refused');
+  }
 }

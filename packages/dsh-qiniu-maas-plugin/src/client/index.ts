@@ -8,20 +8,24 @@ import {
   createPiAiSettingsController,
   createQiniuController,
   createQiniuSettingsController,
+  initializeWhenSettingsReady,
   type PiAiSettings,
+  type QiniuSettings,
   type QiniuState,
 } from './controller/index.ts';
+import { QINIU_MAAS_NAMESPACE } from './constants.ts';
 import { QiniuSettingsSection, type QiniuInjected } from './ui/index.ts';
 import { qiniuMessages } from './ui/i18n/index.ts';
 import { qiniuSettingsSectionKeys } from './ui/QiniuSettingsSection.locales.ts';
-import { QINIU_MAAS_NAMESPACE, type QiniuSettings } from '../shared.ts';
+
+const QINIU_MAAS_ENTRY_ID = 'qiniu-maas-dsh-plugin';
 
 export const inject = [
   'slots',
   'locale',
   'remote',
   'remote.credentials',
-  'settingsScope',
+  'configForms',
 ];
 
 export function apply(ctx: ClientContext): void {
@@ -30,16 +34,10 @@ export function apply(ctx: ClientContext): void {
     'qiniu-maas: locale dictionary',
   );
 
-  const qiniuSettingsController = createQiniuSettingsController(
-    ctx.settingsScope.bind<QiniuSettings>({
-      namespace: QINIU_MAAS_NAMESPACE,
-    }),
-  );
-  const piAiSettingsController = createPiAiSettingsController(
-    ctx.settingsScope.bind<PiAiSettings>({
-      namespace: 'llm-pi-ai',
-    }),
-  );
+  const qiniuSettings = ctx.configForms.get<QiniuSettings>(QINIU_MAAS_ENTRY_ID);
+  const piAiSettings = ctx.configForms.get<PiAiSettings>('llm-pi-ai');
+  const qiniuSettingsController = createQiniuSettingsController(qiniuSettings);
+  const piAiSettingsController = createPiAiSettingsController(piAiSettings);
   const store = (() => {
     const qiniuSettingsValue = qiniuSettingsController.read();
     return createSnapshotStore<QiniuState>({
@@ -56,9 +54,20 @@ export function apply(ctx: ClientContext): void {
     store,
   );
 
-  void controller.initializeDefaultModels().catch((error: unknown) => {
-    console.error('qiniu-maas: failed to initialize default models', error);
-  });
+  ctx.effect(
+    () =>
+      initializeWhenSettingsReady(
+        [qiniuSettings, piAiSettings],
+        controller.initializeDefaultModels,
+        (error) => {
+          console.error(
+            'qiniu-maas: failed to initialize default models',
+            error,
+          );
+        },
+      ),
+    'qiniu-maas: default model initialization',
+  );
 
   ctx.effect(
     () =>
@@ -72,24 +81,30 @@ export function apply(ctx: ClientContext): void {
       }),
     'qiniu-maas: settings updates',
   );
-  ctx.slots.inject('settings.section', () =>
-    ctx.slots.register(
-      {
-        name: 'settings.section',
-        id: 'qiniu-maas',
-        order: 20,
-        label: () => {
-          return ctx.locale.bind(QINIU_MAAS_NAMESPACE)(
-            qiniuSettingsSectionKeys.label,
-          );
-        },
-        locale: QINIU_MAAS_NAMESPACE,
-        inject: (): QiniuInjected => ({
-          hooks: { snapshot: store },
-          ...controller,
-        }),
-      },
-      QiniuSettingsSection,
-    ),
+  ctx.effect(
+    () =>
+      ctx.configForms.whileServed([QINIU_MAAS_ENTRY_ID], () =>
+        ctx.slots.inject('settings.section', () =>
+          ctx.slots.register(
+            {
+              name: 'settings.section',
+              id: 'qiniu-maas',
+              order: 20,
+              label: () => {
+                return ctx.locale.bind(QINIU_MAAS_NAMESPACE)(
+                  qiniuSettingsSectionKeys.label,
+                );
+              },
+              locale: QINIU_MAAS_NAMESPACE,
+              inject: (): QiniuInjected => ({
+                hooks: { snapshot: store },
+                ...controller,
+              }),
+            },
+            QiniuSettingsSection,
+          ),
+        ),
+      ),
+    'qiniu-maas: settings page',
   );
 }

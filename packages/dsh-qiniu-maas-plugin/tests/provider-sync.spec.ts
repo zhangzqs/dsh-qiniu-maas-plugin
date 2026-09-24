@@ -11,6 +11,7 @@ function createSettingsController(
     read: () => value,
     setProviders: async (nextProviders) => {
       value = { providers: nextProviders };
+      return true;
     },
   };
 }
@@ -21,9 +22,10 @@ function createQiniuSettingsController(
   return {
     read: () => value,
     subscribe: () => () => {},
-    setEnabledModelIds: async () => {},
-    setRegion: async () => {},
-    setInferenceProtocol: async () => {},
+    setEnabledModelIds: async () => true,
+    setHasAutoEnabledDefaultModels: async () => true,
+    setRegion: async () => true,
+    setInferenceProtocol: async () => true,
   };
 }
 
@@ -166,5 +168,21 @@ describe('provider sync', () => {
     await syncProviderSettings(settings, qiniuSettings, []);
 
     expect(settings.read().providers).toEqual({});
+  });
+
+  it('reports a refused provider settings write', async () => {
+    const settings = createSettingsController({});
+    settings.setProviders = async () => false;
+    const qiniuSettings = createQiniuSettingsController({
+      enabledModelIds: ['model-a'],
+      region: 'cn',
+      inferenceProtocol: 'openai-completions',
+    });
+
+    await expect(
+      syncProviderSettings(settings, qiniuSettings, [
+        { id: 'model-a', name: 'Model A' },
+      ]),
+    ).rejects.toThrow('pi-ai provider settings write was refused');
   });
 });

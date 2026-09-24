@@ -1,6 +1,15 @@
-import type { SettingsScope } from '@deepseek-ai/dsh-client-ui-settings/client';
-import type { QiniuRegion } from 'qiniu-maas-market-sdk';
-import type { QiniuInferenceProtocol, QiniuSettings } from '../../../shared.ts';
+import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client';
+import type {
+  QiniuInferenceProtocol,
+  QiniuRegion,
+} from 'qiniu-maas-market-sdk';
+
+export interface QiniuSettings {
+  enabledModelIds?: string[];
+  hasAutoEnabledDefaultModels?: boolean;
+  region?: QiniuRegion;
+  inferenceProtocol?: QiniuInferenceProtocol;
+}
 
 export interface QiniuSettingsValue {
   enabledModelIds: string[];
@@ -12,14 +21,14 @@ export interface QiniuSettingsValue {
 export interface QiniuSettingsController {
   read(): QiniuSettingsValue;
   subscribe(listener: () => void): () => void;
-  setEnabledModelIds(modelIds: readonly string[]): Promise<void>;
-  setHasAutoEnabledDefaultModels(value: boolean): Promise<void>;
-  setRegion(region: QiniuRegion): Promise<void>;
-  setInferenceProtocol(protocol: QiniuInferenceProtocol): Promise<void>;
+  setEnabledModelIds(modelIds: readonly string[]): Promise<boolean>;
+  setHasAutoEnabledDefaultModels(value: boolean): Promise<boolean>;
+  setRegion(region: QiniuRegion): Promise<boolean>;
+  setInferenceProtocol(protocol: QiniuInferenceProtocol): Promise<boolean>;
 }
 
 export function createQiniuSettingsController(
-  settings: SettingsScope<QiniuSettings>,
+  settings: ConfigForm<QiniuSettings>,
 ): QiniuSettingsController {
   function read(): QiniuSettingsValue {
     const value = settings.getSnapshot().value;
@@ -41,21 +50,21 @@ export function createQiniuSettingsController(
     return settings.subscribe(listener);
   }
 
-  function setEnabledModelIds(modelIds: readonly string[]): Promise<void> {
+  function setEnabledModelIds(modelIds: readonly string[]): Promise<boolean> {
     return settings.set('enabledModelIds', modelIds);
   }
 
-  function setHasAutoEnabledDefaultModels(value: boolean): Promise<void> {
+  function setHasAutoEnabledDefaultModels(value: boolean): Promise<boolean> {
     return settings.set('hasAutoEnabledDefaultModels', value);
   }
 
-  function setRegion(region: QiniuRegion): Promise<void> {
+  function setRegion(region: QiniuRegion): Promise<boolean> {
     return settings.set('region', region);
   }
 
   function setInferenceProtocol(
     protocol: QiniuInferenceProtocol,
-  ): Promise<void> {
+  ): Promise<boolean> {
     return settings.set('inferenceProtocol', protocol);
   }
 

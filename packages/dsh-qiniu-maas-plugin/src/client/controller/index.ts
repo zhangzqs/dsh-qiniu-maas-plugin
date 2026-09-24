@@ -6,8 +6,10 @@ export type {
 } from './qiniu-controller.ts';
 export { createPiAiSettingsController } from './settings/pi-ai.ts';
 export { createQiniuSettingsController } from './settings/qiniu.ts';
+export { initializeWhenSettingsReady } from './settings-initialization.ts';
 export type { PiAiSettings, PiAiSettingsController } from './settings/pi-ai.ts';
 export type {
+  QiniuSettings,
   QiniuSettingsController,
   QiniuSettingsValue,
 } from './settings/qiniu.ts';

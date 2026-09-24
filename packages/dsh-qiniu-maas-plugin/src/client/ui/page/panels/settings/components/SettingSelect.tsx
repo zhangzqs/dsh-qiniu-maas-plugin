@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import {
   Button,
-  IconChevronDownOutline14,
+  IconChevronDownOutlineMedium,
   Menu,
 } from '@deepseek-ai/dsh-client-ui-primitives';
 import css from './SettingSelect.module.css';
@@ -35,7 +35,7 @@ export function SettingSelect({
             onClick={() => setIsOpen((currentlyOpen) => !currentlyOpen)}
           >
             {selected?.label}
-            <IconChevronDownOutline14 />
+            <IconChevronDownOutlineMedium />
           </Button>
         }
         items={options}

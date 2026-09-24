@@ -1,17 +1,17 @@
-import type { Config as PiAiConfig } from '@deepseek-ai/dsh-llm-pi-ai';
-import type { SettingsScope } from '@deepseek-ai/dsh-client-ui-settings/client';
+import type { Options as PiAiOptions } from '@deepseek-ai/dsh-llm-pi-ai';
+import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client';
 
-export type PiAiSettings = Pick<PiAiConfig, 'providers'>;
+export type PiAiSettings = Pick<PiAiOptions, 'providers'>;
 
 export interface PiAiSettingsController {
   read(): PiAiSettings;
   setProviders(
     providers: NonNullable<PiAiSettings['providers']>,
-  ): Promise<void>;
+  ): Promise<boolean>;
 }
 
 export function createPiAiSettingsController(
-  settings: SettingsScope<PiAiSettings>,
+  settings: ConfigForm<PiAiSettings>,
 ): PiAiSettingsController {
   function read(): PiAiSettings {
     return settings.getSnapshot().value ?? {};
@@ -19,7 +19,7 @@ export function createPiAiSettingsController(
 
   function setProviders(
     providers: NonNullable<PiAiSettings['providers']>,
-  ): Promise<void> {
+  ): Promise<boolean> {
     return settings.set('providers', providers);
   }
 

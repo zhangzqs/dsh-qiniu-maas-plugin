@@ -138,8 +138,8 @@ describe('qiniu controller', () => {
         support_api_protocols: ['openai'],
       },
     ]);
-    const setEnabledModelIds = vi.fn().mockResolvedValue(undefined);
-    const setProviders = vi.fn().mockResolvedValue(undefined);
+    const setEnabledModelIds = vi.fn().mockResolvedValue(true);
+    const setProviders = vi.fn().mockResolvedValue(true);
     const settings = {
       enabledModelIds: ['unavailable-model', 'model-a'],
       region: 'global',
@@ -172,8 +172,8 @@ describe('qiniu controller', () => {
         support_api_protocols: ['openai'],
       },
     ]);
-    const setEnabledModelIds = vi.fn().mockResolvedValue(undefined);
-    const setProviders = vi.fn().mockResolvedValue(undefined);
+    const setEnabledModelIds = vi.fn().mockResolvedValue(true);
+    const setProviders = vi.fn().mockResolvedValue(true);
     const settings = {
       enabledModelIds: ['model-a'],
       region: 'cn',
@@ -202,9 +202,9 @@ describe('qiniu controller', () => {
         support_api_protocols: ['openai'],
       })),
     );
-    const setEnabledModelIds = vi.fn().mockResolvedValue(undefined);
-    const setHasAutoEnabledDefaultModels = vi.fn().mockResolvedValue(undefined);
-    const setProviders = vi.fn().mockResolvedValue(undefined);
+    const setEnabledModelIds = vi.fn().mockResolvedValue(true);
+    const setHasAutoEnabledDefaultModels = vi.fn().mockResolvedValue(true);
+    const setProviders = vi.fn().mockResolvedValue(true);
     const settings = {
       enabledModelIds: [],
       hasAutoEnabledDefaultModels: false,
@@ -236,7 +236,7 @@ describe('qiniu controller', () => {
 
   it('does not replace existing models during initialization', async () => {
     listModelsMock.mockResolvedValueOnce([]);
-    const setHasAutoEnabledDefaultModels = vi.fn().mockResolvedValue(undefined);
+    const setHasAutoEnabledDefaultModels = vi.fn().mockResolvedValue(true);
     const settings = {
       enabledModelIds: ['existing-model'],
       hasAutoEnabledDefaultModels: false,
@@ -249,7 +249,10 @@ describe('qiniu controller', () => {
         read: () => settings,
         setHasAutoEnabledDefaultModels,
       } as never,
-      { read: () => ({ providers: {} }), setProviders: vi.fn() } as never,
+      {
+        read: () => ({ providers: {} }),
+        setProviders: vi.fn().mockResolvedValue(true),
+      } as never,
       { update: vi.fn() } as never,
     );
 
@@ -261,7 +264,7 @@ describe('qiniu controller', () => {
 
   it('does not mark initialization complete when no models are available', async () => {
     listModelsMock.mockResolvedValueOnce([]);
-    const setHasAutoEnabledDefaultModels = vi.fn().mockResolvedValue(undefined);
+    const setHasAutoEnabledDefaultModels = vi.fn().mockResolvedValue(true);
     const controller = createQiniuController(
       {} as never,
       {
@@ -280,5 +283,82 @@ describe('qiniu controller', () => {
     await controller.initializeDefaultModels();
 
     expect(setHasAutoEnabledDefaultModels).not.toHaveBeenCalled();
+  });
+
+  it('stops initialization after disposal while models are loading', async () => {
+    const models = Promise.withResolvers<
+      Array<{
+        id: string;
+        name: string;
+        rank: number;
+        support_api_protocols: string[];
+      }>
+    >();
+    listModelsMock.mockReturnValueOnce(models.promise);
+    const setEnabledModelIds = vi.fn().mockResolvedValue(true);
+    const setHasAutoEnabledDefaultModels = vi.fn().mockResolvedValue(true);
+    const controller = createQiniuController(
+      {} as never,
+      {
+        read: () => ({
+          enabledModelIds: [],
+          hasAutoEnabledDefaultModels: false,
+          region: 'cn',
+          inferenceProtocol: 'openai-completions',
+        }),
+        setEnabledModelIds,
+        setHasAutoEnabledDefaultModels,
+      } as never,
+      {} as never,
+      {} as never,
+    );
+    const abortController = new AbortController();
+
+    const initializing = controller.initializeDefaultModels(
+      abortController.signal,
+    );
+    abortController.abort();
+    models.resolve([
+      {
+        id: 'model-a',
+        name: 'Model A',
+        rank: 1,
+        support_api_protocols: ['openai'],
+      },
+    ]);
+    await initializing;
+
+    expect(setEnabledModelIds).not.toHaveBeenCalled();
+    expect(setHasAutoEnabledDefaultModels).not.toHaveBeenCalled();
+  });
+
+  it('does not update local model state when the Host refuses the write', async () => {
+    listModelsMock.mockResolvedValueOnce([
+      {
+        id: 'model-a',
+        name: 'Model A',
+        rank: 1,
+        support_api_protocols: ['openai'],
+      },
+    ]);
+    const update = vi.fn();
+    const controller = createQiniuController(
+      {} as never,
+      {
+        read: () => ({
+          enabledModelIds: [],
+          region: 'cn',
+          inferenceProtocol: 'openai-completions',
+        }),
+        setEnabledModelIds: vi.fn().mockResolvedValue(false),
+      } as never,
+      {} as never,
+      { update } as never,
+    );
+
+    await expect(controller.setEnabledModelIds(['model-a'])).rejects.toThrow(
+      'settings write was refused',
+    );
+    expect(update).not.toHaveBeenCalled();
   });
 });

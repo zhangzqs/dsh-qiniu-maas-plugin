@@ -2,15 +2,26 @@ import { describe, expect, it, vi } from 'vitest';
 import { createPiAiSettingsController } from '../src/client/controller/settings/pi-ai.ts';
 import { createQiniuSettingsController } from '../src/client/controller/settings/qiniu.ts';
 
-function settingsScope(initialValue: Record<string, unknown>) {
+function configForm(initialValue: Record<string, unknown>) {
   let value = initialValue;
   const set = vi.fn(async (field: string, nextValue: unknown) => {
     value = { ...value, [field]: nextValue };
+    return true;
   });
 
   return {
-    getSnapshot: () => ({ value }),
+    getSnapshot: () => ({
+      status: 'ready',
+      value,
+      base: {},
+      user: {},
+      revision: 0,
+      writable: true,
+      mode: 'host',
+    }),
     set,
+    mutate: vi.fn(),
+    unset: vi.fn(),
     subscribe: () => () => {},
   };
 }
@@ -18,7 +29,7 @@ function settingsScope(initialValue: Record<string, unknown>) {
 describe('settings controllers', () => {
   it('normalizes Qiniu settings from its namespace', () => {
     const controller = createQiniuSettingsController(
-      settingsScope({
+      configForm({
         enabledModelIds: ['model-a', 42],
         region: 'global',
         inferenceProtocol: 'anthropic-messages',
@@ -34,7 +45,7 @@ describe('settings controllers', () => {
   });
 
   it('writes Qiniu settings through its namespace controller', async () => {
-    const scope = settingsScope({});
+    const scope = configForm({});
     const controller = createQiniuSettingsController(scope as never);
 
     await controller.setEnabledModelIds(['model-a']);
@@ -53,7 +64,7 @@ describe('settings controllers', () => {
   });
 
   it('reads and writes the default model initialization marker', async () => {
-    const scope = settingsScope({});
+    const scope = configForm({});
     const controller = createQiniuSettingsController(scope as never);
 
     expect(controller.read().hasAutoEnabledDefaultModels).toBe(false);
@@ -65,14 +76,14 @@ describe('settings controllers', () => {
 
   it('returns an empty model list for malformed settings', () => {
     const controller = createQiniuSettingsController(
-      settingsScope({ enabledModelIds: 'invalid' }) as never,
+      configForm({ enabledModelIds: 'invalid' }) as never,
     );
 
     expect(controller.read().enabledModelIds).toEqual([]);
   });
 
   it('reads and writes Pi AI providers through its namespace controller', async () => {
-    const scope = settingsScope({});
+    const scope = configForm({});
     const controller = createPiAiSettingsController(scope as never);
     const providers = { 'qiniu-maas': { displayName: 'Qiniu MaaS' } };
 
