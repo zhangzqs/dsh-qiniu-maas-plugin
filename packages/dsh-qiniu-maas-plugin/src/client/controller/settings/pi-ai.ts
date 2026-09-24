@@ -1,5 +1,5 @@
 import type { Config as PiAiConfig } from '@deepseek-ai/dsh-llm-pi-ai';
-import type { SettingsScope } from '@deepseek-ai/dsh-client-runtime/client';
+import type { SettingsScope } from '@deepseek-ai/dsh-client-ui-settings/client';
 
 export type PiAiSettings = Pick<PiAiConfig, 'providers'>;
 

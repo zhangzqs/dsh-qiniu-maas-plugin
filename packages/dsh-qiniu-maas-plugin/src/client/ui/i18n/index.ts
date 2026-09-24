@@ -1,4 +1,7 @@
-import type { LocaleId } from '@deepseek-ai/dsh-client-locale/client';
+import type {
+  BuiltInLocaleId,
+  LocaleId,
+} from '@deepseek-ai/dsh-client-locale/client';
 import type {
   LocaleDictOf,
   TranslateNS,
@@ -49,17 +52,15 @@ export function useQiniuT(): QiniuTranslator {
   return t;
 }
 
-export const qiniuMessages = (() => {
-  const dictionaries = { zh: {}, en: {} } as Record<
-    LocaleId,
-    LocaleDictOf<typeof QINIU_MAAS_NAMESPACE>
-  >;
-  for (const [key, value] of Object.entries(allMessages) as [
-    string,
-    QiniuLocaleMessage,
-  ][]) {
-    dictionaries.zh[key as keyof typeof dictionaries.zh] = value.zh;
-    dictionaries.en[key as keyof typeof dictionaries.en] = value.en;
-  }
-  return dictionaries;
-})();
+function createDictionary(
+  locale: BuiltInLocaleId,
+): LocaleDictOf<typeof QINIU_MAAS_NAMESPACE> {
+  return Object.fromEntries(
+    Object.entries(allMessages).map(([key, value]) => [key, value[locale]]),
+  ) as LocaleDictOf<typeof QINIU_MAAS_NAMESPACE>;
+}
+
+export const qiniuMessages = {
+  zh: createDictionary('zh'),
+  en: createDictionary('en'),
+} satisfies Record<BuiltInLocaleId, LocaleDictOf<typeof QINIU_MAAS_NAMESPACE>>;

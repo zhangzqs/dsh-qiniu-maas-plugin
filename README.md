@@ -23,11 +23,11 @@
 
 当前推荐从 GitHub Release 安装插件 tarball：
 
-插件包名为 `@qiniu/dsh-qiniu-maas-plugin`，当前版本为 `0.1.9`。该包通过 GitHub Release 分发，不发布到 npm。
+插件包名为 `@qiniu/dsh-qiniu-maas-plugin`，当前版本为 `0.2.0-rc.0`，适配 DSH `0.1.5-rc.3`。该包通过 GitHub Release 分发，不发布到 npm。
 
 ```sh
-npx -p @deepseek-ai/dsh dsh plugin --profile web add \
-  https://github.com/zhangzqs/dsh-qiniu-maas-plugin/releases/download/v0.1.9/qiniu-dsh-qiniu-maas-plugin-0.1.9.tgz
+npx -p @deepseek-ai/dsh@0.1.5-rc.3 dsh plugin --profile web add \
+  https://github.com/zhangzqs/dsh-qiniu-maas-plugin/releases/download/v0.2.0-rc.0/qiniu-dsh-qiniu-maas-plugin-0.2.0-rc.0.tgz
 ```
 
 安装完成后重启对应的 DSH profile。插件的 SDK 代码已经内联到插件 bundle 中，不需要单独安装 `qiniu-maas-market-sdk`。

@@ -94,26 +94,39 @@ describe('qiniu controller', () => {
 
   it('checks API Key configuration on demand', async () => {
     const describeCredentials = vi.fn().mockResolvedValue({
-      result: {
-        ok: true,
-        value: {
-          credentials: {
-            [QINIU_API_KEY_REF]: { configured: true },
-          },
-        },
+      ok: true,
+      value: {
+        [QINIU_API_KEY_REF]: { configured: true, writable: true },
       },
     });
     const controller = createQiniuController(
-      { api: { credentials: { describe: describeCredentials } } } as never,
+      {
+        remote: { credentials: { describe: describeCredentials } },
+      } as never,
       {} as never,
       {} as never,
       {} as never,
     );
 
     await expect(controller.checkApiKeyConfigured()).resolves.toBe(true);
-    expect(describeCredentials).toHaveBeenCalledWith({
-      refs: [QINIU_API_KEY_REF],
+    expect(describeCredentials).toHaveBeenCalledWith([QINIU_API_KEY_REF]);
+  });
+
+  it('stores the API Key through the credentials remote', async () => {
+    const setCredential = vi.fn().mockResolvedValue({
+      ok: true,
+      value: undefined,
     });
+    const controller = createQiniuController(
+      { remote: { credentials: { set: setCredential } } } as never,
+      {} as never,
+      {} as never,
+      {} as never,
+    );
+
+    await controller.setApiKey('  test-key  ');
+
+    expect(setCredential).toHaveBeenCalledWith(QINIU_API_KEY_REF, 'test-key');
   });
 
   it('sets enabled model IDs directly', async () => {

@@ -1,4 +1,6 @@
-import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client';
+import type { Context as ClientContext } from '@deepseek-ai/cordis';
+import type {} from '@deepseek-ai/dsh-api-remotes/client';
+import type { SnapshotStore } from '@deepseek-ai/dsh-client-store';
 import {
   listModels,
   type Model,
@@ -7,7 +9,6 @@ import {
 import { QINIU_API_KEY_REF, syncProviderSettings } from './provider-sync.ts';
 import type { PiAiSettingsController } from './settings/pi-ai.ts';
 import type { QiniuSettingsController } from './settings/qiniu.ts';
-import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client';
 import type { QiniuInferenceProtocol } from 'qiniu-maas-market-sdk';
 
 export interface QiniuState {
@@ -34,7 +35,7 @@ export type QiniuController = QiniuActions;
 const DEFAULT_MODEL_COUNT = 5;
 
 export function createQiniuController(
-  connection: ConnectionHandle,
+  ctx: ClientContext,
   qiniuSettings: QiniuSettingsController,
   piAiSettings: PiAiSettingsController,
   store: SnapshotStore<QiniuState>,
@@ -65,26 +66,22 @@ export function createQiniuController(
 
   // 查询dsh内的credentials配置，查询API Key是否已配置
   const checkApiKeyConfigured = async (): Promise<boolean> => {
-    const response = await connection.api.credentials.describe({
-      refs: [QINIU_API_KEY_REF],
-    });
-    if (!response.result.ok) {
-      throw new Error(response.result.error.message);
+    const response = await ctx.remote.credentials.describe([QINIU_API_KEY_REF]);
+    if (!response.ok) {
+      throw new Error(response.error.message);
     }
-    return (
-      response.result.value.credentials[QINIU_API_KEY_REF]?.configured === true
-    );
+    return response.value[QINIU_API_KEY_REF]?.configured === true;
   };
 
   // 设置API Key
   const setApiKey = async (value: string): Promise<void> => {
     const trimmed = value.trim();
     if (trimmed.length === 0) throw new Error('API Key 不能为空');
-    const response = await connection.api.credentials.set({
-      ref: QINIU_API_KEY_REF,
-      value: trimmed,
-    });
-    if (!response.result.ok) throw new Error(response.result.error.message);
+    const response = await ctx.remote.credentials.set(
+      QINIU_API_KEY_REF,
+      trimmed,
+    );
+    if (!response.ok) throw new Error(response.error.message);
   };
 
   // 设置已启用的模型列表
