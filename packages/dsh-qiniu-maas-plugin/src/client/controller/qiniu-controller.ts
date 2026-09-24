@@ -19,12 +19,15 @@ export interface QiniuState {
 
 export interface QiniuActions {
   checkApiKeyConfigured: () => Promise<boolean>;
-  initializeDefaultModels: () => Promise<void>;
+  initializeDefaultModels: (signal?: AbortSignal) => Promise<void>;
   fetchMarketModels: (
     region: QiniuRegion,
     forceRefresh?: boolean,
   ) => Promise<readonly Model[]>;
-  setEnabledModelIds: (modelIds: readonly string[]) => Promise<void>;
+  setEnabledModelIds: (
+    modelIds: readonly string[],
+    signal?: AbortSignal,
+  ) => Promise<void>;
   setApiKey: (value: string) => Promise<void>;
   setRegion: (region: QiniuRegion) => Promise<void>;
   setInferenceProtocol: (protocol: QiniuInferenceProtocol) => Promise<void>;
@@ -33,6 +36,12 @@ export interface QiniuActions {
 export type QiniuController = QiniuActions;
 
 const DEFAULT_MODEL_COUNT = 5;
+
+function assertSettingsWriteAccepted(accepted: boolean): void {
+  if (!accepted) {
+    throw new Error('qiniu-maas: settings write was refused');
+  }
+}
 
 export function createQiniuController(
   ctx: ClientContext,
@@ -87,11 +96,13 @@ export function createQiniuController(
   // 设置已启用的模型列表
   const setEnabledModelIds = async (
     modelIds: readonly string[],
+    signal?: AbortSignal,
   ): Promise<void> => {
     const settings = qiniuSettings.read();
 
     // 获取当前区域的所有模型列表
     const marketModels = await fetchMarketModels(settings.region);
+    if (signal?.aborted) return;
 
     {
       // 计算当前区域不可用的模型ID
@@ -104,7 +115,10 @@ export function createQiniuController(
       const nextEnabledModelIds = [
         ...new Set([...unavailableModelIds, ...modelIds]),
       ];
-      await qiniuSettings.setEnabledModelIds(nextEnabledModelIds);
+      assertSettingsWriteAccepted(
+        await qiniuSettings.setEnabledModelIds(nextEnabledModelIds),
+      );
+      if (signal?.aborted) return;
       store.update((state) => {
         state.enabledModelIds = nextEnabledModelIds;
       });
@@ -113,14 +127,20 @@ export function createQiniuController(
   };
 
   // 首次使用插件时候，自动初始化启用前几个默认模型
-  const initializeDefaultModels = async (): Promise<void> => {
+  const initializeDefaultModels = async (
+    signal?: AbortSignal,
+  ): Promise<void> => {
     const settings = qiniuSettings.read();
     if (settings.hasAutoEnabledDefaultModels) return;
 
     const marketModels = await fetchMarketModels(settings.region);
+    if (signal?.aborted) return;
     if (settings.enabledModelIds.length > 0) {
       await syncProviderSettings(piAiSettings, qiniuSettings, marketModels);
-      await qiniuSettings.setHasAutoEnabledDefaultModels(true);
+      if (signal?.aborted) return;
+      assertSettingsWriteAccepted(
+        await qiniuSettings.setHasAutoEnabledDefaultModels(true),
+      );
       return;
     }
 
@@ -130,14 +150,17 @@ export function createQiniuController(
       .map((model) => model.id);
 
     if (defaultModelIds.length === 0) return;
-    await setEnabledModelIds(defaultModelIds);
-    await qiniuSettings.setHasAutoEnabledDefaultModels(true);
+    await setEnabledModelIds(defaultModelIds, signal);
+    if (signal?.aborted) return;
+    assertSettingsWriteAccepted(
+      await qiniuSettings.setHasAutoEnabledDefaultModels(true),
+    );
   };
 
   // 设置服务区域
   const setRegion = async (region: QiniuRegion): Promise<void> => {
     const marketModels = await fetchMarketModels(region);
-    await qiniuSettings.setRegion(region);
+    assertSettingsWriteAccepted(await qiniuSettings.setRegion(region));
     await syncProviderSettings(piAiSettings, qiniuSettings, marketModels);
     store.update((state) => {
       state.region = region;
@@ -149,7 +172,9 @@ export function createQiniuController(
     protocol: QiniuInferenceProtocol,
   ): Promise<void> => {
     const marketModels = await fetchMarketModels(qiniuSettings.read().region);
-    await qiniuSettings.setInferenceProtocol(protocol);
+    assertSettingsWriteAccepted(
+      await qiniuSettings.setInferenceProtocol(protocol),
+    );
     await syncProviderSettings(piAiSettings, qiniuSettings, marketModels);
     store.update((state) => {
       state.inferenceProtocol = protocol;

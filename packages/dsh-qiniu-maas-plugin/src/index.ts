@@ -1,41 +1,40 @@
-import type { Context } from '@deepseek-ai/cordis';
+import type { Context, Volatile } from '@deepseek-ai/cordis';
 import type {} from '@deepseek-ai/dsh-settings';
 import z from '@deepseek-ai/schemastery';
-import {
-  QINIU_MAAS_NAMESPACE,
-  type QiniuInferenceProtocol,
-  type QiniuSettings,
-} from './shared.ts';
+import { type QiniuInferenceProtocol } from './shared.ts';
 import type { QiniuRegion } from 'qiniu-maas-market-sdk';
 
 export const name = '@qiniu/dsh-qiniu-maas-plugin';
 export const inject: string[] = [];
 
-export type Config = QiniuSettings;
+export interface Config {
+  enabledModelIds: Volatile<string[]>;
+  hasAutoEnabledDefaultModels: Volatile<boolean>;
+  region: Volatile<QiniuRegion>;
+  inferenceProtocol: Volatile<QiniuInferenceProtocol>;
+}
 
-export const Config: z<Config> = z.object({
-  enabledModelIds: z.array(z.string()).default([]),
-  hasAutoEnabledDefaultModels: z.boolean().default(false),
-  region: z.union(['cn', 'global'] satisfies QiniuRegion[]).default('cn'),
+export const Config = z.object({
+  enabledModelIds: z.array(z.string()).default([]).volatile(),
+  hasAutoEnabledDefaultModels: z.boolean().default(false).volatile(),
+  region: z
+    .union(['cn', 'global'] satisfies QiniuRegion[])
+    .default('cn')
+    .volatile(),
   inferenceProtocol: z
     .union([
       'openai-completions',
       'anthropic-messages',
     ] satisfies QiniuInferenceProtocol[])
-    .default('openai-completions'),
+    .default('openai-completions')
+    .volatile(),
 });
 
-export function apply(ctx: Context, config: Config): void {
+export function apply(ctx: Context): void {
   ctx.inject(['settings'], (settingsCtx) => {
-    settingsCtx.settings.installSection(
-      ctx,
-      QINIU_MAAS_NAMESPACE,
-      Config,
-      config,
-      {
-        setSource: () => {},
-        onChange: () => {},
-      },
+    settingsCtx.effect(
+      () => settingsCtx.settings.configure({ auto: false }, ctx.fiber),
+      'qiniu-maas: settings presentation',
     );
   });
 }

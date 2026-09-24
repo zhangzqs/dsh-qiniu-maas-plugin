@@ -83,11 +83,14 @@ export async function syncProviderSettings(
   marketModels: readonly Model[],
 ): Promise<void> {
   const settings = qiniuSettings.read();
-  await piAiSettings.setProviders(
+  const accepted = await piAiSettings.setProviders(
     createQiniuProviderSettings(
       piAiSettings.read().providers,
       settings,
       marketModels,
     ),
   );
+  if (!accepted) {
+    throw new Error('qiniu-maas: pi-ai provider settings write was refused');
+  }
 }

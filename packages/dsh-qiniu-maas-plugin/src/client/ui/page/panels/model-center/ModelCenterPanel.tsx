@@ -8,7 +8,7 @@ import {
 } from 'react';
 import {
   Button,
-  IconChevronDownOutline14,
+  IconChevronDownOutlineMedium,
   Input,
   Menu,
 } from '@deepseek-ai/dsh-client-ui-primitives';
@@ -170,7 +170,7 @@ export function ModelCenterPanel({
               onClick={() => setIsSortMenuOpen((open) => !open)}
             >
               {sortOptions.find((item) => item.id === sortOrder)?.label}
-              <IconChevronDownOutline14 />
+              <IconChevronDownOutlineMedium />
             </Button>
           }
           items={sortOptions}
@@ -196,7 +196,7 @@ export function ModelCenterPanel({
               {showEnabledOnly || showRetired
                 ? ` · ${Number(showEnabledOnly) + Number(showRetired)}`
                 : ''}
-              <IconChevronDownOutline14 />
+              <IconChevronDownOutlineMedium />
             </Button>
           }
           items={filterOptions}

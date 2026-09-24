@@ -9,6 +9,7 @@ export type {
 } from 'qiniu-maas-market-sdk';
 
 export const QINIU_MAAS_NAMESPACE = 'qiniu-maas' as const;
+export const QINIU_MAAS_ENTRY_ID = 'qiniu-maas-dsh-plugin' as const;
 
 export interface QiniuSettings {
   /** 已启用的模型ID列表 */
