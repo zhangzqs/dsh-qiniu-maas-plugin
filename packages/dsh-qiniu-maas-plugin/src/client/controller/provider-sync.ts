@@ -12,7 +12,7 @@ import type {
   QiniuSettingsController,
   QiniuSettingsValue,
 } from './settings/qiniu.ts';
-import { QINIU_MAAS_NAMESPACE } from '../../shared.ts';
+import { QINIU_MAAS_NAMESPACE } from '../constants.ts';
 
 export const QINIU_API_KEY_REF = 'QINIU_MAAS_API_KEY';
 

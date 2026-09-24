@@ -74,7 +74,6 @@
   "files": [
     "lib/index.js",
     "lib/client.js",
-    "lib/shared.js",
     "cordis.patch.yml",
     "package.json"
   ],

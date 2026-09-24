@@ -6,13 +6,15 @@ import type {
 } from '@deepseek-ai/dsh-client-ui-slots';
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-store';
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
-import type { QiniuRegion } from 'qiniu-maas-market-sdk';
-import { QINIU_MAAS_NAMESPACE } from '../../shared.ts';
+import type {
+  QiniuInferenceProtocol,
+  QiniuRegion,
+} from 'qiniu-maas-market-sdk';
+import { QINIU_MAAS_NAMESPACE } from '../constants.ts';
 import type {
   QiniuActions,
   QiniuState,
 } from '../controller/qiniu-controller.ts';
-import type { QiniuInferenceProtocol } from '../../shared.ts';
 import { Page } from './page/Page.tsx';
 
 export interface QiniuInjected extends QiniuActions {

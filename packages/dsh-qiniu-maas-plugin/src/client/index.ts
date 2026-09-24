@@ -10,12 +10,13 @@ import {
   createQiniuSettingsController,
   initializeWhenSettingsReady,
   type PiAiSettings,
+  type QiniuSettings,
   type QiniuState,
 } from './controller/index.ts';
+import { QINIU_MAAS_NAMESPACE } from './constants.ts';
 import { QiniuSettingsSection, type QiniuInjected } from './ui/index.ts';
 import { qiniuMessages } from './ui/i18n/index.ts';
 import { qiniuSettingsSectionKeys } from './ui/QiniuSettingsSection.locales.ts';
-import { QINIU_MAAS_NAMESPACE, type QiniuSettings } from '../shared.ts';
 
 const QINIU_MAAS_ENTRY_ID = 'qiniu-maas-dsh-plugin';
 

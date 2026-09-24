@@ -1,8 +1,10 @@
 import type { Context, Volatile } from '@deepseek-ai/cordis';
 import type {} from '@deepseek-ai/dsh-settings';
 import z from '@deepseek-ai/schemastery';
-import { type QiniuInferenceProtocol } from './shared.ts';
-import type { QiniuRegion } from 'qiniu-maas-market-sdk';
+import type {
+  QiniuInferenceProtocol,
+  QiniuRegion,
+} from 'qiniu-maas-market-sdk';
 
 export const name = '@qiniu/dsh-qiniu-maas-plugin';
 export const inject: string[] = [];
