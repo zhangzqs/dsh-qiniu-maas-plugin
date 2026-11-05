@@ -23,10 +23,10 @@
 
 当前推荐从 GitHub Release 安装插件 tarball：
 
-插件包名为 `@qiniu/dsh-qiniu-maas-plugin`，当前版本为 `0.3.0`，适配 DSH `0.1.7-rc.1`。该包通过 GitHub Release 分发，不发布到 npm。
+插件包名为 `@qiniu/dsh-qiniu-maas-plugin`，当前版本为 `0.3.0`，适配 DSH `0.2.1-rc.5`。该包通过 GitHub Release 分发，不发布到 npm。
 
 ```sh
-npx -p @deepseek-ai/dsh@0.1.7-rc.1 dsh plugin --profile web add \
+npx -p @deepseek-ai/dsh@0.2.1-rc.5 dsh plugin --profile web add \
   https://github.com/zhangzqs/dsh-qiniu-maas-plugin/releases/download/v0.3.0/qiniu-dsh-qiniu-maas-plugin-0.3.0.tgz
 ```
 
